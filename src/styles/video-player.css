@@ -1,0 +1,151 @@
+/* Video Player Styles */
+.fullscreen-video {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999 !important;
+  aspect-ratio: unset !important;
+}
+
+.transition-opacity {
+  transition: opacity 0.3s ease;
+}
+
+.bg-gradient-dark {
+  background: linear-gradient(transparent, rgba(0,0,0,0.8)) !important;
+}
+
+.form-range::-webkit-slider-thumb {
+  background: #0d6efd;
+}
+
+.form-range::-moz-range-thumb {
+  background: #0d6efd;
+}
+
+.video-player-container {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.video-player-container .card-body {
+  padding: 0;
+}
+
+/* Custom video controls */
+.video-controls-overlay {
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  transition: opacity 0.3s ease;
+}
+
+.video-controls-overlay:hover {
+  opacity: 1 !important;
+}
+
+/* Progress bar styling */
+.video-progress {
+  height: 4px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.video-progress-filled {
+  height: 100%;
+  background: #0d6efd;
+  transition: width 0.1s ease;
+}
+
+.video-progress:hover {
+  height: 6px;
+}
+
+/* Live indicator animation */
+.live-indicator {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Volume slider */
+.volume-slider {
+  width: 80px;
+  accent-color: #0d6efd;
+}
+
+/* Speed control buttons */
+.speed-controls .btn {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+}
+
+/* Fullscreen styles */
+.fullscreen-video video {
+  object-fit: contain;
+}
+
+/* Course Card Video Preview */
+.course-card {
+  transition: all 0.3s ease;
+}
+
+.course-card:hover {
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.course-card .position-relative:hover .btn {
+  transform: scale(1.1);
+  opacity: 1 !important;
+}
+
+.course-card .btn-primary {
+  transition: all 0.3s ease;
+}
+
+/* Video Preview Modal */
+.video-preview-modal .modal-content {
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.video-preview-modal .modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.video-preview-modal .btn-close {
+  filter: invert(1);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .video-controls-overlay {
+    padding: 1rem;
+  }
+  
+  .speed-controls {
+    display: none;
+  }
+  
+  .volume-slider {
+    width: 60px;
+  }
+
+  .course-card .position-absolute .btn {
+    width: 50px !important;
+    height: 50px !important;
+  }
+  
+  .course-card .position-absolute .btn i {
+    font-size: 1.5rem !important;
+  }
+}

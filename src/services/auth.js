@@ -35,16 +35,34 @@ export async function login(email, password) {
     throw new Error('Email and password are required');
   }
 
-  // Check if user exists
-  const user = Object.values(MOCK_USERS).find(u => u.email === email);
-  if (!user) {
-    throw new Error('Invalid credentials');
+  // Email format validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    throw new Error('Please enter a valid email address');
   }
 
-  // In a real app, we would verify the password here
+  // Check if user exists in our mock data, otherwise create a dynamic student user
+  let user = Object.values(MOCK_USERS).find(u => u.email === email);
+  
+  if (!user) {
+    // Create a dynamic student user for any valid email
+    const username = email.split('@')[0];
+    const displayName = username.charAt(0).toUpperCase() + username.slice(1).replace(/[._-]/g, ' ');
+    
+    user = {
+      id: Date.now(),
+      email: email.toLowerCase(),
+      name: displayName,
+      role: 'student' // Default to student role
+    };
+  }
+
+  // Generate a token
+  const token = `mock-token-${user.id}-${Date.now()}`;
+
   return {
     user,
-    token: MOCK_TOKENS[email]
+    token
   };
 }
 

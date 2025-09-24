@@ -10,7 +10,7 @@ import { AuthProvider } from './context/AuthContext';
 import { UiProvider } from './context/UiContext';
 
 // Public Routes
-import Home from './routes/Public/Home';
+import HomeRedirect from './components/HomeRedirect';
 import Catalog from './routes/Public/Catalog';
 import CourseDetail from './routes/Public/CourseDetail';
 import ForgotPassword from './routes/Public/ForgotPassword';
@@ -65,7 +65,7 @@ export default function App() {
                   <Navbar />
                   <main className="flex-grow-1">
                     <Routes>
-                      <Route path="/" element={<Home />} />
+                      <Route path="/" element={<HomeRedirect />} />
                       <Route path="/catalog" element={<Catalog />} />
                       <Route path="/courses/:courseId" element={<CourseDetail />} />
                       {/* /register handled above to remove header/footer */}

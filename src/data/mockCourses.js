@@ -9,12 +9,20 @@ export const mockCourses = [
     },
     category: 'Web Development',
     level: 'Beginner',
-      thumbnail: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=600&q=80', // Web Development
-    price: 49.99,
+    thumbnail: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=600&q=80',
+    price: 399,
     duration: '6 weeks',
     enrolled: 1250,
     rating: 4.5,
-    lessons: [1, 2, 3, 4, 5]
+    lessons: [1, 2, 3, 4, 5],
+    previewVideo: 'https://youtu.be/qz0aGYrrlhU',
+    curriculum: [
+      'HTML Fundamentals and Document Structure',
+      'CSS Styling and Layout Techniques',
+      'JavaScript Programming Basics',
+      'Responsive Web Design',
+      'Building Your First Website Project'
+    ]
   },
   {
     id: 2,
@@ -26,12 +34,19 @@ export const mockCourses = [
     },
     category: 'JavaScript',
     level: 'Advanced',
-      thumbnail: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=600&q=80', // React
-    price: 79.99,
+    thumbnail: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=600&q=80',
+    price: 599,
     duration: '8 weeks',
     enrolled: 850,
     rating: 4.8,
-    lessons: [6, 7, 8, 9]
+    lessons: [6, 7, 8, 9],
+    previewVideo: 'https://youtu.be/Tn6-PIqc4UM',
+    curriculum: [
+      'React Hooks and Functional Components',
+      'Context API and State Management',
+      'Performance Optimization Techniques',
+      'Testing React Applications'
+    ]
   },
   {
     id: 3,
@@ -43,12 +58,20 @@ export const mockCourses = [
     },
     category: 'Data Science',
     level: 'Intermediate',
-      thumbnail: 'https://images.unsplash.com/photo-1503676382389-4809596d5290?auto=format&fit=crop&w=600&q=80', // Python/Data Science
-    price: 69.99,
+    thumbnail: 'https://images.unsplash.com/photo-1503676382389-4809596d5290?auto=format&fit=crop&w=600&q=80',
+    price: 549,
     duration: '10 weeks',
     enrolled: 2100,
     rating: 4.6,
-    lessons: [10, 11, 12, 13, 14]
+    lessons: [10, 11, 12, 13, 14],
+    previewVideo: 'https://youtu.be/rfscVS0vtbw',
+    curriculum: [
+      'Python Basics for Data Science',
+      'NumPy Arrays and Mathematical Operations',
+      'Pandas DataFrames and Data Manipulation',
+      'Data Visualization with Matplotlib',
+      'Real-world Data Analysis Projects'
+    ]
   },
   {
     id: 4,
@@ -60,12 +83,13 @@ export const mockCourses = [
     },
     category: 'Data Science',
     level: 'Intermediate',
-    thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80', // AI/ML
-    price: 89.99,
+    thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80',
+    price: 699,
     duration: '12 weeks',
     enrolled: 1800,
     rating: 4.7,
     lessons: [15, 16, 17, 18, 19, 20],
+    previewVideo: 'https://youtu.be/HgBcQp4uEUI',
     curriculum: [
       'Introduction to Machine Learning',
       'Data Preprocessing and Feature Engineering',
@@ -85,12 +109,13 @@ export const mockCourses = [
     },
     category: 'Web Development',
     level: 'Intermediate',
-    thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80', // Backend/Server
-    price: 64.99,
+    thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80',
+    price: 499,
     duration: '8 weeks',
     enrolled: 920,
     rating: 4.4,
     lessons: [21, 22, 23, 24, 25],
+    previewVideo: 'https://youtu.be/fBNz5xF-Kx4',
     curriculum: [
       'Node.js Fundamentals and NPM',
       'Express.js Framework and Routing',
@@ -109,12 +134,13 @@ export const mockCourses = [
     },
     category: 'Mobile Development',
     level: 'Advanced',
-    thumbnail: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=600&q=80', // Mobile
-    price: 94.99,
+    thumbnail: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=600&q=80',
+    price: 749,
     duration: '10 weeks',
     enrolled: 1350,
     rating: 4.6,
     lessons: [26, 27, 28, 29, 30, 31],
+    previewVideo: 'https://youtu.be/0-S5a0eXPoc',
     curriculum: [
       'React Native Setup and Environment',
       'Navigation and Screen Management',
@@ -134,12 +160,13 @@ export const mockCourses = [
     },
     category: 'Marketing',
     level: 'Beginner',
-    thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80', // Marketing
-    price: 54.99,
+    thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80',
+    price: 429,
     duration: '7 weeks',
     enrolled: 2500,
     rating: 4.5,
     lessons: [32, 33, 34, 35, 36],
+    previewVideo: 'https://youtu.be/bixR-KIJKYM',
     curriculum: [
       'Digital Marketing Fundamentals',
       'Search Engine Optimization (SEO)',
@@ -158,12 +185,13 @@ export const mockCourses = [
     },
     category: 'Design',
     level: 'Beginner',
-    thumbnail: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=600&q=80', // Design
-    price: 59.99,
+    thumbnail: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=600&q=80',
+    price: 459,
     duration: '6 weeks',
     enrolled: 1700,
     rating: 4.8,
     lessons: [37, 38, 39, 40, 41],
+    previewVideo: 'https://youtu.be/c9Wg6Cb_YlU',
     curriculum: [
       'Design Thinking and User Research',
       'Wireframing and Prototyping',
@@ -182,12 +210,13 @@ export const mockCourses = [
     },
     category: 'JavaScript',
     level: 'Advanced',
-    thumbnail: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?auto=format&fit=crop&w=600&q=80', // JavaScript
-    price: 69.99,
+    thumbnail: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?auto=format&fit=crop&w=600&q=80',
+    price: 549,
     duration: '7 weeks',
     enrolled: 1100,
     rating: 4.7,
     lessons: [42, 43, 44, 45, 46],
+    previewVideo: 'https://youtu.be/2md4HQNRqJA',
     curriculum: [
       'ES6+ Syntax and Features',
       'Promises and Async/Await',
@@ -206,12 +235,13 @@ export const mockCourses = [
     },
     category: 'Security',
     level: 'Intermediate',
-    thumbnail: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80', // Security
-    price: 84.99,
+    thumbnail: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80',
+    price: 649,
     duration: '9 weeks',
     enrolled: 980,
     rating: 4.6,
     lessons: [47, 48, 49, 50, 51, 52],
+    previewVideo: 'https://youtu.be/U_P23SqJaDc',
     curriculum: [
       'Cybersecurity Fundamentals and Threats',
       'Network Security and Firewalls',
@@ -231,12 +261,13 @@ export const mockCourses = [
     },
     category: 'Cloud Computing',
     level: 'Intermediate',
-    thumbnail: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80', // Cloud
-    price: 99.99,
+    thumbnail: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80',
+    price: 799,
     duration: '11 weeks',
     enrolled: 1450,
     rating: 4.5,
     lessons: [53, 54, 55, 56, 57, 58, 59],
+    previewVideo: 'https://youtu.be/3hLmDS179YE',
     curriculum: [
       'AWS Fundamentals and Account Setup',
       'EC2 Instances and Virtual Machines',
@@ -257,12 +288,13 @@ export const mockCourses = [
     },
     category: 'Blockchain',
     level: 'Advanced',
-    thumbnail: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=600&q=80', // Blockchain
-    price: 129.99,
+    thumbnail: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=600&q=80',
+    price: 999,
     duration: '14 weeks',
     enrolled: 680,
     rating: 4.4,
     lessons: [60, 61, 62, 63, 64, 65, 66, 67],
+    previewVideo: 'https://youtu.be/M576WGiDBdQ',
     curriculum: [
       'Blockchain Fundamentals and Bitcoin',
       'Ethereum and Smart Contract Basics',

@@ -15,7 +15,7 @@ export default function Login() {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const from = location.state?.from?.pathname || '/';
+  const from = location.state?.from?.pathname || '/catalog';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,6 +37,7 @@ export default function Login() {
         <Card.Body className="p-4">
           <h3 className="text-center fw-bold mb-2">Sign In</h3>
           <p className="text-center text-muted mb-4">Access your account</p>
+          
           {location.state?.message && !error && (
             <Alert variant="success" className="py-2 mb-3" dismissible onClose={() => navigate('.', { replace: true, state: {} })}>
               {location.state.message}

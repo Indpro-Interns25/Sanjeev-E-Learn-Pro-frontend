@@ -8,18 +8,10 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles/globals.css'
 import './styles/bootstrap-overrides.css'
 
-// Context Providers
-import { AuthProvider } from './context/AuthContext'
-import { UiProvider } from './context/UiContext'
-
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <UiProvider>
-          <App />
-        </UiProvider>
-      </AuthProvider>
+      <App />
     </BrowserRouter>
   </React.StrictMode>,
 )
