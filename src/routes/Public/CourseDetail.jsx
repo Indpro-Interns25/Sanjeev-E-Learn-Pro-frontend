@@ -116,28 +116,11 @@ export default function CourseDetail() {
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <h4 className="mb-0 fw-bold"><i className="bi bi-list-ol me-2"></i>Course Content</h4>
                     <div className="text-muted">
-                      {course.curriculum ? course.curriculum.length : lessons.length} lessons • {course.duration}
+                      {lessons.length} lessons • {course.duration}
                     </div>
                   </div>
 
-                  {course.curriculum && course.curriculum.length > 0 ? (
-                    <div className="list-group">
-                      {course.curriculum.map((curriculumItem, index) => (
-                        <div key={index} className="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
-                          <div className="d-flex align-items-center justify-content-center bg-primary text-white rounded-circle" style={{ width: '40px', height: '40px', minWidth: '40px' }}>
-                            <span className="fw-bold">{index + 1}</span>
-                          </div>
-                          <div className="flex-grow-1">
-                            <h5 className="mb-1">{curriculumItem}</h5>
-                            <small className="text-secondary"><i className="bi bi-clock me-1"></i>Coming Soon</small>
-                          </div>
-                          <Button variant="outline-secondary" size="sm" disabled>
-                            Preview
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : lessons.length > 0 ? (
+                  {lessons.length > 0 ? (
                     <div className="list-group">
                       {lessons.map(lesson => (
                         <div key={lesson.id} className="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
@@ -148,12 +131,11 @@ export default function CourseDetail() {
                             <small className="text-secondary"><i className="bi bi-clock me-1"></i>{lesson.duration}</small>
                           </div>
                           <Button variant="outline-primary" size="sm" onClick={() => {
-                            if (!isAuthenticated) {
-                              navigate('/login', { state: { from: `/courses/${courseId}` } });
-                            } else {
-                              navigate(`/student/courses/${courseId}/lessons/${lesson.id}`);
-                            }
-                          }}>View Lesson</Button>
+                            // Allow preview for everyone, no auth required
+                            navigate(`/courses/${courseId}/lessons/${lesson.id}/preview`);
+                          }}>
+                            <i className="bi bi-play-circle me-1"></i>Preview
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -175,7 +157,7 @@ export default function CourseDetail() {
             <Card className="shadow-lg rounded-4 border-0">
               <Card.Body>
                 <div className="mb-3 text-center">
-                  <h3 className="h2 mb-0 fw-bold text-primary">${course.price}</h3>
+                  <h3 className="h2 mb-0 fw-bold text-primary">₹{course.price}</h3>
                 </div>
 
                 <div className="d-grid gap-2 mb-3">

@@ -3,6 +3,18 @@ import { Card, Button, ButtonGroup, Spinner, Alert } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import '../styles/video-player.css';
 
+// Helper function to extract YouTube video ID
+const getYouTubeVideoId = (url) => {
+  const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[7].length === 11) ? match[7] : null;
+};
+
+// Helper function to check if URL is YouTube
+const isYouTubeUrl = (url) => {
+  return url && (url.includes('youtube.com') || url.includes('youtu.be'));
+};
+
 export default function VideoPlayer({ 
   videoUrl, 
   title, 
@@ -23,8 +35,18 @@ export default function VideoPlayer({
   const containerRef = useRef(null);
   const controlsTimeoutRef = useRef(null);
 
+  // Check if this is a YouTube URL
+  const isYouTube = isYouTubeUrl(videoUrl);
+  const youtubeVideoId = isYouTube ? getYouTubeVideoId(videoUrl) : null;
+
   // Initialize video player
   useEffect(() => {
+    if (isYouTube) {
+      // For YouTube videos, we'll use iframe embed
+      setLoading(false);
+      return;
+    }
+
     const video = videoRef.current;
     if (!video || !videoUrl) {
       setLoading(false);
@@ -80,11 +102,11 @@ export default function VideoPlayer({
         video.src = '';
       }
     };
-  }, [videoUrl, autoPlay, onProgress]);
+  }, [videoUrl, autoPlay, onProgress, isYouTube]);
 
-  // Auto-hide controls
+  // Auto-hide controls (only for direct video, not YouTube)
   useEffect(() => {
-    if (showControls && isPlaying) {
+    if (!isYouTube && showControls && isPlaying) {
       controlsTimeoutRef.current = setTimeout(() => {
         setShowControls(false);
       }, 3000);
@@ -95,7 +117,7 @@ export default function VideoPlayer({
         clearTimeout(controlsTimeoutRef.current);
       }
     };
-  }, [showControls, isPlaying]);
+  }, [showControls, isPlaying, isYouTube]);
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -206,6 +228,38 @@ export default function VideoPlayer({
     );
   }
 
+  // Render YouTube iframe
+  if (isYouTube && youtubeVideoId) {
+    return (
+      <Card className="video-player-container">
+        {title && (
+          <Card.Header className="bg-dark text-light">
+            <h6 className="mb-0">{title}</h6>
+          </Card.Header>
+        )}
+        <div 
+          ref={containerRef}
+          className={`youtube-wrapper ${isFullscreen ? 'fullscreen' : ''}`}
+        >
+          <iframe
+            src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1&controls=1&showinfo=0`}
+            title={title || 'Educational Video'}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            className="youtube-iframe"
+            style={{
+              width: '100%',
+              height: '400px',
+              minHeight: '300px'
+            }}
+          />
+        </div>
+      </Card>
+    );
+  }
+
+  // Render direct video player for non-YouTube URLs
   return (
     <Card className="video-player-container">
       <div 

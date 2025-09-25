@@ -44,7 +44,7 @@ export default function CourseCard({ course }) {
           </div>
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <strong className="h5 mb-0">${course.price}</strong>
+              <strong className="h5 mb-0">₹{course.price}</strong>
               <div className="text-warning small">
                 {[...Array(5)].map((_, i) => (
                   <i key={i} className={`bi bi-star${i < Math.round(course.rating) ? '-fill' : ''}`}></i>

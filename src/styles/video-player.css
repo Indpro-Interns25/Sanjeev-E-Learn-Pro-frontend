@@ -35,7 +35,99 @@
   padding: 0;
 }
 
+/* YouTube iframe wrapper */
+.youtube-wrapper {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  background: #000;
+}
+
+.youtube-wrapper.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+}
+
+.youtube-iframe {
+  border: none;
+  border-radius: 0;
+}
+
+.youtube-wrapper.fullscreen .youtube-iframe {
+  height: 100vh !important;
+}
+
+/* Direct video wrapper */
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-wrapper.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  border-radius: 0;
+}
+
+.video-element {
+  width: 100%;
+  height: 400px;
+  object-fit: contain;
+  background: #000;
+}
+
+.video-wrapper.fullscreen .video-element {
+  height: 100vh;
+}
+
+/* Loading overlay */
+.video-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  z-index: 10;
+}
+
 /* Custom video controls */
+.video-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  color: white;
+  padding: 1rem;
+  transition: opacity 0.3s ease;
+  z-index: 20;
+}
+
+.video-controls.visible {
+  opacity: 1;
+}
+
+.video-controls.hidden {
+  opacity: 0;
+}
+
 .video-controls-overlay {
   background: linear-gradient(transparent, rgba(0,0,0,0.8));
   transition: opacity 0.3s ease;
@@ -46,6 +138,31 @@
 }
 
 /* Progress bar styling */
+.progress-container {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar-custom {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar-custom:hover {
+  height: 6px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #0d6efd;
+  border-radius: 2px;
+  transition: width 0.1s ease;
+}
+
 .video-progress {
   height: 4px;
   cursor: pointer;
@@ -64,6 +181,97 @@
   height: 6px;
 }
 
+/* Controls row */
+.controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.controls-left,
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.control-btn {
+  color: white !important;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+}
+
+.control-btn:hover {
+  color: #0d6efd !important;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+/* Volume controls */
+.volume-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.volume-slider {
+  width: 80px;
+  accent-color: #0d6efd;
+  background: transparent;
+}
+
+.volume-slider::-webkit-slider-track {
+  background: rgba(255, 255, 255, 0.3);
+  height: 3px;
+  border-radius: 3px;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  background: #0d6efd;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-track {
+  background: rgba(255, 255, 255, 0.3);
+  height: 3px;
+  border-radius: 3px;
+  border: none;
+}
+
+.volume-slider::-moz-range-thumb {
+  background: #0d6efd;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+/* Time display */
+.time-display {
+  font-size: 0.875rem;
+  color: white;
+  white-space: nowrap;
+}
+
+/* Speed control buttons */
+.speed-btn {
+  font-size: 0.75rem !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 4px !important;
+}
+
+.speed-controls .btn {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+}
+
 /* Live indicator animation */
 .live-indicator {
   animation: pulse 2s infinite;
@@ -73,18 +281,6 @@
   0% { opacity: 1; }
   50% { opacity: 0.5; }
   100% { opacity: 1; }
-}
-
-/* Volume slider */
-.volume-slider {
-  width: 80px;
-  accent-color: #0d6efd;
-}
-
-/* Speed control buttons */
-.speed-controls .btn {
-  font-size: 0.75rem;
-  padding: 2px 8px;
 }
 
 /* Fullscreen styles */
@@ -128,8 +324,19 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-  .video-controls-overlay {
-    padding: 1rem;
+  .video-controls {
+    padding: 0.75rem;
+  }
+  
+  .controls-row {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+  
+  .controls-left,
+  .controls-right {
+    justify-content: center;
   }
   
   .speed-controls {
@@ -147,5 +354,14 @@
   
   .course-card .position-absolute .btn i {
     font-size: 1.5rem !important;
+  }
+
+  .youtube-iframe {
+    height: 250px !important;
+    min-height: 200px !important;
+  }
+
+  .video-element {
+    height: 250px;
   }
 }

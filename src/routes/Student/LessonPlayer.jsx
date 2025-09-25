@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getCourseById } from '../../data/mockCourses';
 import { getLessonById, markLessonComplete, getLessonsByCourse } from '../../data/mockLessons';
+import VideoPlayer from '../../components/VideoPlayer';
 
 export default function LessonPlayer() {
   const { courseId, lessonId } = useParams();
@@ -81,16 +82,16 @@ export default function LessonPlayer() {
             </nav>
           </div>
 
-          <Card className="mb-4">
-            <div className="lesson-player">
-              <iframe
-                src={lesson.videoUrl}
-                title={lesson.title}
-                allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              ></iframe>
-            </div>
-          </Card>
+          <div className="mb-4">
+            <VideoPlayer 
+              videoUrl={lesson.videoUrl} 
+              title={lesson.title}
+              onProgress={(_progress) => {
+                // Track video progress if needed
+                // Progress: _progress
+              }}
+            />
+          </div>
 
           <Card className="mb-4">
             <Card.Body>

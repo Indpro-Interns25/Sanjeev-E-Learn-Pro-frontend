@@ -66,8 +66,10 @@ export default function App() {
                   <main className="flex-grow-1">
                     <Routes>
                       <Route path="/" element={<HomeRedirect />} />
+                      <Route path="/dashboard" element={<HomeRedirect />} />
                       <Route path="/catalog" element={<Catalog />} />
                       <Route path="/courses/:courseId" element={<CourseDetail />} />
+                      <Route path="/courses/:courseId/lessons/:lessonId/preview" element={<LessonPlayer />} />
                       {/* /register handled above to remove header/footer */}
                       <Route path="/about" element={<About />} />
                       <Route path="/contact" element={<Contact />} />
