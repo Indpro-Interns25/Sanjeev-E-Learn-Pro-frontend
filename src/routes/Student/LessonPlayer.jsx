@@ -16,6 +16,10 @@ export default function LessonPlayer() {
   const [lessons, setLessons] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
+  
+  // Detect if we're in preview mode or student mode
+  const isPreviewMode = window.location.pathname.includes('/preview');
+  const isStudentMode = window.location.pathname.includes('/student/');
 
   useEffect(() => {
     const courseData = getCourseById(parseInt(courseId));
@@ -34,17 +38,37 @@ export default function LessonPlayer() {
 
     const allLessons = getLessonsByCourse(parseInt(courseId));
     setLessons(allLessons);
-    setCurrentIndex(allLessons.findIndex(l => l.id === parseInt(lessonId)));
-  }, [courseId, lessonId, navigate]);
+    
+    const lessonIndex = allLessons.findIndex(l => l.id === parseInt(lessonId));
+    setCurrentIndex(lessonIndex);
+    
+    // Check if user completed this lesson (only if user exists and in student mode)
+    if (user && isStudentMode) {
+      // Check completion status logic here if needed
+    }
+  }, [courseId, lessonId, navigate, user, isStudentMode]);
 
   const handleComplete = () => {
-    markLessonComplete(user.id, parseInt(lessonId));
-    setIsCompleted(true);
+    if (user) {
+      markLessonComplete(user.id, parseInt(lessonId));
+      setIsCompleted(true);
+    }
   };
 
   const navigateToLesson = (index) => {
     if (index >= 0 && index < lessons.length) {
-      navigate(`/student/courses/${courseId}/lessons/${lessons[index].id}`);
+      const targetLessonId = lessons[index].id;
+      
+      if (isPreviewMode) {
+        // Navigate in preview mode
+        navigate(`/courses/${courseId}/lessons/${targetLessonId}/preview`);
+      } else if (isStudentMode) {
+        // Navigate in student mode
+        navigate(`/student/courses/${courseId}/lessons/${targetLessonId}`);
+      } else {
+        // Default fallback to preview mode
+        navigate(`/courses/${courseId}/lessons/${targetLessonId}/preview`);
+      }
     }
   };
 
@@ -70,7 +94,13 @@ export default function LessonPlayer() {
                   <Button 
                     variant="link" 
                     className="p-0"
-                    onClick={() => navigate(`/student/courses/${courseId}`)}
+                    onClick={() => {
+                      if (isStudentMode) {
+                        navigate(`/student/courses/${courseId}`);
+                      } else {
+                        navigate(`/courses/${courseId}`);
+                      }
+                    }}
                   >
                     Course Home
                   </Button>
@@ -131,16 +161,19 @@ export default function LessonPlayer() {
               Previous Lesson
             </Button>
 
-            {!isCompleted ? (
-              <Button variant="success" onClick={handleComplete}>
-                <i className="bi bi-check-circle me-2"></i>
-                Mark as Complete
-              </Button>
-            ) : (
-              <Button variant="success" disabled>
-                <i className="bi bi-check-circle-fill me-2"></i>
-                Completed
-              </Button>
+            {/* Only show completion button in student mode with authenticated user */}
+            {isStudentMode && user && (
+              !isCompleted ? (
+                <Button variant="success" onClick={handleComplete}>
+                  <i className="bi bi-check-circle me-2"></i>
+                  Mark as Complete
+                </Button>
+              ) : (
+                <Button variant="success" disabled>
+                  <i className="bi bi-check-circle-fill me-2"></i>
+                  Completed
+                </Button>
+              )
             )}
 
             <Button

@@ -112,6 +112,7 @@ export default function App() {
                       } />
 
                       {/* Error Routes */}
+                      <Route path="/not-found" element={<NotFound />} />
                       <Route path="/unauthorized" element={<Unauthorized />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>

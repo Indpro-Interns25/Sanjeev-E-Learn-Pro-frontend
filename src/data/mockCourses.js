@@ -15,7 +15,7 @@ export const mockCourses = [
     enrolled: 1250,
     rating: 4.5,
     lessons: [1, 2, 3, 4, 5],
-    previewVideo: 'https://youtu.be/qz0aGYrrlhU',
+    previewVideo: 'https://www.youtube.com/watch?v=UB1O30fR-EE',
     curriculum: [
       'HTML Fundamentals and Document Structure',
       'CSS Styling and Layout Techniques',
@@ -40,7 +40,7 @@ export const mockCourses = [
     enrolled: 850,
     rating: 4.8,
     lessons: [6, 7, 8, 9],
-    previewVideo: 'https://youtu.be/Tn6-PIqc4UM',
+    previewVideo: 'https://www.youtube.com/watch?v=HnXPKtro4SM',
     curriculum: [
       'React Hooks and Functional Components',
       'Context API and State Management',
@@ -64,7 +64,7 @@ export const mockCourses = [
     enrolled: 2100,
     rating: 4.6,
     lessons: [10, 11, 12, 13, 14],
-    previewVideo: 'https://youtu.be/rfscVS0vtbw',
+    previewVideo: 'https://www.youtube.com/watch?v=HrRA67O-QXI',
     curriculum: [
       'Python Basics for Data Science',
       'NumPy Arrays and Mathematical Operations',
@@ -89,7 +89,7 @@ export const mockCourses = [
     enrolled: 1800,
     rating: 4.7,
     lessons: [15, 16, 17, 18, 19, 20],
-    previewVideo: 'https://youtu.be/HgBcQp4uEUI',
+    previewVideo: 'https://www.youtube.com/watch?v=h0e2HAPTGF4',
     curriculum: [
       'Introduction to Machine Learning',
       'Data Preprocessing and Feature Engineering',
@@ -115,7 +115,7 @@ export const mockCourses = [
     enrolled: 920,
     rating: 4.4,
     lessons: [21, 22, 23, 24, 25],
-    previewVideo: 'https://youtu.be/fBNz5xF-Kx4',
+    previewVideo: 'https://www.youtube.com/watch?v=nSFe1-kpfbQ',
     curriculum: [
       'Node.js Fundamentals and NPM',
       'Express.js Framework and Routing',
@@ -140,7 +140,7 @@ export const mockCourses = [
     enrolled: 1350,
     rating: 4.6,
     lessons: [26, 27, 28, 29, 30, 31],
-    previewVideo: 'https://youtu.be/0-S5a0eXPoc',
+    previewVideo: 'https://www.youtube.com/watch?v=r0oBuQsYta0',
     curriculum: [
       'React Native Setup and Environment',
       'Navigation and Screen Management',
@@ -166,7 +166,7 @@ export const mockCourses = [
     enrolled: 2500,
     rating: 4.5,
     lessons: [32, 33, 34, 35, 36],
-    previewVideo: 'https://youtu.be/bixR-KIJKYM',
+    previewVideo: 'https://www.youtube.com/watch?v=dS0PtshQDls',
     curriculum: [
       'Digital Marketing Fundamentals',
       'Search Engine Optimization (SEO)',
@@ -191,7 +191,7 @@ export const mockCourses = [
     enrolled: 1700,
     rating: 4.8,
     lessons: [37, 38, 39, 40, 41],
-    previewVideo: 'https://youtu.be/c9Wg6Cb_YlU',
+    previewVideo: 'https://www.youtube.com/watch?v=bAARmsv1tms',
     curriculum: [
       'Design Thinking and User Research',
       'Wireframing and Prototyping',
@@ -216,7 +216,7 @@ export const mockCourses = [
     enrolled: 1100,
     rating: 4.7,
     lessons: [42, 43, 44, 45, 46],
-    previewVideo: 'https://youtu.be/2md4HQNRqJA',
+    previewVideo: 'https://www.youtube.com/watch?v=NCwa_xi0Uuc',
     curriculum: [
       'ES6+ Syntax and Features',
       'Promises and Async/Await',
@@ -241,7 +241,7 @@ export const mockCourses = [
     enrolled: 980,
     rating: 4.6,
     lessons: [47, 48, 49, 50, 51, 52],
-    previewVideo: 'https://youtu.be/U_P23SqJaDc',
+    previewVideo: 'https://www.youtube.com/watch?v=34BtwcL7Mkg',
     curriculum: [
       'Cybersecurity Fundamentals and Threats',
       'Network Security and Firewalls',
@@ -267,7 +267,7 @@ export const mockCourses = [
     enrolled: 1450,
     rating: 4.5,
     lessons: [53, 54, 55, 56, 57, 58, 59],
-    previewVideo: 'https://youtu.be/3hLmDS179YE',
+    previewVideo: 'https://www.youtube.com/watch?v=Nzv-tzU-UAw',
     curriculum: [
       'AWS Fundamentals and Account Setup',
       'EC2 Instances and Virtual Machines',
@@ -294,7 +294,7 @@ export const mockCourses = [
     enrolled: 680,
     rating: 4.4,
     lessons: [60, 61, 62, 63, 64, 65, 66, 67],
-    previewVideo: 'https://youtu.be/M576WGiDBdQ',
+    previewVideo: 'https://www.youtube.com/watch?v=YJyXfjbBmc8',
     curriculum: [
       'Blockchain Fundamentals and Bitcoin',
       'Ethereum and Smart Contract Basics',

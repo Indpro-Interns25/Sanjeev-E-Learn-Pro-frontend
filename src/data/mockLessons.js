@@ -280,7 +280,7 @@ export const mockLessons = [
     duration: '65 minutes',
     order: 6,
     content: 'Learn model evaluation metrics, cross-validation, and techniques to avoid overfitting.',
-    videoUrhttps:'https://www.youtube.com/watch?v=v6DtYYafrWQ',
+    videoUrl: 'https://www.youtube.com/watch?v=v6DtYYafrWQ',
     resources: [
       { name: 'Evaluation Metrics', url: 'https://example.com/evaluation.pdf' }
     ],
@@ -482,7 +482,7 @@ export const mockLessons = [
     duration: '25 minutes',
     order: 3,
     content: 'Master social media marketing strategies for Facebook, Instagram, Twitter, LinkedIn, and TikTok.',
-    videoUrl:'https://www.youtube.com/watch?v=hCJGFdGBP5o',
+    videoUrl: 'https://www.youtube.com/watch?v=hCJGFdGBP5o',
     resources: [
       { name: 'Social Media Templates', url: 'https://example.com/social-templates.zip' }
     ],
