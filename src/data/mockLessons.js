@@ -9,9 +9,6 @@ export const mockLessons = [
     order: 1,
     content: 'Welcome to HTML Fundamentals! In this lesson, you will learn about HTML elements, document structure, semantic HTML, and best practices for creating web pages.',
     videoUrl: 'https://www.youtube.com/watch?v=UB1O30fR-EE',
-    resources: [
-      { name: 'HTML Cheat Sheet', url: 'https://example.com/html-cheatsheet.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -23,9 +20,6 @@ export const mockLessons = [
     order: 2,
     content: 'CSS is what makes the web beautiful. Learn about selectors, the box model, flexbox, CSS grid, and responsive design techniques.',
     videoUrl: 'https://www.youtube.com/watch?v=i1FeOOhNnwU',
-    resources: [
-      { name: 'CSS Reference', url: 'https://example.com/css-reference.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -37,9 +31,6 @@ export const mockLessons = [
     order: 3,
     content: 'JavaScript brings interactivity to web pages. Learn variables, functions, arrays, objects, and how to manipulate the DOM.',
     videoUrl: 'https://www.youtube.com/watch?v=W6NZfCO5SIk',
-    resources: [
-      { name: 'JavaScript Guide', url: 'https://example.com/js-guide.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -51,9 +42,6 @@ export const mockLessons = [
     order: 4,
     content: 'Learn how to make websites work perfectly on all devices using media queries, flexible layouts, and mobile-first design.',
     videoUrl: 'https://www.youtube.com/watch?v=l04dDYW-QaI&t=7s',
-    resources: [
-      { name: 'Responsive Design Guide', url: 'https://example.com/responsive-guide.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -65,9 +53,6 @@ export const mockLessons = [
     order: 5,
     content: 'Apply all your HTML, CSS, and JavaScript knowledge to build a professional portfolio website from scratch.',
     videoUrl: 'https://www.youtube.com/watch?v=FazgJVnrVuI',
-    resources: [
-      { name: 'Project Template', url: 'https://example.com/project-template.zip' }
-    ],
     image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=400&q=80',
   },
 
@@ -81,9 +66,6 @@ export const mockLessons = [
     order: 1,
     content: 'Deep dive into React hooks, functional components, and modern React patterns for building efficient applications.',
     videoUrl: 'https://www.youtube.com/watch?v=HnXPKtro4SM',
-    resources: [
-      { name: 'React Hooks Guide', url: 'https://example.com/react-hooks.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -95,9 +77,6 @@ export const mockLessons = [
     order: 2,
     content: 'Learn how to manage global state in React applications using Context API and custom providers.',
     videoUrl: 'https://www.youtube.com/watch?v=gQ_l-1zpVBo',
-    resources: [
-      { name: 'Context API Reference', url: 'https://example.com/context-api.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -109,9 +88,6 @@ export const mockLessons = [
     order: 3,
     content: 'Learn React performance optimization techniques including memoization, lazy loading, and code splitting.',
     videoUrl: 'https://www.youtube.com/watch?v=CaShN6mCJB0',
-    resources: [
-      { name: 'Performance Guide', url: 'https://example.com/performance.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -123,9 +99,6 @@ export const mockLessons = [
     order: 4,
     content: 'Learn how to test React components effectively using Jest, React Testing Library, and modern testing practices.',
     videoUrl: 'https://www.youtube.com/watch?v=8Xwq35cPwYg',
-    resources: [
-      { name: 'Testing Guide', url: 'https://example.com/testing.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80',
   },
 
@@ -139,9 +112,6 @@ export const mockLessons = [
     order: 1,
     content: 'Learn Python basics specifically for data science, including data types, control structures, and functions.',
     videoUrl: 'https://www.youtube.com/watch?v=HrRA67O-QXI',
-    resources: [
-      { name: 'Python Data Science Guide', url: 'https://example.com/python-ds.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1526379879527-8559ecfcaec0?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -153,9 +123,6 @@ export const mockLessons = [
     order: 2,
     content: 'Dive deep into NumPy arrays, mathematical operations, and numerical computing fundamentals.',
     videoUrl: 'https://www.youtube.com/watch?v=a8aDcLk4vRc',
-    resources: [
-      { name: 'NumPy Reference', url: 'https://example.com/numpy-ref.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -167,9 +134,6 @@ export const mockLessons = [
     order: 3,
     content: 'Master Pandas DataFrames for data cleaning, manipulation, and analysis in real-world scenarios.',
     videoUrl: 'https://www.youtube.com/watch?v=F6kmIpWWEdU',
-    resources: [
-      { name: 'Pandas Cheat Sheet', url: 'https://example.com/pandas-cheat.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -181,9 +145,6 @@ export const mockLessons = [
     order: 4,
     content: 'Learn to create professional data visualizations using Matplotlib and Seaborn libraries.',
     videoUrl: 'https://www.youtube.com/watch?v=xXibS9832FM',
-    resources: [
-      { name: 'Visualization Guide', url: 'https://example.com/viz-guide.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -195,9 +156,6 @@ export const mockLessons = [
     order: 5,
     content: 'Work on real-world data analysis projects to solidify your Python data science skills.',
     videoUrl: 'https://www.youtube.com/watch?v=KgCgpCIOkIs',
-    resources: [
-      { name: 'Project Datasets', url: 'https://example.com/datasets.zip' }
-    ],
     image: 'https://images.unsplash.com/photo-1509909756405-be0199881695?auto=format&fit=crop&w=400&q=80',
   },
 
@@ -211,9 +169,6 @@ export const mockLessons = [
     order: 1,
     content: 'Introduction to machine learning concepts, types of learning, and real-world applications.',
     videoUrl: 'https://www.youtube.com/watch?v=h0e2HAPTGF4',
-    resources: [
-      { name: 'ML Fundamentals', url: 'https://example.com/ml-fundamentals.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -225,9 +180,6 @@ export const mockLessons = [
     order: 2,
     content: 'Learn data preprocessing techniques, feature engineering, and data cleaning for ML projects.',
     videoUrl: 'https://www.youtube.com/watch?v=vZDDmULsCUU',
-    resources: [
-      { name: 'Preprocessing Guide', url: 'https://example.com/preprocessing.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1518186233392-c232efbf2373?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -239,9 +191,6 @@ export const mockLessons = [
     order: 3,
     content: 'Deep dive into linear and logistic regression algorithms with practical implementations.',
     videoUrl: 'https://www.youtube.com/watch?v=QWYkQDvCo4Y',
-    resources: [
-      { name: 'Regression Guide', url: 'https://example.com/regression.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -253,9 +202,6 @@ export const mockLessons = [
     order: 4,
     content: 'Master decision trees and ensemble methods like Random Forests for classification and regression.',
     videoUrl: 'https://www.youtube.com/watch?v=_L39rN6gz7Y',
-    resources: [
-      { name: 'Tree Algorithms', url: 'https://example.com/trees.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -267,9 +213,6 @@ export const mockLessons = [
     order: 5,
     content: 'Learn clustering algorithms like K-means and hierarchical clustering for unsupervised learning.',
     videoUrl: 'https://www.youtube.com/watch?v=RDZUdRSDOok',
-    resources: [
-      { name: 'Clustering Guide', url: 'https://example.com/clustering.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1518186233392-c232efbf2373?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -281,9 +224,6 @@ export const mockLessons = [
     order: 6,
     content: 'Learn model evaluation metrics, cross-validation, and techniques to avoid overfitting.',
     videoUrl: 'https://www.youtube.com/watch?v=v6DtYYafrWQ',
-    resources: [
-      { name: 'Evaluation Metrics', url: 'https://example.com/evaluation.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80',
   },
 
@@ -297,9 +237,6 @@ export const mockLessons = [
     order: 1,
     content: 'Introduction to Node.js, NPM package manager, and setting up your development environment.',
     videoUrl: 'https://www.youtube.com/watch?v=nSFe1-kpfbQ',
-    resources: [
-      { name: 'Node.js Guide', url: 'https://example.com/nodejs-guide.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -311,9 +248,6 @@ export const mockLessons = [
     order: 2,
     content: 'Learn Express.js framework, routing, middleware, and building RESTful APIs.',
     videoUrl: 'https://www.youtube.com/watch?v=SccSCuHhOw0',
-    resources: [
-      { name: 'Express.js Reference', url: 'https://example.com/express-ref.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -325,9 +259,6 @@ export const mockLessons = [
     order: 3,
     content: 'Master MongoDB database operations and Mongoose ODM for data modeling and queries.',
     videoUrl: 'https://www.youtube.com/watch?v=bALyYC10ABw',
-    resources: [
-      { name: 'MongoDB Guide', url: 'https://example.com/mongodb.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1518186233392-c232efbf2373?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -339,9 +270,6 @@ export const mockLessons = [
     order: 4,
     content: 'Learn RESTful API design principles, HTTP methods, status codes, and API documentation.',
     videoUrl: 'https://www.youtube.com/watch?v=pKd0Rpw7O48',
-    resources: [
-      { name: 'API Design Guide', url: 'https://example.com/api-design.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -353,9 +281,6 @@ export const mockLessons = [
     order: 5,
     content: 'Build secure authentication systems using JWT tokens, bcrypt, and authorization middleware.',
     videoUrl: 'https://www.youtube.com/watch?v=OWeruyqhiTo',
-    resources: [
-      { name: 'Security Guide', url: 'https://example.com/security.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=400&q=80',
   },
 
@@ -369,9 +294,6 @@ export const mockLessons = [
     order: 1,
     content: 'Install and configure React Native development environment for iOS and Android.',
     videoUrl: 'https://www.youtube.com/watch?v=r0oBuQsYta0',
-    resources: [
-      { name: 'Setup Guide', url: 'https://example.com/rn-setup.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -383,9 +305,6 @@ export const mockLessons = [
     order: 2,
     content: 'Learn React Navigation for stack, tab, and drawer navigation patterns in mobile apps.',
     videoUrl: 'https://www.youtube.com/watch?v=HuwQwNDLaJ8',
-    resources: [
-      { name: 'Navigation Guide', url: 'https://example.com/navigation.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -397,9 +316,6 @@ export const mockLessons = [
     order: 3,
     content: 'Master React Native components, StyleSheet, Flexbox layout, and responsive design.',
     videoUrl: 'https://www.youtube.com/watch?v=K7ghUiXLef8',
-    resources: [
-      { name: 'Styling Guide', url: 'https://example.com/rn-styling.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -411,9 +327,6 @@ export const mockLessons = [
     order: 4,
     content: 'Implement Redux for global state management in React Native applications.',
     videoUrl: 'https://www.youtube.com/watch?v=poQXNp9ItL4',
-    resources: [
-      { name: 'Redux Guide', url: 'https://example.com/redux-rn.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -425,9 +338,6 @@ export const mockLessons = [
     order: 5,
     content: 'Integrate native device features like camera, location, push notifications, and local storage.',
     videoUrl: 'https://www.youtube.com/watch?v=tI_-ZOYqqQU',
-    resources: [
-      { name: 'Device APIs', url: 'https://example.com/device-apis.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -439,9 +349,6 @@ export const mockLessons = [
     order: 6,
     content: 'Learn the complete process of deploying React Native apps to Google Play Store and Apple App Store.',
     videoUrl: 'https://www.youtube.com/watch?v=jKETjGYxVuQ',
-    resources: [
-      { name: 'Deployment Guide', url: 'https://example.com/deployment.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=400&q=80',
   },
 
@@ -455,9 +362,6 @@ export const mockLessons = [
     order: 1,
     content: 'Learn the fundamentals of digital marketing, channels, and strategic planning.',
     videoUrl: 'https://www.youtube.com/watch?v=dS0PtshQDls',
-    resources: [
-      { name: 'Marketing Strategy Guide', url: 'https://example.com/marketing-strategy.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -469,9 +373,6 @@ export const mockLessons = [
     order: 2,
     content: 'Learn on-page and off-page SEO, keyword research, and technical SEO best practices.',
     videoUrl: 'https://www.youtube.com/watch?v=5Zz8VbFixOI',
-    resources: [
-      { name: 'SEO Checklist', url: 'https://example.com/seo-checklist.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -483,9 +384,6 @@ export const mockLessons = [
     order: 3,
     content: 'Master social media marketing strategies for Facebook, Instagram, Twitter, LinkedIn, and TikTok.',
     videoUrl: 'https://www.youtube.com/watch?v=hCJGFdGBP5o',
-    resources: [
-      { name: 'Social Media Templates', url: 'https://example.com/social-templates.zip' }
-    ],
     image: 'https://images.unsplash.com/photo-1611262588024-d12430b98920?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -497,9 +395,6 @@ export const mockLessons = [
     order: 4,
     content: 'Learn PPC advertising strategies, campaign optimization, and ROI maximization.',
     videoUrl: 'https://www.youtube.com/watch?v=1Vatp8VLGcs',
-    resources: [
-      { name: 'PPC Campaign Guide', url: 'https://example.com/ppc-guide.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -511,9 +406,6 @@ export const mockLessons = [
     order: 5,
     content: 'Master Google Analytics, conversion tracking, and marketing performance measurement.',
     videoUrl: 'https://www.youtube.com/watch?v=_rm4SNmhDXA',
-    resources: [
-      { name: 'Analytics Dashboard', url: 'https://example.com/analytics-dashboard.xlsx' }
-    ],
     image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=400&q=80',
   },
 
@@ -527,9 +419,6 @@ export const mockLessons = [
     order: 1,
     content: 'Learn design thinking process, user research methods, and persona development.',
     videoUrl: 'https://www.youtube.com/watch?v=bAARmsv1tms',
-    resources: [
-      { name: 'Design Thinking Guide', url: 'https://example.com/design-thinking.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -541,9 +430,6 @@ export const mockLessons = [
     order: 2,
     content: 'Master wireframing techniques and create interactive prototypes for user testing.',
     videoUrl: 'https://www.youtube.com/watch?v=D4NyQ5iOMF0',
-    resources: [
-      { name: 'Wireframe Templates', url: 'https://example.com/wireframes.zip' }
-    ],
     image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -555,9 +441,6 @@ export const mockLessons = [
     order: 3,
     content: 'Learn color theory, typography, layout principles, and visual design fundamentals.',
     videoUrl: 'https://www.youtube.com/watch?v=_g87p1T4V1s',
-    resources: [
-      { name: 'Design Principles Guide', url: 'https://example.com/design-principles.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -569,9 +452,6 @@ export const mockLessons = [
     order: 4,
     content: 'Become proficient in Figma and Adobe XD for professional design work and collaboration.',
     videoUrl: 'https://www.youtube.com/watch?v=Hbn1SMUs-hs',
-    resources: [
-      { name: 'Design System Templates', url: 'https://example.com/design-system.fig' }
-    ],
     image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -583,9 +463,6 @@ export const mockLessons = [
     order: 5,
     content: 'Learn usability testing methods and how to iterate designs based on user feedback.',
     videoUrl: 'https://www.youtube.com/watch?v=MBe0dtkN0Uc',
-    resources: [
-      { name: 'Testing Checklist', url: 'https://example.com/usability-testing.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?auto=format&fit=crop&w=400&q=80',
   },
 
@@ -599,9 +476,6 @@ export const mockLessons = [
     order: 1,
     content: 'Master ES6+ features including arrow functions, destructuring, template literals, and spread operator.',
     videoUrl: 'https://www.youtube.com/watch?v=NCwa_xi0Uuc',
-    resources: [
-      { name: 'ES6+ Cheat Sheet', url: 'https://example.com/es6-cheat.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -613,9 +487,6 @@ export const mockLessons = [
     order: 2,
     content: 'Master asynchronous JavaScript with promises, async/await, and error handling.',
     videoUrl: 'https://www.youtube.com/watch?v=d3jXofmQm44',
-    resources: [
-      { name: 'Async JavaScript Guide', url: 'https://example.com/async-js.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -627,9 +498,6 @@ export const mockLessons = [
     order: 3,
     content: 'Learn ES6 modules, import/export, and modern build tools like Webpack and Vite.',
     videoUrl: 'https://www.youtube.com/watch?v=KeBxopnhizw',
-    resources: [
-      { name: 'Module System Guide', url: 'https://example.com/modules.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -641,9 +509,6 @@ export const mockLessons = [
     order: 4,
     content: 'Deep dive into advanced array methods and object manipulation techniques in JavaScript.',
     videoUrl: 'https://www.youtube.com/watch?v=N-O4w6PynGY',
-    resources: [
-      { name: 'Array Methods Reference', url: 'https://example.com/array-methods.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -655,9 +520,6 @@ export const mockLessons = [
     order: 5,
     content: 'Learn functional programming concepts including higher-order functions, immutability, and pure functions.',
     videoUrl: 'https://www.youtube.com/watch?v=j1laALb8OVM',
-    resources: [
-      { name: 'Functional JS Guide', url: 'https://example.com/functional-js.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
   },
 
@@ -671,9 +533,6 @@ export const mockLessons = [
     order: 1,
     content: 'Learn cybersecurity basics, threat landscape, and fundamental security principles.',
     videoUrl: 'https://www.youtube.com/watch?v=34BtwcL7Mkg',
-    resources: [
-      { name: 'Security Basics Guide', url: 'https://example.com/security-basics.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -685,9 +544,6 @@ export const mockLessons = [
     order: 2,
     content: 'Master network security concepts, firewall configuration, and intrusion detection systems.',
     videoUrl: 'https://www.youtube.com/watch?v=NIRXtMg-0z8',
-    resources: [
-      { name: 'Network Security Guide', url: 'https://example.com/network-security.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1518186233392-c232efbf2373?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -699,9 +555,6 @@ export const mockLessons = [
     order: 3,
     content: 'Learn ethical hacking methodologies, penetration testing techniques, and vulnerability assessment.',
     videoUrl: 'https://www.youtube.com/watch?v=-e_eDYoJbsk',
-    resources: [
-      { name: 'Penetration Testing Guide', url: 'https://example.com/pentest.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -713,9 +566,6 @@ export const mockLessons = [
     order: 4,
     content: 'Understand encryption, hashing, digital signatures, and data protection techniques.',
     videoUrl: 'https://www.youtube.com/watch?v=C7vmouDOJYM',
-    resources: [
-      { name: 'Cryptography Guide', url: 'https://example.com/cryptography.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1509909756405-be0199881695?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -727,9 +577,6 @@ export const mockLessons = [
     order: 5,
     content: 'Learn incident response procedures, forensics basics, and disaster recovery planning.',
     videoUrl: 'https://www.youtube.com/watch?v=X2UiMLxRdhE',
-    resources: [
-      { name: 'Incident Response Plan', url: 'https://example.com/incident-response.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -741,9 +588,6 @@ export const mockLessons = [
     order: 6,
     content: 'Understand security frameworks (ISO 27001, NIST), compliance requirements, and security best practices.',
     videoUrl: 'https://www.youtube.com/watch?v=JswwHeEqBIc',
-    resources: [
-      { name: 'Compliance Checklist', url: 'https://example.com/compliance.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
   },
 
@@ -757,9 +601,6 @@ export const mockLessons = [
     order: 1,
     content: 'Learn AWS basics, account setup, billing, and the AWS Management Console.',
     videoUrl: 'https://www.youtube.com/watch?v=Nzv-tzU-UAw',
-    resources: [
-      { name: 'AWS Getting Started Guide', url: 'https://example.com/aws-start.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -771,9 +612,6 @@ export const mockLessons = [
     order: 2,
     content: 'Master EC2 instance types, launch configurations, security groups, and instance management.',
     videoUrl: 'https://www.youtube.com/watch?v=NfnVflt1Jxw',
-    resources: [
-      { name: 'EC2 Reference Guide', url: 'https://example.com/ec2-guide.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1518186233392-c232efbf2373?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -785,9 +623,6 @@ export const mockLessons = [
     order: 3,
     content: 'Learn S3 buckets, object storage, permissions, versioning, and lifecycle policies.',
     videoUrl: 'https://www.youtube.com/watch?v=9vK7fwAhVtA',
-    resources: [
-      { name: 'S3 Best Practices', url: 'https://example.com/s3-practices.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1509909756405-be0199881695?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -799,9 +634,6 @@ export const mockLessons = [
     order: 4,
     content: 'Master AWS Lambda functions, triggers, event sources, and serverless architecture patterns.',
     videoUrl: 'https://www.youtube.com/watch?v=5fTtmeCpSRw',
-    resources: [
-      { name: 'Lambda Function Examples', url: 'https://example.com/lambda-examples.zip' }
-    ],
     image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -813,9 +645,6 @@ export const mockLessons = [
     order: 5,
     content: 'Learn VPC setup, subnets, route tables, internet gateways, and network security.',
     videoUrl: 'https://www.youtube.com/watch?v=g2JOHLHh4rI',
-    resources: [
-      { name: 'VPC Configuration Guide', url: 'https://example.com/vpc-guide.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1518186233392-c232efbf2373?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -827,9 +656,6 @@ export const mockLessons = [
     order: 6,
     content: 'Master IAM users, roles, policies, and security best practices for AWS access control.',
     videoUrl: 'https://www.youtube.com/watch?v=CH1EhkBzkyo',
-    resources: [
-      { name: 'IAM Best Practices', url: 'https://example.com/iam-practices.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -841,9 +667,6 @@ export const mockLessons = [
     order: 7,
     content: 'Learn application deployment strategies, auto-scaling, load balancing, and monitoring in AWS.',
     videoUrl: 'https://www.youtube.com/watch?v=esISkPlnxL0',
-    resources: [
-      { name: 'Deployment Guide', url: 'https://example.com/aws-deployment.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=400&q=80',
   },
 
@@ -857,9 +680,6 @@ export const mockLessons = [
     order: 1,
     content: 'Learn blockchain basics, distributed ledger technology, consensus mechanisms, and Bitcoin fundamentals.',
     videoUrl: 'https://www.youtube.com/watch?v=YJyXfjbBmc8',
-    resources: [
-      { name: 'Blockchain Basics Guide', url: 'https://example.com/blockchain-basics.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -871,9 +691,6 @@ export const mockLessons = [
     order: 2,
     content: 'Understand Ethereum platform, smart contracts, gas fees, and the Ethereum Virtual Machine.',
     videoUrl: 'https://www.youtube.com/watch?v=04f1YsVntw8',
-    resources: [
-      { name: 'Ethereum Guide', url: 'https://example.com/ethereum-guide.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1518186233392-c232efbf2373?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -885,9 +702,6 @@ export const mockLessons = [
     order: 3,
     content: 'Master Solidity programming language, contract structure, data types, and functions.',
     videoUrl: 'https://www.youtube.com/watch?v=RQzuQb0dfBM',
-    resources: [
-      { name: 'Solidity Reference', url: 'https://example.com/solidity-ref.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -899,9 +713,6 @@ export const mockLessons = [
     order: 4,
     content: 'Learn to build decentralized applications using Web3.js, MetaMask integration, and blockchain interaction.',
     videoUrl: 'https://www.youtube.com/watch?v=t3wM5903ty0',
-    resources: [
-      { name: 'DApp Development Guide', url: 'https://example.com/dapp-guide.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -913,9 +724,6 @@ export const mockLessons = [
     order: 5,
     content: 'Learn ERC-20 token standards, token creation, ICO concepts, and tokenomics.',
     videoUrl: 'https://www.youtube.com/watch?v=EeE33rLuUuU',
-    resources: [
-      { name: 'Token Creation Guide', url: 'https://example.com/token-guide.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -927,9 +735,6 @@ export const mockLessons = [
     order: 6,
     content: 'Understand DeFi protocols, liquidity pools, yield farming, and DeFi integration.',
     videoUrl: 'https://www.youtube.com/watch?v=e9Eg0CmboFU',
-    resources: [
-      { name: 'DeFi Protocol Guide', url: 'https://example.com/defi-guide.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1509909756405-be0199881695?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -941,9 +746,6 @@ export const mockLessons = [
     order: 7,
     content: 'Learn NFT standards, create NFT collections, and build NFT marketplace applications.',
     videoUrl: 'https://www.youtube.com/watch?v=y6JfVdcJh1k',
-    resources: [
-      { name: 'NFT Development Guide', url: 'https://example.com/nft-guide.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
   },
   {
@@ -955,9 +757,6 @@ export const mockLessons = [
     order: 8,
     content: 'Learn smart contract security vulnerabilities, auditing practices, and security best practices.',
     videoUrl: 'https://www.youtube.com/watch?v=SyVMma1IkXM',
-    resources: [
-      { name: 'Security Audit Checklist', url: 'https://example.com/audit-checklist.pdf' }
-    ],
     image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=400&q=80',
   }
 ];

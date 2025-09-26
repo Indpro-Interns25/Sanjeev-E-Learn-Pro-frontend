@@ -128,7 +128,7 @@ export default function LessonPlayer() {
               <h2 className="h4 mb-3">{lesson.title}</h2>
               <div className="lesson-content" dangerouslySetInnerHTML={{ __html: lesson.content }} />
               
-              {lesson.resources.length > 0 && (
+              {lesson.resources && lesson.resources.length > 0 && (
                 <div className="mt-4">
                   <h3 className="h5">Lesson Resources</h3>
                   <ul className="list-unstyled">
