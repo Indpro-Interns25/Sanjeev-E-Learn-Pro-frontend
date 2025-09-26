@@ -112,9 +112,28 @@ export default function AppNavbar() {
                 </span>
               } id="profile-dropdown" align="end">
                 <NavDropdown.Item as={Link} to="/dashboard">Dashboard</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/profile">Profile</NavDropdown.Item>
+                {user?.role === 'student' && (
+                  <NavDropdown.Item as={Link} to="/student/my-learning">
+                    <i className="bi bi-bar-chart me-2"></i>My Learning Progress
+                  </NavDropdown.Item>
+                )}
+                {user?.role === 'student' && (
+                  <NavDropdown.Item as={Link} to="/student/dashboard">
+                    <i className="bi bi-house-door me-2"></i>Student Dashboard
+                  </NavDropdown.Item>
+                )}
+                {user?.role === 'instructor' && (
+                  <NavDropdown.Item as={Link} to="/instructor/dashboard">
+                    <i className="bi bi-mortarboard me-2"></i>Instructor Dashboard
+                  </NavDropdown.Item>
+                )}
+                <NavDropdown.Item as={Link} to="/profile">
+                  <i className="bi bi-person me-2"></i>Profile
+                </NavDropdown.Item>
                 <NavDropdown.Divider />
-                <NavDropdown.Item onClick={handleLogout}>Logout</NavDropdown.Item>
+                <NavDropdown.Item onClick={handleLogout}>
+                  <i className="bi bi-box-arrow-right me-2"></i>Logout
+                </NavDropdown.Item>
               </NavDropdown>
             )}
           </Nav>

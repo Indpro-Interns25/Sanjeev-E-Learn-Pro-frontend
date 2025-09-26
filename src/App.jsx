@@ -21,6 +21,8 @@ import MyCourses from './routes/Student/MyCourses';
 import LessonPlayer from './routes/Student/LessonPlayer';
 import Progress from './routes/Student/Progress';
 
+import MyLearning from './routes/Student/MyLearning';
+
 // Instructor Routes
 import InstructorDashboard from './routes/Instructor/InstructorDashboard';
 import CourseManage from './routes/Instructor/CourseManage';
@@ -84,18 +86,57 @@ export default function App() {
 
 
                       {/* Student Routes */}
-                      <Route path="/student" element={
-                        <ProtectedRoute>
-                          <RoleGuard roles={['student']}>
-                            <Routes>
-                              <Route path="dashboard" element={<StudentDashboard />} />
-                              <Route path="courses/:courseId" element={<MyCourses />} />
-                              <Route path="courses/:courseId/lessons/:lessonId" element={<LessonPlayer />} />
-                              <Route path="progress" element={<Progress />} />
-                            </Routes>
-                          </RoleGuard>
-                        </ProtectedRoute>
-                      } />
+                      <Route 
+                        path="/student/dashboard" 
+                        element={
+                          <ProtectedRoute>
+                            <RoleGuard roles={['student']}>
+                              <StudentDashboard />
+                            </RoleGuard>
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/student/courses/:courseId" 
+                        element={
+                          <ProtectedRoute>
+                            <RoleGuard roles={['student']}>
+                              <MyCourses />
+                            </RoleGuard>
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/student/courses/:courseId/lessons/:lessonId" 
+                        element={
+                          <ProtectedRoute>
+                            <RoleGuard roles={['student']}>
+                              <LessonPlayer />
+                            </RoleGuard>
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/student/progress" 
+                        element={
+                          <ProtectedRoute>
+                            <RoleGuard roles={['student']}>
+                              <Progress />
+                            </RoleGuard>
+                          </ProtectedRoute>
+                        } 
+                      />
+
+                      <Route 
+                        path="/student/my-learning" 
+                        element={
+                          <ProtectedRoute>
+                            <RoleGuard roles={['student']}>
+                              <MyLearning />
+                            </RoleGuard>
+                          </ProtectedRoute>
+                        } 
+                      />
 
                       {/* Instructor Routes */}
                       <Route path="/instructor" element={
