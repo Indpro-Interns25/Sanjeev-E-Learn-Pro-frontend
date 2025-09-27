@@ -2,8 +2,6 @@ import { Container, Row, Col, Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { mockCourses } from '../../data/mockCourses';
-import { getCourseProgress } from '../../data/mockLessons';
-import ProgressBar from '../../components/ProgressBar';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -74,7 +72,6 @@ export default function StudentDashboard() {
       {enrolledCourses.length > 0 ? (
         <Row className="g-4">
           {enrolledCourses.map(course => {
-            const progress = getCourseProgress(user.id, course.id);
             return (
               <Col md={6} lg={4} key={course.id} className="mb-4">
                 <Card className="h-100 border-0 shadow rounded-4">
@@ -89,15 +86,9 @@ export default function StudentDashboard() {
                     <Card.Text className="text-muted small mb-3">
                       <i className="bi bi-person-circle me-1"></i>{course.instructor.name}
                     </Card.Text>
-                    <ProgressBar
-                      value={progress.completed}
-                      total={progress.total}
-                      variant="success"
-                      className="mb-3"
-                    />
                     <div className="d-flex justify-content-between align-items-center">
                       <small className="text-muted">
-                        {progress.completed} of {progress.total} lessons
+                        Continue Learning
                       </small>
                       <Link
                         to={`/student/courses/${course.id}`}

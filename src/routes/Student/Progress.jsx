@@ -1,61 +1,49 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, ListGroup } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { mockCourses } from '../../data/mockCourses';
-import { getCourseProgress } from '../../data/mockLessons';
-import ProgressBar from '../../components/ProgressBar';
 
 export default function Progress() {
   const { user } = useAuth();
-  const [courseProgress, setCourseProgress] = useState([]);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
 
   useEffect(() => {
     // In a real app, this would be an API call
-    const enrolledCourses = mockCourses.slice(0, 3);
-    const progress = enrolledCourses.map(course => ({
-      ...course,
-      progress: getCourseProgress(user.id, course.id)
-    }));
-    setCourseProgress(progress);
+    const courses = mockCourses.slice(0, 3);
+    setEnrolledCourses(courses);
   }, [user.id]);
-
-  // Calculate overall statistics
-  const totalLessons = courseProgress.reduce((acc, course) => acc + course.progress.total, 0);
-  const completedLessons = courseProgress.reduce((acc, course) => acc + course.progress.completed, 0);
-  const overallPercentage = totalLessons > 0 
-    ? Math.round((completedLessons / totalLessons) * 100) 
-    : 0;
 
   const stats = [
     {
-      title: 'Overall Progress',
-      value: `${overallPercentage}%`,
-      icon: 'bi-graph-up',
+      title: 'Enrolled Courses',
+      value: enrolledCourses.length,
+      icon: 'bi-book',
       color: 'primary'
     },
     {
-      title: 'Courses In Progress',
-      value: courseProgress.length,
-      icon: 'bi-book',
+      title: 'Available Courses',
+      value: mockCourses.length,
+      icon: 'bi-collection',
       color: 'info'
     },
     {
-      title: 'Completed Lessons',
-      value: completedLessons,
-      icon: 'bi-check-circle',
+      title: 'Learning Hours',
+      value: '24+',
+      icon: 'bi-clock',
       color: 'success'
     },
     {
-      title: 'Total Lessons',
-      value: totalLessons,
-      icon: 'bi-collection',
+      title: 'Certificates',
+      value: '3',
+      icon: 'bi-award',
       color: 'warning'
     }
   ];
 
   return (
     <Container className="py-4">
-      <h1 className="mb-4">Learning Progress</h1>
+      <h1 className="mb-4">My Learning</h1>
 
       <Row className="mb-4">
         {stats.map((stat, index) => (
@@ -81,25 +69,29 @@ export default function Progress() {
         <Col lg={8}>
           <Card className="mb-4">
             <Card.Header>
-              <h4 className="mb-0">Course Progress</h4>
+              <h4 className="mb-0">Your Courses</h4>
             </Card.Header>
             <ListGroup variant="flush">
-              {courseProgress.map(course => (
+              {enrolledCourses.map(course => (
                 <ListGroup.Item key={course.id}>
-                  <div className="mb-2 d-flex justify-content-between align-items-center">
-                    <h5 className="mb-0">{course.title}</h5>
-                    <span className="badge bg-primary">
-                      {course.progress.percentage}%
-                    </span>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h5 className="mb-1">{course.title}</h5>
+                      <p className="text-muted mb-0">
+                        <i className="bi bi-person-circle me-1"></i>
+                        {course.instructor.name}
+                      </p>
+                      <small className="text-muted">
+                        {course.category} • {course.level}
+                      </small>
+                    </div>
+                    <Link
+                      to={`/student/courses/${course.id}`}
+                      className="btn btn-outline-primary btn-sm"
+                    >
+                      Continue
+                    </Link>
                   </div>
-                  <ProgressBar
-                    value={course.progress.completed}
-                    total={course.progress.total}
-                    variant="success"
-                  />
-                  <small className="text-muted">
-                    {course.progress.completed} of {course.progress.total} lessons completed
-                  </small>
                 </ListGroup.Item>
               ))}
             </ListGroup>
@@ -118,9 +110,9 @@ export default function Progress() {
                     <i className="bi bi-trophy-fill fs-4"></i>
                   </div>
                   <div>
-                    <h6 className="mb-0">Fast Learner</h6>
+                    <h6 className="mb-0">Course Explorer</h6>
                     <small className="text-muted">
-                      Completed 5 lessons in one day
+                      Enrolled in multiple courses
                     </small>
                   </div>
                 </div>
@@ -144,9 +136,9 @@ export default function Progress() {
                     <i className="bi bi-check-circle-fill fs-4"></i>
                   </div>
                   <div>
-                    <h6 className="mb-0">Course Pioneer</h6>
+                    <h6 className="mb-0">Learning Journey</h6>
                     <small className="text-muted">
-                      Completed first course
+                      Started learning journey
                     </small>
                   </div>
                 </div>

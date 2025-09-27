@@ -3,7 +3,7 @@ import { Container, Row, Col, Button, Card } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getCourseById } from '../../data/mockCourses';
-import { getLessonById, markLessonComplete, getLessonsByCourse } from '../../data/mockLessons';
+import { getLessonById, markLessonComplete, getLessonsByCourse, isLessonComplete } from '../../data/mockLessons';
 import VideoPlayer from '../../components/VideoPlayer';
 import Comments from '../../components/Comments';
 
@@ -45,7 +45,8 @@ export default function LessonPlayer() {
     
     // Check if user completed this lesson (only if user exists and in student mode)
     if (user && isStudentMode) {
-      // Check completion status logic here if needed
+      const completed = isLessonComplete(user.id, parseInt(lessonId));
+      setIsCompleted(completed);
     }
   }, [courseId, lessonId, navigate, user, isStudentMode]);
 
@@ -117,9 +118,12 @@ export default function LessonPlayer() {
             <VideoPlayer 
               videoUrl={lesson.videoUrl} 
               title={lesson.title}
-              onProgress={(_progress) => {
-                // Track video progress if needed
-                // Progress: _progress
+              onProgress={(progress) => {
+                // Auto-complete lesson when video reaches 90% completion
+                if (user && isStudentMode && progress >= 90 && !isCompleted) {
+                  markLessonComplete(user.id, parseInt(lessonId));
+                  setIsCompleted(true);
+                }
               }}
             />
           </div>

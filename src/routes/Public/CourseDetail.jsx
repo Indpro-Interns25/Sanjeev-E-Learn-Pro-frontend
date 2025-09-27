@@ -167,7 +167,7 @@ export default function CourseDetail() {
             <Card className="shadow-lg rounded-4 border-0">
               <Card.Body>
                 <div className="mb-3 text-center">
-                  <h3 className="h2 mb-0 fw-bold text-primary">₹{course.price}</h3>
+                  <h3 className="h2 mb-0 fw-bold text-success">Free</h3>
                 </div>
 
                 <div className="d-grid gap-2 mb-3">
