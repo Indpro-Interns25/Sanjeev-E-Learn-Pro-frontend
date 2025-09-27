@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { getCourseById } from '../../data/mockCourses';
 import { getLessonById, markLessonComplete, getLessonsByCourse } from '../../data/mockLessons';
 import VideoPlayer from '../../components/VideoPlayer';
+import Comments from '../../components/Comments';
 
 export default function LessonPlayer() {
   const { courseId, lessonId } = useParams();
@@ -151,7 +152,10 @@ export default function LessonPlayer() {
             </Card.Body>
           </Card>
 
-          <div className="d-flex justify-content-between align-items-center">
+          {/* Lesson Comments Section */}
+          <Comments courseId={courseId} lessonId={lessonId} />
+
+          <div className="d-flex justify-content-between align-items-center mt-4">
             <Button
               variant="outline-primary"
               disabled={currentIndex === 0}

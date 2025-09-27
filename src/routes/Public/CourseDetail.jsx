@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getCourseById } from '../../data/mockCourses';
 import { getLessonsByCourse } from '../../data/mockLessons';
+import Comments from '../../components/Comments';
 
 export default function CourseDetail() {
   const { courseId } = useParams();
@@ -86,6 +87,9 @@ export default function CourseDetail() {
               <Nav.Item>
                 <Nav.Link eventKey="curriculum" className="fw-semibold">Curriculum</Nav.Link>
               </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="reviews" className="fw-semibold">Reviews</Nav.Link>
+              </Nav.Item>
             </Nav>
 
             <Tab.Content>
@@ -146,6 +150,12 @@ export default function CourseDetail() {
                       <p>Check back soon for new content!</p>
                     </div>
                   )}
+                </div>
+              </Tab.Pane>
+
+              <Tab.Pane eventKey="reviews">
+                <div className="py-3">
+                  <Comments courseId={courseId} />
                 </div>
               </Tab.Pane>
             </Tab.Content>
