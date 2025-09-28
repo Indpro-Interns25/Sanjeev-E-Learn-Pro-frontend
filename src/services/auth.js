@@ -108,6 +108,51 @@ export async function validateToken(token) {
   }
 }
 
+// Admin login function with real API
+export async function adminLogin(adminName, password) {
+  // Validate required fields
+  if (!adminName || !password) {
+    throw new Error('Admin name and password are required');
+  }
+
+  try {
+    // Convert admin name to email format or use regular login endpoint
+    // If adminName looks like email, use it directly, otherwise append domain
+    const email = adminName.includes('@') ? adminName : `${adminName}@admin.com`;
+    
+    const response = await apiClient.post('/auth/login', {
+      email,
+      password
+    });
+
+    const data = response.data;
+    
+    // Check if user has admin role
+    if (data.user && data.user.role !== 'admin') {
+      throw new Error('Access denied. Admin privileges required.');
+    }
+    
+    // Return user and token in the expected format
+    return {
+      admin: data.user,
+      token: data.token
+    };
+  } catch (error) {
+    // Handle Axios errors
+    if (error.response) {
+      // Server responded with error status
+      const errorMessage = error.response.data?.message || error.response.data?.error || 'Admin login failed';
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      // Request was made but no response received
+      throw new Error('Unable to connect to server. Please try again.');
+    } else {
+      // Something else happened
+      throw new Error(error.message || 'Admin login failed. Please try again.');
+    }
+  }
+}
+
 // Password reset request with real API
 export async function requestPasswordReset(email) {
   try {

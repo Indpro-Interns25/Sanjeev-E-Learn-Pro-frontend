@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Card, Button, Nav, Badge, Table, Modal, Form, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Nav, Badge, Table, Modal, Form, Alert, Spinner } from 'react-bootstrap';
 import { mockCourses } from '../data/mockCourses';
 import { mockLessons } from '../data/mockLessons';
+import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin } from '../services/admin';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -11,6 +12,19 @@ export default function AdminDashboard() {
   const [modalType, setModalType] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const [alert, setAlert] = useState(null);
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalInstructors: 0,
+    totalCourses: 0,
+    totalLessons: 0,
+    totalEnrollments: 0,
+    activeUsers: 0,
+    recentActivity: []
+  });
+  const [courses, setCourses] = useState([]);
+  const [lessons, setLessons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Mock data for demonstration
   const [students] = useState([
@@ -36,7 +50,47 @@ export default function AdminDashboard() {
     const token = localStorage.getItem('adminToken');
     if (!token) {
       navigate('/admin-login', { replace: true });
+      return;
     }
+
+    const fetchAdminData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch admin stats, courses, and lessons in parallel
+        const [adminStats, coursesData, lessonsData] = await Promise.all([
+          getAdminStats(),
+          getAllCoursesAdmin(),
+          getAllLessonsAdmin()
+        ]);
+        
+        setStats(adminStats);
+        setCourses(coursesData);
+        setLessons(lessonsData);
+        
+      } catch (err) {
+        console.error('Error fetching admin data:', err);
+        setError(err.message);
+        
+        // Fallback to mock data calculations if API fails
+        setStats({
+          totalStudents: 3, // Mock fallback
+          totalInstructors: 3, // Mock fallback  
+          totalCourses: mockCourses.length,
+          totalLessons: mockLessons.length,
+          totalEnrollments: 0,
+          activeUsers: 2, // Mock fallback
+          recentActivity: []
+        });
+        setCourses(mockCourses);
+        setLessons(mockLessons);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAdminData();
   }, [navigate]);
 
   const handleLogout = () => {
@@ -60,28 +114,36 @@ export default function AdminDashboard() {
     setShowModal(false);
   };
 
-  // Quick stats calculation
-  const stats = {
-    totalStudents: students.length,
-    totalInstructors: instructors.length,
-    totalCourses: mockCourses.length,
-    totalLessons: mockLessons.length,
-    pendingApprovals: students.filter(s => s.status === 'pending').length + instructors.filter(i => i.status === 'pending').length,
-    activeUsers: students.filter(s => s.status === 'active').length,
-    revenue: 15420 // Mock revenue
-  };
+  const renderOverview = () => {
+    // Loading state
+    if (loading) {
+      return (
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+          <Spinner animation="border" role="status" className="text-primary">
+            <span className="visually-hidden">Loading admin dashboard...</span>
+          </Spinner>
+        </div>
+      );
+    }
 
-  const renderOverview = () => (
+    return (
     <>
       <Row className="mb-4">
         <Col>
           <h2>Dashboard Overview</h2>
         </Col>
       </Row>
+
+      {error && (
+        <Alert variant="warning" className="mb-4">
+          <i className="bi bi-exclamation-triangle me-2"></i>
+          Could not connect to backend server. Showing demo data.
+        </Alert>
+      )}
       
       {/* Quick Stats Cards */}
       <Row className="mb-4">
-        <Col md={3} className="mb-3">
+        <Col md={4} className="mb-3">
           <Card className="bg-primary text-white h-100">
             <Card.Body>
               <div className="d-flex justify-content-between">
@@ -94,7 +156,7 @@ export default function AdminDashboard() {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3} className="mb-3">
+        <Col md={4} className="mb-3">
           <Card className="bg-success text-white h-100">
             <Card.Body>
               <div className="d-flex justify-content-between">
@@ -107,7 +169,7 @@ export default function AdminDashboard() {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3} className="mb-3">
+        <Col md={4} className="mb-3">
           <Card className="bg-info text-white h-100">
             <Card.Body>
               <div className="d-flex justify-content-between">
@@ -120,24 +182,11 @@ export default function AdminDashboard() {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3} className="mb-3">
-          <Card className="bg-warning text-white h-100">
-            <Card.Body>
-              <div className="d-flex justify-content-between">
-                <div>
-                  <h6>Pending Approvals</h6>
-                  <h3>{stats.pendingApprovals}</h3>
-                </div>
-                <i className="bi bi-exclamation-circle fs-1 opacity-75"></i>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
       </Row>
 
       {/* Additional Stats */}
       <Row className="mb-4">
-        <Col md={4} className="mb-3">
+        <Col md={6} className="mb-3">
           <Card className="h-100">
             <Card.Body>
               <h6 className="text-muted">Total Lessons</h6>
@@ -148,7 +197,7 @@ export default function AdminDashboard() {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4} className="mb-3">
+        <Col md={6} className="mb-3">
           <Card className="h-100">
             <Card.Body>
               <h6 className="text-muted">Active Users</h6>
@@ -159,20 +208,41 @@ export default function AdminDashboard() {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4} className="mb-3">
-          <Card className="h-100">
-            <Card.Body>
-              <h6 className="text-muted">Revenue</h6>
-              <h4>${stats.revenue.toLocaleString()}</h4>
-              <small className="text-primary">
-                <i className="bi bi-currency-dollar"></i> Total earnings
-              </small>
-            </Card.Body>
-          </Card>
-        </Col>
       </Row>
+
+      {/* Recent Activity */}
+      {stats.recentActivity && stats.recentActivity.length > 0 && (
+        <Row className="mb-4">
+          <Col>
+            <Card>
+              <Card.Header>
+                <h5 className="mb-0">Recent Activity</h5>
+              </Card.Header>
+              <Card.Body>
+                {stats.recentActivity.map((activity, index) => (
+                  <div key={index} className="d-flex align-items-center mb-3 p-3 bg-light rounded">
+                    <div className="me-3">
+                      <i className="bi bi-journal-plus text-primary fs-4"></i>
+                    </div>
+                    <div className="flex-grow-1">
+                      <h6 className="mb-1">{activity.title}</h6>
+                      <p className="mb-1 text-muted">{activity.description}</p>
+                      <small className="text-secondary">
+                        {new Date(activity.timestamp).toLocaleDateString()} at{' '}
+                        {new Date(activity.timestamp).toLocaleTimeString()}
+                      </small>
+                    </div>
+                    <Badge bg="info">{activity.type.replace('_', ' ')}</Badge>
+                  </div>
+                ))}
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      )}
     </>
-  );
+    );
+  };
 
   const renderCourseManagement = () => (
     <>
@@ -210,20 +280,20 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {mockCourses.slice(0, 10).map(course => (
+              {courses.slice(0, 10).map(course => (
                 <tr key={course.id}>
                   <td>{course.title}</td>
-                  <td>{course.instructor.name}</td>
+                  <td>{course.instructor_name || `Instructor ${course.instructor_id}`}</td>
                   <td>
                     <Badge bg="secondary">{course.category}</Badge>
                   </td>
                   <td>
-                    <Badge bg="success">Active</Badge>
+                    <Badge bg={course.status === 'published' ? 'success' : 'warning'}>
+                      {course.status}
+                    </Badge>
                   </td>
-                  <td>{course.enrolled}</td>
-                  <td>
-                    <Badge bg="success">Free</Badge>
-                  </td>
+                  <td>{course.enrolled_count}</td>
+                  <td>${parseFloat(course.price).toFixed(2)}</td>
                   <td>
                     <Button size="sm" variant="outline-primary" className="me-2" onClick={() => handleAction('editCourse', course)}>
                       <i className="bi bi-pencil"></i>
@@ -271,14 +341,14 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {mockLessons.slice(0, 15).map(lesson => (
+              {lessons.slice(0, 15).map(lesson => (
                 <tr key={lesson.id}>
                   <td>{lesson.title}</td>
-                  <td>{mockCourses.find(c => c.id === lesson.courseId)?.title}</td>
+                  <td>{lesson.course_title || courses.find(c => c.id === lesson.course_id)?.title || 'Unknown Course'}</td>
                   <td>{lesson.duration}</td>
-                  <td>{lesson.order}</td>
+                  <td>{lesson.order_sequence}</td>
                   <td>
-                    <Badge bg="success">Approved</Badge>
+                    <Badge bg="success">Published</Badge>
                   </td>
                   <td>
                     <Button size="sm" variant="outline-primary" className="me-2" onClick={() => handleAction('editLesson', lesson)}>
@@ -459,16 +529,16 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockCourses.slice(0, 5).map(course => (
+                  {courses.slice(0, 5).map(course => (
                     <tr key={course.id}>
                       <td>{course.title}</td>
-                      <td>{course.enrolled}</td>
+                      <td>{course.enrolled_count || course.enrollment_count}</td>
                       <td>
                         <div className="d-flex align-items-center">
                           <div className="progress me-2" style={{ width: '60px', height: '6px' }}>
-                            <div className="progress-bar" style={{ width: `${Math.random() * 100}%` }}></div>
+                            <div className="progress-bar" style={{ width: `${Math.min(100, (course.enrolled_count / 1000) * 100)}%` }}></div>
                           </div>
-                          {Math.round(Math.random() * 100)}%
+                          {Math.round((course.enrolled_count / 1000) * 100)}%
                         </div>
                       </td>
                     </tr>
@@ -496,10 +566,6 @@ export default function AdminDashboard() {
               <div className="mb-3">
                 <small className="text-muted">Monthly Active Users</small>
                 <h4>12,345</h4>
-              </div>
-              <div>
-                <small className="text-muted">Revenue This Month</small>
-                <h4>${stats.revenue.toLocaleString()}</h4>
               </div>
             </Card.Body>
           </Card>
@@ -711,9 +777,6 @@ export default function AdminDashboard() {
                 style={{ cursor: 'pointer' }}
               >
                 <i className="bi bi-people me-2"></i>Students
-                {stats.pendingApprovals > 0 && (
-                  <Badge bg="warning" className="ms-2">{stats.pendingApprovals}</Badge>
-                )}
               </Nav.Link>
               
               <Nav.Link 

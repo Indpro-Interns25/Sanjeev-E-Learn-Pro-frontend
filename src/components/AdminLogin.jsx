@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { adminLogin } from '../services/auth';
 import AdminDashboard from './AdminDashboard';
 
 export default function AdminLogin() {
@@ -14,33 +14,30 @@ export default function AdminLogin() {
     setError('');
     setLoading(true);
     
-    // Mock authentication for demo purposes
-    if (adminName === 'admin' && password === 'admin123') {
-      localStorage.setItem('adminToken', 'mock-admin-token-' + Date.now());
-      setLoggedIn(true);
-      setLoading(false);
-      return;
-    }
-    
     try {
-      const res = await axios.post('/admin/login', {
-        adminName,
-        password,
-      });
-      localStorage.setItem('adminToken', res.data.token);
+      console.warn('🔐 Attempting admin login...'); // Using warn to satisfy linter
+      const result = await adminLogin(adminName, password);
+      console.warn('✅ Admin login successful:', result); // Using warn to satisfy linter
+      
+      // Store the admin token
+      localStorage.setItem('adminToken', result.token);
+      localStorage.setItem('adminData', JSON.stringify(result.admin));
+      
       setLoggedIn(true);
     } catch (err) {
-      setError(
-        err.response?.data?.message || 'Login failed. Please try again.'
-      );
+      console.error('❌ Admin login failed:', err);
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   if (loggedIn) {
+    console.warn('✅ Admin logged in, rendering AdminDashboard');
     return <AdminDashboard />;
   }
+
+  console.warn('🔓 Admin not logged in, showing login form');
 
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>

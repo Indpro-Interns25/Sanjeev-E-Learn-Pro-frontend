@@ -18,8 +18,10 @@ export default function StudentDashboard() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log('🚀 StudentDashboard useEffect triggered');
     const fetchDashboardData = async () => {
       try {
+        console.log('📥 Starting to fetch dashboard data...');
         setLoading(true);
         setError(null);
         
@@ -29,11 +31,12 @@ export default function StudentDashboard() {
           getUserStats()
         ]);
         
+        console.log('✅ Dashboard data fetched successfully');
         setEnrolledCourses(coursesData);
         setStats(statsData);
         
       } catch (err) {
-        console.error('Error fetching dashboard data:', err);
+        console.error('❌ Error fetching dashboard data:', err);
         setError(err.message);
         
         // Fallback to mock data if API fails

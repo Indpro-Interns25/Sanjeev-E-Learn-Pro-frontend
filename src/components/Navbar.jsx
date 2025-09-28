@@ -45,15 +45,14 @@ export default function AppNavbar() {
             <Nav.Link as={Link} to="/catalog">Courses</Nav.Link>
             <Nav.Link as={Link} to="/about">About</Nav.Link>
             <Nav.Link as={Link} to="/contact">Contact</Nav.Link>
-            <Nav.Link as={Link} to="/terms">Terms of Service</Nav.Link>
-            <Nav.Link as={Link} to="/privacy">Privacy Policy</Nav.Link>
             {isAuthenticated && user?.role === 'student' && (
               <Nav.Link as={Link} to="/student/dashboard">My Learning</Nav.Link>
             )}
             {isAuthenticated && user?.role === 'instructor' && (
               <Nav.Link as={Link} to="/instructor/dashboard">Instructor Dashboard</Nav.Link>
             )}
-
+            <Nav.Link as={Link} to="/terms">Terms of Service</Nav.Link>
+            <Nav.Link as={Link} to="/privacy">Privacy Policy</Nav.Link>
           </Nav>
           <Nav className="align-items-lg-center">
             {!isAuthenticated ? (
