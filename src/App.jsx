@@ -60,6 +60,11 @@ export default function App() {
               path="/forgot-password"
               element={<ForgotPassword />}
             />
+            {/* Admin Routes - No Navbar */}
+            <Route path="/admin" element={<AdminLogin />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/admin-dashboard" element={<AdminLanding />} />
+            
             <Route
               path="*"
               element={
@@ -77,11 +82,6 @@ export default function App() {
                       <Route path="/contact" element={<Contact />} />
                       <Route path="/terms" element={<Terms />} />
                       <Route path="/privacy" element={<Privacy />} />
-
-                      {/* Admin Routes */}
-                      <Route path="/admin" element={<AdminLogin />} />
-                      <Route path="/admin-login" element={<AdminLogin />} />
-                      <Route path="/admin-dashboard" element={<AdminLanding />} />
 
 
 

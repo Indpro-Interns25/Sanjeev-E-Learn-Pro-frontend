@@ -76,10 +76,10 @@ export default function AdminLanding() {
   };
 
   return (
-    <Container fluid className="p-0">
-      <Row className="g-0">
+    <Container fluid className="p-0" style={{ height: '100vh' }}>
+      <Row className="g-0" style={{ height: '100%' }}>
         {/* Sidebar */}
-        <Col md={2} className="bg-dark text-white min-vh-100">
+        <Col md={2} className="bg-dark text-white" style={{ height: '100vh', overflowY: 'auto' }}>
           <div className="p-3">
             <h4 className="text-center mb-4">
               <i className="bi bi-mortarboard"></i> Admin Panel
@@ -156,7 +156,7 @@ export default function AdminLanding() {
         </Col>
 
         {/* Main Content */}
-        <Col md={10} className="p-4">
+        <Col md={10} className="p-4" style={{ height: '100vh', overflowY: 'auto' }}>
           {renderContent()}
         </Col>
       </Row>
