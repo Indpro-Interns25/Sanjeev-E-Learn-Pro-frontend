@@ -1,12 +1,11 @@
 
-import { Container, Row, Col, Button, Form, InputGroup, Dropdown, Carousel } from 'react-bootstrap';
+import { Container, Row, Col, Button, Form, InputGroup, Dropdown, Carousel, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
-import { searchCourses } from '../../data/mockCourses';
+import { useState, useEffect } from 'react';
+import { searchCourses, getCourseCategories, getFeaturedCourses, formatCoursesData } from '../../services/courses';
 
 // ...existing code...
 
-const categories = ['Web Development', 'JavaScript', 'Data Science'];
 const features = [
   {
     icon: 'bi-collection-play',
@@ -30,13 +29,83 @@ const features = [
   }
 ];
 
-
-
 export default function Home() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const [categories, setCategories] = useState([]);
   const [results, setResults] = useState([]);
   const [searched, setSearched] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [featuredCourses, setFeaturedCourses] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  // Fetch categories and featured courses on component mount
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const [categoriesResponse, featuredResponse] = await Promise.allSettled([
+          getCourseCategories(),
+          getFeaturedCourses(3)
+        ]);
+
+        if (categoriesResponse.status === 'fulfilled') {
+          const categoryNames = categoriesResponse.value.map(cat => cat.name);
+          setCategories(categoryNames);
+        } else {
+          console.warn('Failed to fetch categories:', categoriesResponse.reason);
+          // Fallback categories based on API response examples
+          setCategories(['Web Development', 'Data Science', 'Mobile Development', 'Database Management']);
+        }
+
+        if (featuredResponse.status === 'fulfilled') {
+          setFeaturedCourses(formatCoursesData(featuredResponse.value));
+        }
+
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
+  const handleSearch = async () => {
+    try {
+      setSearching(true);
+      setSearched(true);
+      
+      const filters = {};
+      if (category) {
+        filters.category = category;
+      }
+      
+      const searchResults = await searchCourses(search, filters);
+      setResults(formatCoursesData(searchResults));
+    } catch (error) {
+      console.error('Search failed:', error);
+      setResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleCategorySelect = async (selectedCategory) => {
+    try {
+      setCategory(selectedCategory);
+      setSearching(true);
+      setSearched(true);
+      
+      const categoryResults = await searchCourses('', { category: selectedCategory });
+      setResults(formatCoursesData(categoryResults));
+    } catch (error) {
+      console.error('Category search failed:', error);
+      setResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
   return (
     <main>
       <section
@@ -64,13 +133,8 @@ export default function Home() {
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                   />
-                  <Dropdown onSelect={cat => {
-                    setCategory(cat);
-                    const filtered = searchCourses('', cat);
-                    setResults(filtered);
-                    setSearched(true);
-                  }}>
-                    <Dropdown.Toggle variant="outline-light" id="category-dropdown">
+                  <Dropdown onSelect={handleCategorySelect}>
+                    <Dropdown.Toggle variant="outline-light" id="category-dropdown" disabled={loadingCategories}>
                       {category || 'Category'}
                     </Dropdown.Toggle>
                     <Dropdown.Menu>
@@ -80,11 +144,16 @@ export default function Home() {
                     </Dropdown.Menu>
                   </Dropdown>
                   <span style={{ width: 12, display: 'inline-block' }}></span>
-                  <Button variant="primary" onClick={() => {
-                    const filtered = searchCourses(search, category);
-                    setResults(filtered);
-                    setSearched(true);
-                  }}>Search</Button>
+                  <Button variant="primary" onClick={handleSearch} disabled={searching}>
+                    {searching ? (
+                      <>
+                        <Spinner animation="border" size="sm" className="me-1" />
+                        Searching...
+                      </>
+                    ) : (
+                      'Search'
+                    )}
+                  </Button>
                 </InputGroup>
               </div>
               <div className="d-flex gap-3 mb-4 justify-content-center" style={{maxWidth: 320, margin: '0 auto'}}>
@@ -151,27 +220,52 @@ export default function Home() {
             </Col>
             <Col md={6}>
               <Carousel className="w-100" style={{ maxWidth: 600 }}>
-                <Carousel.Item>
-                  <img className="d-block w-100 rounded" src="https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=800&q=80" alt="Learning" style={{ height: '400px', objectFit: 'cover' }} />
-                  <Carousel.Caption>
-                    <h5>Web Development Bootcamp</h5>
-                    <p>Master HTML, CSS, JavaScript, and React with hands-on projects.</p>
-                  </Carousel.Caption>
-                </Carousel.Item>
-                <Carousel.Item>
-                  <img className="d-block w-100 rounded" src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80" alt="Desk" style={{ height: '400px', objectFit: 'cover' }} />
-                  <Carousel.Caption>
-                    <h5>Collaborative Learning</h5>
-                    <p>Work together and share knowledge in a modern environment.</p>
-                  </Carousel.Caption>
-                </Carousel.Item>
-                <Carousel.Item>
-                  <img className="d-block w-100 rounded" src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=800&q=80" alt="React" style={{ height: '400px', objectFit: 'cover' }} />
-                  <Carousel.Caption>
-                    <h5>Advanced React Programming</h5>
-                    <p>Master React hooks, context, and advanced patterns for building modern web applications.</p>
-                  </Carousel.Caption>
-                </Carousel.Item>
+                {featuredCourses.length > 0 ? (
+                  featuredCourses.map(course => (
+                    <Carousel.Item key={course.id}>
+                      <img 
+                        className="d-block w-100 rounded" 
+                        src={course.thumbnail} 
+                        alt={course.title} 
+                        style={{ height: '400px', objectFit: 'cover' }} 
+                      />
+                      <Carousel.Caption>
+                        <h5>{course.title}</h5>
+                        <p>{course.description.length > 100 ? course.description.substring(0, 100) + '...' : course.description}</p>
+                        <p className="mb-1">
+                          <span className="badge bg-primary me-2">{course.level}</span>
+                          <span className="badge bg-success me-2">{course.formattedPrice}</span>
+                          <span className="badge bg-warning">⭐ {course.formattedRating}</span>
+                        </p>
+                      </Carousel.Caption>
+                    </Carousel.Item>
+                  ))
+                ) : (
+                  // Fallback content while loading or if no featured courses
+                  <>
+                    <Carousel.Item>
+                      <img className="d-block w-100 rounded" src="https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=800&q=80" alt="Learning" style={{ height: '400px', objectFit: 'cover' }} />
+                      <Carousel.Caption>
+                        <h5>Expert-Led Learning</h5>
+                        <p>Master new skills with hands-on projects and real-world applications.</p>
+                      </Carousel.Caption>
+                    </Carousel.Item>
+                    <Carousel.Item>
+                      <img className="d-block w-100 rounded" src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80" alt="Collaboration" style={{ height: '400px', objectFit: 'cover' }} />
+                      <Carousel.Caption>
+                        <h5>Collaborative Learning</h5>
+                        <p>Work together and share knowledge in a modern environment.</p>
+                      </Carousel.Caption>
+                    </Carousel.Item>
+                    <Carousel.Item>
+                      <img className="d-block w-100 rounded" src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=800&q=80" alt="Technology" style={{ height: '400px', objectFit: 'cover' }} />
+                      <Carousel.Caption>
+                        <h5>Latest Technology</h5>
+                        <p>Stay updated with the latest trends and technologies in your field.</p>
+                      </Carousel.Caption>
+                    </Carousel.Item>
+                  </>
+                )}
               </Carousel>
             </Col>
           </Row>

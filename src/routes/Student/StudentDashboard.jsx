@@ -1,23 +1,79 @@
-import { Container, Row, Col, Card } from 'react-bootstrap';
+import { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Spinner, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { getEnrolledCourses, getUserStats } from '../../services/user';
 import { mockCourses } from '../../data/mockCourses';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [stats, setStats] = useState({
+    coursesInProgress: 0,
+    completedCourses: 0,
+    totalLessons: 0,
+    completedLessons: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // In a real app, this would come from an API call
-  const enrolledCourses = mockCourses.slice(0, 3);
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch enrolled courses and user stats in parallel
+        const [coursesData, statsData] = await Promise.all([
+          getEnrolledCourses(),
+          getUserStats()
+        ]);
+        
+        setEnrolledCourses(coursesData);
+        setStats(statsData);
+        
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError(err.message);
+        
+        // Fallback to mock data if API fails
+        setEnrolledCourses(mockCourses.slice(0, 3));
+        setStats({
+          coursesInProgress: 3,
+          completedCourses: 1,
+          totalLessons: 15,
+          completedLessons: 5
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const stats = {
-    coursesInProgress: enrolledCourses.length,
-    completedCourses: 1,
-    totalLessons: enrolledCourses.reduce((acc, course) => acc + course.lessons.length, 0),
-    completedLessons: 5
-  };
+    fetchDashboardData();
+  }, []);
+
+  // Loading state
+  if (loading) {
+    return (
+      <Container className="py-4">
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+          <Spinner animation="border" role="status" className="text-primary">
+            <span className="visually-hidden">Loading dashboard...</span>
+          </Spinner>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container className="py-4">
+      {error && (
+        <Alert variant="warning" className="mb-4">
+          <i className="bi bi-exclamation-triangle me-2"></i>
+          Could not connect to backend server. Showing demo data.
+        </Alert>
+      )}
+      
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
         <div className="d-flex align-items-center gap-3">
           <img src={user.avatar || 'https://placehold.co/48x48?text=U'} alt={user.name} width="48" height="48" className="rounded-circle border border-2 border-primary" />
@@ -77,23 +133,49 @@ export default function StudentDashboard() {
                 <Card className="h-100 border-0 shadow rounded-4">
                   <Card.Img
                     variant="top"
-                    src={course.thumbnail}
+                    src={course.thumbnail || 'https://placehold.co/300x160?text=Course'}
                     alt={course.title}
                     style={{ height: '160px', objectFit: 'cover' }}
                   />
-                  <Card.Body>
+                  <Card.Body className="d-flex flex-column">
                     <Card.Title as="h5">{course.title}</Card.Title>
-                    <Card.Text className="text-muted small mb-3">
-                      <i className="bi bi-person-circle me-1"></i>{course.instructor.name}
+                    <Card.Text className="text-muted small mb-3 flex-grow-1">
+                      {course.description?.length > 80 
+                        ? `${course.description.substring(0, 80)}...` 
+                        : course.description}
                     </Card.Text>
-                    <div className="d-flex justify-content-between align-items-center">
+                    
+                    {/* Progress Bar */}
+                    <div className="mb-3">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <small className="text-muted">Progress</small>
+                        <small className="fw-bold text-primary">{course.progress_percentage || 0}%</small>
+                      </div>
+                      <div className="progress" style={{ height: '6px' }}>
+                        <div 
+                          className="progress-bar bg-primary" 
+                          role="progressbar" 
+                          style={{ width: `${course.progress_percentage || 0}%` }}
+                        ></div>
+                      </div>
                       <small className="text-muted">
-                        Continue Learning
+                        {course.completed_lessons || 0} of {course.total_lessons || 0} lessons completed
                       </small>
+                    </div>
+                    
+                    <div className="d-flex justify-content-between align-items-center mt-auto">
+                      <div className="d-flex flex-column">
+                        <span className="badge bg-primary mb-1">{course.category}</span>
+                        <small className="text-muted">
+                          <i className="bi bi-star-fill text-warning me-1"></i>
+                          {parseFloat(course.rating || 0).toFixed(1)}
+                        </small>
+                      </div>
                       <Link
                         to={`/student/courses/${course.id}`}
                         className="btn btn-outline-primary btn-sm"
                       >
+                        <i className="bi bi-play-circle me-1"></i>
                         Continue
                       </Link>
                     </div>

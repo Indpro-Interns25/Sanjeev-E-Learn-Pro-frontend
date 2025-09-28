@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import { getCourseCategories } from '../../services/courses';
 
 const COURSE_LEVELS = [
   { value: 'beginner', label: 'Beginner' },
@@ -8,32 +9,67 @@ const COURSE_LEVELS = [
   { value: 'advanced', label: 'Advanced' }
 ];
 
-const COURSE_CATEGORIES = [
-  'Web Development',
-  'Mobile Development',
-  'Data Science',
-  'Machine Learning',
-  'DevOps',
-  'Design',
-  'Business'
-];
-
 export default function CourseForm({ course, onSubmit, isEdit = false }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: COURSE_CATEGORIES[0],
+    category: '',
     level: 'beginner',
     price: '',
     duration: '',
     thumbnail: ''
   });
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [error, setError] = useState(null);
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesData = await getCourseCategories();
+        const categoryNames = categoriesData.map(cat => cat.name);
+        setCategories(categoryNames);
+        
+        // Set default category if form is empty
+        if (!formData.category && categoryNames.length > 0) {
+          setFormData(prev => ({ ...prev, category: categoryNames[0] }));
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        // Fallback categories
+        const fallbackCategories = [
+          'Web Development',
+          'Mobile Development',
+          'Data Science',
+          'Machine Learning',
+          'Design',
+          'Business'
+        ];
+        setCategories(fallbackCategories);
+        if (!formData.category) {
+          setFormData(prev => ({ ...prev, category: fallbackCategories[0] }));
+        }
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []); // Only run on mount
 
   useEffect(() => {
     if (course && isEdit) {
-      setFormData(course);
+      setFormData({
+        title: course.title || '',
+        description: course.description || '',
+        category: course.category || '',
+        level: course.level || 'beginner',
+        price: course.price || '',
+        duration: course.duration || '',
+        thumbnail: course.thumbnail || ''
+      });
     }
   }, [course, isEdit]);
 
@@ -101,12 +137,17 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
           value={formData.category}
           onChange={handleChange}
           required
+          disabled={loadingCategories}
         >
-          {COURSE_CATEGORIES.map(category => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
+          {loadingCategories ? (
+            <option>Loading categories...</option>
+          ) : (
+            categories.map(category => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))
+          )}
         </Form.Select>
       </Form.Group>
 

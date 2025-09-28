@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Badge, Tab, Nav, Card } from 'react-bootstrap';
+import { Container, Row, Col, Button, Badge, Tab, Nav, Card, Alert, Spinner } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { getCourseById } from '../../data/mockCourses';
-import { getLessonsByCourse } from '../../data/mockLessons';
+import { formatCourseData } from '../../services/courses';
+import { getCourseCurriculum } from '../../services/lessons';
 import Comments from '../../components/Comments';
 
 export default function CourseDetail() {
@@ -12,15 +12,49 @@ export default function CourseDetail() {
   const { isAuthenticated, user } = useAuth();
   const [course, setCourse] = useState(null);
   const [lessons, setLessons] = useState([]);
+  const [totalLessons, setTotalLessons] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const courseData = getCourseById(parseInt(courseId));
-    if (!courseData) {
-      navigate('/not-found');
-      return;
+    const fetchCourseData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('🔍 Fetching curriculum for course ID:', courseId);
+        
+        // Fetch course curriculum (includes course details + lessons)
+        const curriculumData = await getCourseCurriculum(parseInt(courseId));
+        
+        console.log('📚 Curriculum data received:', curriculumData);
+        
+        // Set course data
+        setCourse(formatCourseData(curriculumData.course));
+        
+        // Set lessons data
+        setLessons(curriculumData.curriculum || []);
+        
+        // Set total lessons count
+        setTotalLessons(curriculumData.totalLessons || curriculumData.curriculum?.length || 0);
+        
+        console.log('✅ Data loaded successfully - Lessons:', curriculumData.curriculum?.length || 0);
+        
+      } catch (err) {
+        console.error('❌ Error fetching course curriculum:', err);
+        setError(err.message);
+        
+        if (err.message === 'Course curriculum not found') {
+          navigate('/not-found');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (courseId) {
+      fetchCourseData();
     }
-    setCourse(courseData);
-    setLessons(getLessonsByCourse(parseInt(courseId)));
   }, [courseId, navigate]);
 
   const handleEnroll = () => {
@@ -30,16 +64,59 @@ export default function CourseDetail() {
     }
     // In a real app, this would make an API call to enroll
     navigate(`/student/courses/${courseId}`);
-    
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <Container className="py-5">
+        <Row className="justify-content-center">
+          <Col md={6} className="text-center">
+            <Spinner animation="border" role="status" className="mb-3">
+              <span className="visually-hidden">Loading course...</span>
+            </Spinner>
+            <p>Loading course details...</p>
+          </Col>
+        </Row>
+      </Container>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <Container className="py-5">
+        <Row className="justify-content-center">
+          <Col md={8}>
+            <Alert variant="danger" className="text-center">
+              <h4>Unable to load course</h4>
+              <p>{error}</p>
+              <Button variant="outline-danger" onClick={() => navigate('/catalog')}>
+                Browse Other Courses
+              </Button>
+            </Alert>
+          </Col>
+        </Row>
+      </Container>
+    );
+  }
+
+  // No course found
   if (!course) {
     return (
-      <div className="d-flex justify-content-center p-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
+      <Container className="py-5">
+        <Row className="justify-content-center">
+          <Col md={8}>
+            <Alert variant="warning" className="text-center">
+              <h4>Course not found</h4>
+              <p>The course you&apos;re looking for doesn&apos;t exist.</p>
+              <Button variant="outline-primary" onClick={() => navigate('/catalog')}>
+                Browse Available Courses
+              </Button>
+            </Alert>
+          </Col>
+        </Row>
+      </Container>
     );
   }
 
@@ -61,19 +138,19 @@ export default function CourseDetail() {
                 <Badge bg="secondary" className="fs-6 px-3 py-1 rounded-pill">{course.level}</Badge>
               </div>
               <div className="d-flex align-items-center mb-2">
-                <img src={course.instructor.avatar || 'https://placehold.co/40x40?text=I'} alt={course.instructor.name} width="40" height="40" className="rounded-circle me-2 border border-2 border-white" />
-                <span className="text-white fw-semibold">{course.instructor.name}</span>
+                <img src='https://placehold.co/40x40?text=I' alt={course.instructor?.name || course.instructor_name || 'Instructor'} width="40" height="40" className="rounded-circle me-2 border border-2 border-white" />
+                <span className="text-white fw-semibold">{course.instructor?.name || course.instructor_name || 'Instructor'}</span>
               </div>
               <div className="d-flex align-items-center">
                 <div className="text-warning">
                   {[...Array(5)].map((_, i) => (
-                    <i key={i} className={`bi bi-star${i < Math.round(course.rating) ? '-fill' : ''}`}></i>
+                    <i key={i} className={`bi bi-star${i < Math.round(parseFloat(course.rating || 0)) ? '-fill' : ''}`}></i>
                   ))}
                 </div>
-                <span className="text-white ms-2">{course.rating.toFixed(1)} / 5</span>
+                <span className="text-white ms-2">{parseFloat(course.rating || 0).toFixed(1)} / 5</span>
                 <span className="text-white ms-3">
                   <i className="bi bi-people me-1"></i>
-                  {course.enrolled.toLocaleString()} students
+                  {(course.enrolled_count || course.enrolled || 0).toLocaleString()} students
                 </span>
               </div>
             </div>
@@ -120,23 +197,34 @@ export default function CourseDetail() {
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <h4 className="mb-0 fw-bold"><i className="bi bi-list-ol me-2"></i>Course Content</h4>
                     <div className="text-muted">
-                      {lessons.length} lessons • {course.duration}
+                      {totalLessons} lessons • {course.duration || '10 weeks'}
                     </div>
                   </div>
 
-                  {lessons.length > 0 ? (
+                  {lessons && lessons.length > 0 ? (
                     <div className="list-group">
-                      {lessons.map(lesson => (
-                        <div key={lesson.id} className="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
-                          <img src={lesson.image || `https://placehold.co/80x60?text=Lesson`} alt={lesson.title} className="rounded shadow-sm" style={{ width: '80px', height: '60px', objectFit: 'cover' }} />
+                      {lessons.map((lesson, index) => (
+                        <div key={lesson.id || index} className="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
+                          <img 
+                            src={lesson.thumbnail || lesson.image || `https://placehold.co/80x60?text=Lesson+${lesson.order_sequence || index + 1}`} 
+                            alt={lesson.title} 
+                            className="rounded shadow-sm" 
+                            style={{ width: '80px', height: '60px', objectFit: 'cover' }} 
+                          />
                           <div className="flex-grow-1">
-                            <h5 className="mb-1">{lesson.title}</h5>
-                            <p className="mb-1 text-muted">{lesson.description}</p>
-                            <small className="text-secondary"><i className="bi bi-clock me-1"></i>{lesson.duration}</small>
+                            <div className="d-flex align-items-center gap-2 mb-1">
+                              <span className="badge bg-primary">{lesson.order_sequence || index + 1}</span>
+                              <h5 className="mb-0">{lesson.title}</h5>
+                            </div>
+                            <p className="mb-1 text-muted">{lesson.description || `Lesson ${lesson.order_sequence || index + 1} content`}</p>
+                            <small className="text-secondary">
+                              <i className="bi bi-clock me-1"></i>
+                              {lesson.duration || '10 min'}
+                            </small>
                           </div>
                           <Button variant="outline-primary" size="sm" onClick={() => {
                             // Allow preview for everyone, no auth required
-                            navigate(`/courses/${courseId}/lessons/${lesson.id}/preview`);
+                            navigate(`/courses/${courseId}/lessons/${lesson.id || index + 1}/preview`);
                           }}>
                             <i className="bi bi-play-circle me-1"></i>Preview
                           </Button>
@@ -220,13 +308,13 @@ export default function CourseDetail() {
                 <div className="d-flex justify-content-between text-muted small">
                   <div>
                     <i className="bi bi-people me-1"></i>
-                    {course.enrolled.toLocaleString()} students
+                    {(course.enrolled_count || course.enrolled || 0).toLocaleString()} students
                   </div>
                   <div className="text-warning">
                     {[...Array(5)].map((_, i) => (
-                      <i key={i} className={`bi bi-star${i < Math.round(course.rating) ? '-fill' : ''}`}></i>
+                      <i key={i} className={`bi bi-star${i < Math.round(parseFloat(course.rating || 0)) ? '-fill' : ''}`}></i>
                     ))}
-                    <span className="ms-1">{course.rating.toFixed(1)}</span>
+                    <span className="ms-1">{parseFloat(course.rating || 0).toFixed(1)}</span>
                   </div>
                 </div>
               </Card.Body>

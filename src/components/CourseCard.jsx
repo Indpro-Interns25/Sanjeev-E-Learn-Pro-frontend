@@ -18,11 +18,11 @@ export default function CourseCard({ course }) {
         <div className="mb-2 d-flex align-items-center justify-content-between">
           <div>
             <Badge bg="primary" className="me-2">{course.category}</Badge>
-            <Badge bg="secondary">{course.level}</Badge>
+            <Badge bg="secondary">{course.difficulty_level || course.level || 'Beginner'}</Badge>
           </div>
           <div className="d-flex align-items-center">
-            <img src={course.instructor?.avatar || 'https://placehold.co/32x32?text=I'} alt={course.instructor?.name || 'Instructor'} width="32" height="32" className="rounded-circle me-2" />
-            <span className="small text-muted">{course.instructor?.name || 'Instructor'}</span>
+            <img src='https://placehold.co/32x32?text=I' alt={course.instructor_name || 'Instructor'} width="32" height="32" className="rounded-circle me-2" />
+            <span className="small text-muted">{course.instructor_name || 'Instructor'}</span>
           </div>
         </div>
         <Card.Title className="mb-1">{course.title}</Card.Title>
@@ -35,21 +35,21 @@ export default function CourseCard({ course }) {
           <div className="d-flex justify-content-between align-items-center mb-2">
             <small className="text-muted">
               <i className="bi bi-clock me-1"></i>
-              {course.duration}
+              {course.duration || 'Self-paced'}
             </small>
             <small className="text-muted">
               <i className="bi bi-people me-1"></i>
-              {course.enrolled.toLocaleString()} enrolled
+              {(course.enrolled_count || course.enrolled || 0).toLocaleString()} enrolled
             </small>
           </div>
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <strong className="h5 mb-0">₹{course.price}</strong>
+              <strong className="h5 mb-0">${parseFloat(course.price || 0).toFixed(2)}</strong>
               <div className="text-warning small">
                 {[...Array(5)].map((_, i) => (
-                  <i key={i} className={`bi bi-star${i < Math.round(course.rating) ? '-fill' : ''}`}></i>
+                  <i key={i} className={`bi bi-star${i < Math.round(parseFloat(course.rating || 0)) ? '-fill' : ''}`}></i>
                 ))}
-                <span className="ms-1">{course.rating.toFixed(1)}</span>
+                <span className="ms-1">{parseFloat(course.rating || 0).toFixed(1)}</span>
               </div>
             </div>
             <Button 
@@ -69,19 +69,18 @@ export default function CourseCard({ course }) {
 
 CourseCard.propTypes = {
   course: PropTypes.shape({
-    id: PropTypes.number.isRequired,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     title: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
-    thumbnail: PropTypes.string.isRequired,
-    category: PropTypes.string.isRequired,
-    level: PropTypes.string.isRequired,
-    duration: PropTypes.string.isRequired,
-    enrolled: PropTypes.number.isRequired,
-    price: PropTypes.number.isRequired,
-    rating: PropTypes.number.isRequired,
-    instructor: PropTypes.shape({
-      name: PropTypes.string,
-      avatar: PropTypes.string
-    })
+    description: PropTypes.string,
+    thumbnail: PropTypes.string,
+    category: PropTypes.string,
+    difficulty_level: PropTypes.string,
+    level: PropTypes.string, // fallback field
+    duration: PropTypes.string,
+    instructor_name: PropTypes.string,
+    enrolled_count: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    enrolled: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    rating: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
   }).isRequired
 };
