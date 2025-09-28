@@ -1,3 +1,5 @@
+import apiClient from './apiClient';
+
 // Mock delay to simulate API calls
 const MOCK_DELAY = 800;
 
@@ -66,33 +68,42 @@ export async function login(email, password) {
   };
 }
 
-// Mock register function
+// Register function with real API
 export async function register(userData) {
-  await mockDelay();
-
   // Validate required fields
   if (!userData.email || !userData.password || !userData.name || !userData.role) {
     throw new Error('All fields are required');
   }
 
-  // Check if email is already taken
-  if (Object.values(MOCK_USERS).some(u => u.email === userData.email)) {
-    throw new Error('Email already registered');
+  try {
+    const response = await apiClient.post('/auth/register', {
+      email: userData.email,
+      password: userData.password,
+      name: userData.name,
+      role: userData.role
+    });
+
+    const data = response.data;
+    
+    // Return user and token in the expected format
+    return {
+      user: data.user,
+      token: data.token
+    };
+  } catch (error) {
+    // Handle Axios errors
+    if (error.response) {
+      // Server responded with error status
+      const errorMessage = error.response.data?.message || 'Registration failed';
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      // Request was made but no response received
+      throw new Error('Unable to connect to server. Please try again.');
+    } else {
+      // Something else happened
+      throw new Error('Registration failed. Please try again.');
+    }
   }
-
-  // Create new mock user
-  const newUser = {
-    id: Date.now(),
-    email: userData.email,
-    name: userData.name,
-    role: userData.role
-  };
-
-  // In a real app, we would save the user to a database here
-  return {
-    user: newUser,
-    token: `mock-token-${newUser.id}`
-  };
 }
 
 // Mock token validation

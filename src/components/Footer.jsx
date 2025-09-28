@@ -14,7 +14,6 @@ export default function Footer() {
           </Col>
           
           <Col md={4} className="text-center mb-3 mb-md-0">
-            <h6>Quick Links</h6>
             <ul className="list-unstyled">
               <li><Link to="/about" className="text-light text-decoration-none">About Us</Link></li>
               <li><Link to="/contact" className="text-light text-decoration-none">Contact</Link></li>

@@ -1,6 +1,6 @@
 import { useReducer, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import * as authService from '../services/auth';
+import * as authService from '../services/authApi';
 import { AuthContext } from './auth-context';
 
 const initialState = {
