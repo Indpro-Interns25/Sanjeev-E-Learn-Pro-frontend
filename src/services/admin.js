@@ -112,15 +112,16 @@ export async function getAllCoursesAdmin() {
 }
 
 /**
- * Get all lessons (admin view)
+ * Get all lessons (admin view) - CLEAN VERSION
  * @returns {Promise<Array>} Promise that resolves to lessons array
  */
 export async function getAllLessonsAdmin() {
   try {
-    console.log('📝 Fetching admin lessons from API...');
-    const response = await apiClient.get('/api/admin/lessons');
-    console.log('📚 Admin lessons received:', response.data);
-    return response.data.data; // Return the data property from the response
+    console.warn('📝 Fetching admin lessons from API...');
+    const cleanUrl = '/api/admin/lessons';
+    const response = await apiClient.get(cleanUrl);
+    console.warn('📚 Admin lessons received:', response.data);
+    return response.data.data;
   } catch (error) {
     console.error('🚨 Failed to fetch admin lessons:', error);
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
