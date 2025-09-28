@@ -1,38 +1,8 @@
 import apiClient from './apiClient';
 
-// Mock delay to simulate API calls
-const MOCK_DELAY = 800;
-
-// Mock users for testing
-const MOCK_USERS = {
-  student: {
-    id: 1,
-    email: 'student@example.com',
-    name: 'John Student',
-    role: 'student'
-  },
-  instructor: {
-    id: 2,
-    email: 'instructor@example.com',
-    name: 'Jane Instructor',
-    role: 'instructor'
-  }
-};
-
-// Mock tokens (in a real app, these would be JWTs)
-const MOCK_TOKENS = {
-  'student@example.com': 'mock-student-token',
-  'instructor@example.com': 'mock-instructor-token'
-};
-
-// Helper to simulate API delay
-const mockDelay = () => new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
-
-// Mock login function
+// Login function with real API
 export async function login(email, password) {
-  await mockDelay();
-  
-  // Simplified validation for demo
+  // Validate required fields
   if (!email || !password) {
     throw new Error('Email and password are required');
   }
@@ -43,29 +13,33 @@ export async function login(email, password) {
     throw new Error('Please enter a valid email address');
   }
 
-  // Check if user exists in our mock data, otherwise create a dynamic student user
-  let user = Object.values(MOCK_USERS).find(u => u.email === email);
-  
-  if (!user) {
-    // Create a dynamic student user for any valid email
-    const username = email.split('@')[0];
-    const displayName = username.charAt(0).toUpperCase() + username.slice(1).replace(/[._-]/g, ' ');
-    
-    user = {
-      id: Date.now(),
+  try {
+    const response = await apiClient.post('/auth/login', {
       email: email.toLowerCase(),
-      name: displayName,
-      role: 'student' // Default to student role
+      password
+    });
+
+    const data = response.data;
+    
+    // Return user and token in the expected format
+    return {
+      user: data.user,
+      token: data.token
     };
+  } catch (error) {
+    // Handle Axios errors
+    if (error.response) {
+      // Server responded with error status
+      const errorMessage = error.response.data?.message || 'Login failed';
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      // Request was made but no response received
+      throw new Error('Unable to connect to server. Please try again.');
+    } else {
+      // Something else happened
+      throw new Error('Login failed. Please try again.');
+    }
   }
-
-  // Generate a token
-  const token = `mock-token-${user.id}-${Date.now()}`;
-
-  return {
-    user,
-    token
-  };
 }
 
 // Register function with real API
@@ -106,31 +80,53 @@ export async function register(userData) {
   }
 }
 
-// Mock token validation
+// Token validation with real API
 export async function validateToken(token) {
-  await mockDelay();
+  try {
+    const response = await apiClient.get('/auth/me', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
 
-  // Find user by token
-  const email = Object.keys(MOCK_TOKENS).find(key => MOCK_TOKENS[key] === token);
-  if (!email) {
-    throw new Error('Invalid token');
+    return response.data.user;
+  } catch (error) {
+    // Handle Axios errors
+    if (error.response) {
+      if (error.response.status === 401) {
+        throw new Error('Invalid or expired token');
+      }
+      const errorMessage = error.response.data?.message || 'Token validation failed';
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      // Request was made but no response received
+      throw new Error('Unable to connect to server. Please try again.');
+    } else {
+      // Something else happened
+      throw new Error('Token validation failed. Please try again.');
+    }
   }
-
-  return Object.values(MOCK_USERS).find(u => u.email === email);
 }
 
-// Mock password reset request
+// Password reset request with real API
 export async function requestPasswordReset(email) {
-  await mockDelay();
-  
-  const user = Object.values(MOCK_USERS).find(u => u.email === email);
-  if (!user) {
-    throw new Error('User not found');
+  try {
+    const response = await apiClient.post('/auth/forgot-password', {
+      email
+    });
+
+    return response.data;
+  } catch (error) {
+    // Handle Axios errors
+    if (error.response) {
+      const errorMessage = error.response.data?.message || 'Password reset request failed';
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      // Request was made but no response received
+      throw new Error('Unable to connect to server. Please try again.');
+    } else {
+      // Something else happened
+      throw new Error('Password reset request failed. Please try again.');
+    }
   }
-
-  // In a real app, we would send a password reset email here
-  return { message: 'Password reset email sent' };
 }
-
-// Export mock users for testing
-export const mockUsers = MOCK_USERS;
