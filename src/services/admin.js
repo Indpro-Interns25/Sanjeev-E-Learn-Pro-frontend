@@ -6,10 +6,29 @@ import apiClient from './apiClient';
  */
 export async function getAdminStats() {
   try {
-    console.log('📊 Fetching admin stats from API...');
+    console.warn('📊 Fetching admin stats from API...');
     const response = await apiClient.get('/api/admin/stats');
-    console.log('📈 Admin stats received:', response.data);
-    return response.data.data; // Return the data property from the response
+    console.warn('📈 Admin stats received:', response.data);
+    
+    // Handle the API response structure: { success: true, data: {...} }
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    
+    // Fallback for different response structures
+    if (response.data.data) {
+      return response.data.data;
+    }
+    
+    return response.data || {
+      totalStudents: 0,
+      totalInstructors: 0,
+      totalCourses: 0,
+      totalLessons: 0,
+      totalEnrollments: 0,
+      activeUsers: 0,
+      recentActivity: []
+    };
   } catch (error) {
     console.error('🚨 Failed to fetch admin stats:', error);
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
@@ -92,10 +111,21 @@ export async function getAllInstructors() {
  */
 export async function getAllCoursesAdmin() {
   try {
-    console.log('📚 Fetching admin courses from API...');
+    console.warn('📚 Fetching admin courses from API...');
     const response = await apiClient.get('/api/admin/courses');
-    console.log('📊 Admin courses received:', response.data);
-    return response.data.data; // Return the data property from the response
+    console.warn('📊 Admin courses received:', response.data);
+    
+    // Handle the API response structure: { success: true, data: [...] }
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    
+    // Fallback for different response structures
+    if (response.data.data) {
+      return response.data.data;
+    }
+    
+    return response.data || [];
   } catch (error) {
     console.error('🚨 Failed to fetch admin courses:', error);
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
@@ -121,7 +151,18 @@ export async function getAllLessonsAdmin() {
     const cleanUrl = '/api/admin/lessons';
     const response = await apiClient.get(cleanUrl);
     console.warn('📚 Admin lessons received:', response.data);
-    return response.data.data;
+    
+    // Handle the API response structure: { success: true, data: [...] }
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    
+    // Fallback for different response structures
+    if (response.data.data) {
+      return response.data.data;
+    }
+    
+    return response.data || [];
   } catch (error) {
     console.error('🚨 Failed to fetch admin lessons:', error);
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {

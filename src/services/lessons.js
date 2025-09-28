@@ -1,15 +1,50 @@
 import apiClient from './apiClient';
 
 /**
+ * Get all lessons (public endpoint)
+ * @returns {Promise<Array>} Promise that resolves to lessons array
+ */
+export async function getAllLessons() {
+  try {
+    console.warn('📝 Fetching all lessons from API...');
+    const response = await apiClient.get('/api/lessons');
+    console.warn('📚 All lessons received:', response.data);
+    
+    // Handle the API response structure: { success: true, data: [...] }
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    
+    // Fallback if the response structure is different
+    return response.data || [];
+  } catch (error) {
+    console.error('🚨 Failed to fetch all lessons:', error);
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
+      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
+    }
+    
+    if (error.response?.status === 404) {
+      throw new Error('Lessons not found');
+    }
+    
+    const message = error.response?.data?.message || 
+                   error.response?.data?.error || 
+                   error.message || 
+                   'Failed to fetch lessons';
+    throw new Error(message);
+  }
+}
+
+/**
  * Get course curriculum (course details + lessons)
  * @param {number} courseId - The course ID
  * @returns {Promise<Object>} Promise that resolves to course curriculum object
  */
 export async function getCourseCurriculum(courseId) {
   try {
-    console.log('🌐 Making API call to:', `/api/courses/${courseId}/curriculum`);
+    console.warn('🌐 Making API call to:', `/api/courses/${courseId}/curriculum`);
     const response = await apiClient.get(`/api/courses/${courseId}/curriculum`);
-    console.log('📡 API response received:', response.data);
+    console.warn('📡 API response received:', response.data);
     return response.data;
   } catch (error) {
     console.error('🚨 API call failed:', error);
@@ -169,6 +204,7 @@ export async function deleteLesson(lessonId) {
 
 // Export default object with all functions for easier importing
 export default {
+  getAllLessons,
   getCourseCurriculum,
   getLessonsByCourseId,
   getLessonById,

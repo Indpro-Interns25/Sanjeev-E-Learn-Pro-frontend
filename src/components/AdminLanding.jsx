@@ -362,7 +362,7 @@ export default function AdminLanding() {
                         <td>
                           <Badge bg="info">{lesson.course_title || 'Unknown Course'}</Badge>
                         </td>
-                        <td>{lesson.duration} min</td>
+                        <td>{lesson.duration}</td>
                         <td>#{lesson.order_sequence}</td>
                         <td>
                           <Badge bg={lesson.status === 'published' ? 'success' : 'warning'}>
