@@ -38,7 +38,7 @@ import Privacy from './routes/Public/Privacy';
 
 // Admin
 import AdminLogin from './components/AdminLogin';
-import AdminDashboard from './components/AdminDashboard';
+import AdminLanding from './components/AdminLanding';
 
 
 
@@ -81,7 +81,7 @@ export default function App() {
                       {/* Admin Routes */}
                       <Route path="/admin" element={<AdminLogin />} />
                       <Route path="/admin-login" element={<AdminLogin />} />
-                      <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                      <Route path="/admin-dashboard" element={<AdminLanding />} />
 
 
 

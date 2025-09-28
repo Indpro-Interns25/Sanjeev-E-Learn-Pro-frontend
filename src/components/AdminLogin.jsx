@@ -1,13 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { adminLogin } from '../services/auth';
-import AdminDashboard from './AdminDashboard';
 
 export default function AdminLogin() {
   const [adminName, setAdminName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
+  const navigate = useNavigate();
+
+  // Clear any existing admin session when accessing login page
+  useEffect(() => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminData');
+    console.warn('🔄 Cleared existing admin session, showing login form');
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,15 +22,18 @@ export default function AdminLogin() {
     setLoading(true);
     
     try {
-      console.warn('🔐 Attempting admin login...'); // Using warn to satisfy linter
+      console.warn('🔐 Attempting admin login with:', { adminName, password: '***' });
       const result = await adminLogin(adminName, password);
-      console.warn('✅ Admin login successful:', result); // Using warn to satisfy linter
+      console.warn('✅ Admin login successful:', result);
       
       // Store the admin token
       localStorage.setItem('adminToken', result.token);
       localStorage.setItem('adminData', JSON.stringify(result.admin));
       
-      setLoggedIn(true);
+      // Navigate to admin dashboard
+      console.warn('🔄 Redirecting to admin dashboard');
+      navigate('/admin-dashboard', { replace: true });
+      
     } catch (err) {
       console.error('❌ Admin login failed:', err);
       setError(err.message || 'Login failed. Please try again.');
@@ -31,13 +41,6 @@ export default function AdminLogin() {
       setLoading(false);
     }
   };
-
-  if (loggedIn) {
-    console.warn('✅ Admin logged in, rendering AdminDashboard');
-    return <AdminDashboard />;
-  }
-
-  console.warn('🔓 Admin not logged in, showing login form');
 
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>

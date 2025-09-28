@@ -118,7 +118,12 @@ export async function adminLogin(adminName, password) {
   try {
     // Convert admin name to email format or use regular login endpoint
     // If adminName looks like email, use it directly, otherwise append domain
-    const email = adminName.includes('@') ? adminName : `${adminName}@admin.com`;
+    let email = adminName;
+    if (!adminName.includes('@')) {
+      email = `${adminName}@admin.com`;
+    }
+    
+    console.warn('🔐 Admin login attempt with email:', email);
     
     const response = await apiClient.post('/auth/login', {
       email,
@@ -126,6 +131,7 @@ export async function adminLogin(adminName, password) {
     });
 
     const data = response.data;
+    console.warn('✅ Admin login response:', data);
     
     // Check if user has admin role
     if (data.user && data.user.role !== 'admin') {
@@ -138,6 +144,7 @@ export async function adminLogin(adminName, password) {
       token: data.token
     };
   } catch (error) {
+    console.error('❌ Admin login error:', error);
     // Handle Axios errors
     if (error.response) {
       // Server responded with error status
