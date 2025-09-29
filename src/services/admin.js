@@ -67,11 +67,26 @@ export async function getAdminStats() {
  */
 export async function getAllStudents() {
   try {
+    console.warn('👥 Fetching students from API...');
     const response = await apiClient.get('/api/admin/students');
-    return response.data;
+    console.warn('👥 Students response:', response.data);
+    
+    // Handle the API response structure: { success: true, data: [...] }
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    
+    // Fallback for different response structures
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+    
+    return response.data.data || [];
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      console.warn('Backend API server not available');
+    console.error('🚨 Failed to fetch students:', error);
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
+        error.response?.status === 401 || error.response?.status === 403) {
+      console.warn('Backend API not available, returning empty array');
       return [];
     }
     
@@ -89,11 +104,26 @@ export async function getAllStudents() {
  */
 export async function getAllInstructors() {
   try {
+    console.warn('👨‍🏫 Fetching instructors from API...');
     const response = await apiClient.get('/api/admin/instructors');
-    return response.data;
+    console.warn('👨‍🏫 Instructors response:', response.data);
+    
+    // Handle the API response structure: { success: true, data: [...] }
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    
+    // Fallback for different response structures
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+    
+    return response.data.data || [];
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      console.warn('Backend API server not available');
+    console.error('🚨 Failed to fetch instructors:', error);
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
+        error.response?.status === 401 || error.response?.status === 403) {
+      console.warn('Backend API not available, returning empty array');
       return [];
     }
     
@@ -121,15 +151,16 @@ export async function getAllCoursesAdmin() {
     }
     
     // Fallback for different response structures
-    if (response.data.data) {
-      return response.data.data;
+    if (Array.isArray(response.data)) {
+      return response.data;
     }
     
-    return response.data || [];
+    return response.data.data || [];
   } catch (error) {
     console.error('🚨 Failed to fetch admin courses:', error);
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      console.warn('Backend API server not available');
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
+        error.response?.status === 401 || error.response?.status === 403) {
+      console.warn('Backend API not available, returning empty array');
       return [];
     }
     
@@ -148,8 +179,7 @@ export async function getAllCoursesAdmin() {
 export async function getAllLessonsAdmin() {
   try {
     console.warn('📝 Fetching admin lessons from API...');
-    const cleanUrl = '/api/admin/lessons';
-    const response = await apiClient.get(cleanUrl);
+    const response = await apiClient.get('/api/admin/lessons');
     console.warn('📚 Admin lessons received:', response.data);
     
     // Handle the API response structure: { success: true, data: [...] }
@@ -158,15 +188,16 @@ export async function getAllLessonsAdmin() {
     }
     
     // Fallback for different response structures
-    if (response.data.data) {
-      return response.data.data;
+    if (Array.isArray(response.data)) {
+      return response.data;
     }
     
-    return response.data || [];
+    return response.data.data || [];
   } catch (error) {
     console.error('🚨 Failed to fetch admin lessons:', error);
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      console.warn('Backend API server not available');
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
+        error.response?.status === 401 || error.response?.status === 403) {
+      console.warn('Backend API not available, returning empty array');
       return [];
     }
     

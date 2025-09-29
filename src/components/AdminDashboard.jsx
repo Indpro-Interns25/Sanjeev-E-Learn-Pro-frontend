@@ -13,6 +13,14 @@ export default function AdminDashboard() {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
+  
+  // Instructor form state
+  const [instructorForm, setInstructorForm] = useState({
+    name: '',
+    email: '',
+    password: ''
+  });
+  
   const [alert, setAlert] = useState(null);
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -28,18 +36,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Mock data for demonstration
-  const [students] = useState([
-    { id: 1, name: 'John Doe', email: 'john@example.com', status: 'active', enrolledCourses: 3, completionRate: 75 },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', status: 'pending', enrolledCourses: 2, completionRate: 60 },
-    { id: 3, name: 'Bob Johnson', email: 'bob@example.com', status: 'active', enrolledCourses: 4, completionRate: 90 }
-  ]);
-
-  const [instructors] = useState([
-    { id: 1, name: 'Alice Wilson', email: 'alice@example.com', status: 'active', courses: 2, rating: 4.8 },
-    { id: 2, name: 'Mike Brown', email: 'mike@example.com', status: 'pending', courses: 1, rating: 4.5 },
-    { id: 3, name: 'Sarah Davis', email: 'sarah@example.com', status: 'active', courses: 3, rating: 4.9 }
-  ]);
+  // Real data from API - will be populated by fetchAdminData
+  const [students, setStudents] = useState([]);
+  const [instructors, setInstructors] = useState([]);
 
   const [categories] = useState([
     { id: 1, name: 'Programming', courseCount: 8 },
@@ -60,16 +59,37 @@ export default function AdminDashboard() {
         setLoading(true);
         setError(null);
         
-        // Fetch admin stats, courses, and lessons in parallel
-        const [adminStats, coursesData, lessonsData] = await Promise.all([
+        // Fetch admin stats, courses, lessons, students, and instructors in parallel
+        const [adminStats, coursesData, lessonsData, studentsData, instructorsData] = await Promise.all([
           getAdminStats(),
           getAllCoursesAdmin(),
-          getAllLessonsAdmin()
+          getAllLessonsAdmin(),
+          getAllStudents(),
+          getAllInstructors()
         ]);
         
-        setStats(adminStats);
+        // Calculate stats from actual data arrays
+        const calculatedStats = {
+          totalStudents: studentsData?.length || 0,
+          totalInstructors: instructorsData?.length || 0,
+          totalCourses: coursesData?.length || 0,
+          totalLessons: lessonsData?.length || 0,
+          totalEnrollments: adminStats?.totalEnrollments || 0,
+          activeUsers: adminStats?.activeUsers || 0,
+          recentActivity: adminStats?.recentActivity || []
+        };
+        
+        console.warn('📊 Calculated stats:', calculatedStats);
+        console.warn('👥 Students count:', studentsData?.length);
+        console.warn('👨‍🏫 Instructors count:', instructorsData?.length);
+        console.warn('📚 Courses count:', coursesData?.length);
+        console.warn('📝 Lessons count:', lessonsData?.length);
+        
+        setStats(calculatedStats);
         setCourses(coursesData);
         setLessons(lessonsData);
+        setStudents(studentsData || []);
+        setInstructors(instructorsData || []);
         
       } catch (err) {
         console.error('Error fetching admin data:', err);
@@ -87,6 +107,17 @@ export default function AdminDashboard() {
         });
         setCourses(mockCourses);
         setLessons(mockLessons);
+        // Set mock students and instructors as fallback
+        setStudents([
+          { id: 1, name: 'John Doe', email: 'john@example.com', status: 'active', enrolledCourses: 3, completionRate: 75 },
+          { id: 2, name: 'Jane Smith', email: 'jane@example.com', status: 'pending', enrolledCourses: 2, completionRate: 60 },
+          { id: 3, name: 'Bob Johnson', email: 'bob@example.com', status: 'active', enrolledCourses: 4, completionRate: 90 }
+        ]);
+        setInstructors([
+          { id: 1, name: 'Alice Wilson', email: 'alice@example.com', status: 'active', total_courses: 2, total_enrollments: 0 },
+          { id: 2, name: 'Mike Brown', email: 'mike@example.com', status: 'pending', total_courses: 1, total_enrollments: 0 },
+          { id: 3, name: 'Sarah Davis', email: 'sarah@example.com', status: 'active', total_courses: 3, total_enrollments: 0 }
+        ]);
       } finally {
         setLoading(false);
       }
@@ -108,12 +139,32 @@ export default function AdminDashboard() {
   const handleAction = (action, item = null) => {
     setModalType(action);
     setSelectedItem(item);
+    
+    // Reset instructor form when opening add/edit modals
+    if (action === 'addInstructor') {
+      setInstructorForm({
+        name: '',
+        email: '',
+        password: ''
+      });
+    } else if (action === 'editInstructor' && item) {
+      setInstructorForm({
+        name: item.name || '',
+        email: item.email || '',
+        password: '' // Don't pre-fill password for security
+      });
+    }
+    
     setShowModal(true);
   };
 
   const confirmAction = () => {
-    showAlert(`${modalType} action completed successfully!`);
-    setShowModal(false);
+    if (modalType === 'deleteInstructor') {
+      handleDeleteInstructor();
+    } else {
+      showAlert(`${modalType} action completed successfully!`);
+      setShowModal(false);
+    }
   };
 
   const handleCourseSubmit = async (courseData) => {
@@ -145,6 +196,49 @@ export default function AdminDashboard() {
       setSelectedItem(null);
     } catch (error) {
       showAlert(`Error deleting course: ${error.message}`, 'danger');
+    }
+  };
+
+  const handleInstructorSubmit = async (instructorData = instructorForm) => {
+    try {
+      if (modalType === 'addInstructor') {
+        const newInstructor = await createInstructor(instructorData);
+        setInstructors(prev => [...prev, newInstructor]);
+        showAlert('Instructor created successfully!', 'success');
+      } else if (modalType === 'editInstructor') {
+        const updatedInstructor = await updateInstructor(selectedItem.id, instructorData);
+        setInstructors(prev => prev.map(instructor => 
+          instructor.id === selectedItem.id ? updatedInstructor : instructor
+        ));
+        showAlert('Instructor updated successfully!', 'success');
+      }
+      
+      // Reset form and close modal
+      setInstructorForm({
+        name: '',
+        email: '',
+        password: ''
+      });
+      setShowModal(false);
+      setSelectedItem(null);
+      // Refresh admin data to update stats
+      fetchAdminData();
+    } catch (error) {
+      showAlert(`Error: ${error.message}`, 'danger');
+    }
+  };
+
+  const handleDeleteInstructor = async () => {
+    try {
+      await deleteInstructor(selectedItem.id);
+      setInstructors(prev => prev.filter(instructor => instructor.id !== selectedItem.id));
+      showAlert('Instructor deleted successfully!', 'success');
+      setShowModal(false);
+      setSelectedItem(null);
+      // Refresh admin data to update stats
+      fetchAdminData();
+    } catch (error) {
+      showAlert(`Error deleting instructor: ${error.message}`, 'danger');
     }
   };
 
@@ -484,7 +578,12 @@ export default function AdminDashboard() {
     <>
       <Row className="mb-4">
         <Col>
-          <h2>Instructor Management</h2>
+          <div className="d-flex justify-content-between align-items-center">
+            <h2>Instructor Management</h2>
+            <Button variant="success" onClick={() => handleAction('addInstructor')}>
+              <i className="bi bi-plus"></i> Add New Instructor
+            </Button>
+          </div>
         </Col>
       </Row>
 
@@ -498,9 +597,9 @@ export default function AdminDashboard() {
               <tr>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Status</th>
-                <th>Courses</th>
-                <th>Rating</th>
+                <th>Role</th>
+                <th>Total Courses</th>
+                <th>Total Enrollments</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -510,37 +609,21 @@ export default function AdminDashboard() {
                   <td>{instructor.name}</td>
                   <td>{instructor.email}</td>
                   <td>
-                    <Badge bg={instructor.status === 'active' ? 'success' : 'warning'}>
-                      {instructor.status}
+                    <Badge bg="info">
+                      {instructor.role}
                     </Badge>
                   </td>
-                  <td>{instructor.courses}</td>
+                  <td>{instructor.total_courses || 0}</td>
+                  <td>{instructor.total_enrollments || 0}</td>
                   <td>
-                    <div className="d-flex align-items-center">
-                      <span className="me-2">{instructor.rating}</span>
-                      <div className="text-warning">
-                        {[...Array(5)].map((_, i) => (
-                          <i key={i} className={`bi bi-star${i < Math.round(instructor.rating) ? '-fill' : ''}`}></i>
-                        ))}
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    {instructor.status === 'pending' && (
-                      <>
-                        <Button size="sm" variant="outline-success" className="me-2" onClick={() => handleAction('approveInstructor', instructor)}>
-                          <i className="bi bi-check"></i>
-                        </Button>
-                        <Button size="sm" variant="outline-danger" className="me-2" onClick={() => handleAction('rejectInstructor', instructor)}>
-                          <i className="bi bi-x"></i>
-                        </Button>
-                      </>
-                    )}
-                    <Button size="sm" variant="outline-primary" className="me-2" onClick={() => handleAction('viewInstructor', instructor)}>
+                    <Button size="sm" variant="outline-primary" className="me-2" onClick={() => handleAction('editInstructor', instructor)}>
+                      <i className="bi bi-pencil"></i>
+                    </Button>
+                    <Button size="sm" variant="outline-info" className="me-2" onClick={() => handleAction('viewInstructor', instructor)}>
                       <i className="bi bi-eye"></i>
                     </Button>
-                    <Button size="sm" variant="outline-warning" onClick={() => handleAction('suspendInstructor', instructor)}>
-                      <i className="bi bi-pause"></i>
+                    <Button size="sm" variant="outline-danger" onClick={() => handleAction('deleteInstructor', instructor)}>
+                      <i className="bi bi-trash"></i>
                     </Button>
                   </td>
                 </tr>
@@ -965,6 +1048,78 @@ export default function AdminDashboard() {
                   setShowModal(false);
                 }}>
                   Update Lesson
+                </Button>
+              </Form>
+            </div>
+          )}
+          
+          {modalType === 'addInstructor' && (
+            <div>
+              <Form>
+                <Form.Group className="mb-3">
+                  <Form.Label>Full Name</Form.Label>
+                  <Form.Control 
+                    type="text" 
+                    placeholder="Enter instructor full name"
+                    value={instructorForm.name}
+                    onChange={(e) => setInstructorForm(prev => ({...prev, name: e.target.value}))}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Email</Form.Label>
+                  <Form.Control 
+                    type="email" 
+                    placeholder="Enter instructor email"
+                    value={instructorForm.email}
+                    onChange={(e) => setInstructorForm(prev => ({...prev, email: e.target.value}))}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Password</Form.Label>
+                  <Form.Control 
+                    type="password" 
+                    placeholder="Enter initial password"
+                    value={instructorForm.password}
+                    onChange={(e) => setInstructorForm(prev => ({...prev, password: e.target.value}))}
+                  />
+                </Form.Group>
+                <Button variant="primary" onClick={() => handleInstructorSubmit()}>
+                  Add Instructor
+                </Button>
+              </Form>
+            </div>
+          )}
+          
+          {modalType === 'editInstructor' && (
+            <div>
+              <Form>
+                <Form.Group className="mb-3">
+                  <Form.Label>Full Name</Form.Label>
+                  <Form.Control 
+                    type="text"
+                    value={instructorForm.name}
+                    onChange={(e) => setInstructorForm(prev => ({...prev, name: e.target.value}))}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Email</Form.Label>
+                  <Form.Control 
+                    type="email"
+                    value={instructorForm.email}
+                    onChange={(e) => setInstructorForm(prev => ({...prev, email: e.target.value}))}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>New Password (leave blank to keep current)</Form.Label>
+                  <Form.Control 
+                    type="password"
+                    placeholder="Enter new password (optional)"
+                    value={instructorForm.password}
+                    onChange={(e) => setInstructorForm(prev => ({...prev, password: e.target.value}))}
+                  />
+                </Form.Group>
+                <Button variant="primary" onClick={() => handleInstructorSubmit()}>
+                  Update Instructor
                 </Button>
               </Form>
             </div>
