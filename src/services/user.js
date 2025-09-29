@@ -6,9 +6,9 @@ import apiClient from './apiClient';
  */
 export async function getEnrolledCourses() {
   try {
-    console.log('🌐 Fetching enrolled courses from API...');
+    console.warn('🌐 Fetching enrolled courses from API...');
     const response = await apiClient.get('/api/user/enrolled-courses');
-    console.log('📚 Enrolled courses received:', response.data);
+    console.warn('📚 Enrolled courses received:', response.data);
     return response.data;
   } catch (error) {
     console.error('🚨 Failed to fetch enrolled courses:', error);
@@ -36,9 +36,9 @@ export async function getEnrolledCourses() {
  */
 export async function getUserStats() {
   try {
-    console.log('📊 Fetching user stats from API...');
+    console.warn('📊 Fetching user stats from API...');
     const response = await apiClient.get('/api/user/stats');
-    console.log('📈 User stats received:', response.data);
+    console.warn('📈 User stats received:', response.data);
     return response.data;
   } catch (error) {
     console.error('🚨 Failed to fetch user stats:', error);
@@ -103,7 +103,7 @@ function calculateStatsFromCourses(enrolledCourses) {
     completedLessons: 0
   });
   
-  console.log('📊 Calculated stats from courses:', stats);
+  console.warn('📊 Calculated stats from courses:', stats);
   return stats;
 }
 

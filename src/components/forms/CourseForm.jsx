@@ -17,7 +17,14 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
     level: 'beginner',
     price: '',
     duration: '',
-    thumbnail: ''
+    thumbnail: '',
+    curriculum: '',
+    prerequisites: '',
+    whatYouWillLearn: '',
+    instructor: '',
+    language: 'English',
+    certificateAvailable: true,
+    tags: ''
   });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -32,10 +39,13 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
         const categoryNames = categoriesData.map(cat => cat.name);
         setCategories(categoryNames);
         
-        // Set default category if form is empty
-        if (!formData.category && categoryNames.length > 0) {
-          setFormData(prev => ({ ...prev, category: categoryNames[0] }));
-        }
+        // Set default category if form is empty - only on first load
+        setFormData(prev => {
+          if (!prev.category && categoryNames.length > 0) {
+            return { ...prev, category: categoryNames[0] };
+          }
+          return prev;
+        });
       } catch (error) {
         console.error('Error fetching categories:', error);
         // Fallback categories
@@ -48,9 +58,12 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
           'Business'
         ];
         setCategories(fallbackCategories);
-        if (!formData.category) {
-          setFormData(prev => ({ ...prev, category: fallbackCategories[0] }));
-        }
+        setFormData(prev => {
+          if (!prev.category) {
+            return { ...prev, category: fallbackCategories[0] };
+          }
+          return prev;
+        });
       } finally {
         setLoadingCategories(false);
       }
@@ -68,7 +81,14 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
         level: course.level || 'beginner',
         price: course.price || '',
         duration: course.duration || '',
-        thumbnail: course.thumbnail || ''
+        thumbnail: course.thumbnail || '',
+        curriculum: course.curriculum || '',
+        prerequisites: course.prerequisites || '',
+        whatYouWillLearn: course.whatYouWillLearn || '',
+        instructor: course.instructor || '',
+        language: course.language || 'English',
+        certificateAvailable: course.certificateAvailable !== undefined ? course.certificateAvailable : true,
+        tags: course.tags || ''
       });
     }
   }, [course, isEdit]);
@@ -205,6 +225,107 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
         />
       </Form.Group>
 
+      <Form.Group className="mb-3" controlId="curriculum">
+        <Form.Label>Course Curriculum</Form.Label>
+        <Form.Control
+          as="textarea"
+          name="curriculum"
+          value={formData.curriculum}
+          onChange={handleChange}
+          rows={6}
+          placeholder="Enter detailed course curriculum (what topics will be covered, module breakdown, etc.)"
+          required
+        />
+        <Form.Text className="text-muted">
+          Describe the main topics, modules, and learning path for this course
+        </Form.Text>
+      </Form.Group>
+
+      <Form.Group className="mb-3" controlId="whatYouWillLearn">
+        <Form.Label>What You Will Learn</Form.Label>
+        <Form.Control
+          as="textarea"
+          name="whatYouWillLearn"
+          value={formData.whatYouWillLearn}
+          onChange={handleChange}
+          rows={4}
+          placeholder="List the key skills and knowledge students will gain from this course"
+          required
+        />
+        <Form.Text className="text-muted">
+          Highlight the main learning outcomes and benefits
+        </Form.Text>
+      </Form.Group>
+
+      <Form.Group className="mb-3" controlId="prerequisites">
+        <Form.Label>Prerequisites</Form.Label>
+        <Form.Control
+          as="textarea"
+          name="prerequisites"
+          value={formData.prerequisites}
+          onChange={handleChange}
+          rows={3}
+          placeholder="What should students know before taking this course?"
+        />
+        <Form.Text className="text-muted">
+          List any required knowledge, skills, or previous courses (optional)
+        </Form.Text>
+      </Form.Group>
+
+      <Form.Group className="mb-3" controlId="instructor">
+        <Form.Label>Instructor Name</Form.Label>
+        <Form.Control
+          type="text"
+          name="instructor"
+          value={formData.instructor}
+          onChange={handleChange}
+          placeholder="Enter instructor's full name"
+          required
+        />
+      </Form.Group>
+
+      <Form.Group className="mb-3" controlId="language">
+        <Form.Label>Course Language</Form.Label>
+        <Form.Select
+          name="language"
+          value={formData.language}
+          onChange={handleChange}
+          required
+        >
+          <option value="English">English</option>
+          <option value="Spanish">Spanish</option>
+          <option value="French">French</option>
+          <option value="German">German</option>
+          <option value="Hindi">Hindi</option>
+          <option value="Chinese">Chinese</option>
+          <option value="Japanese">Japanese</option>
+        </Form.Select>
+      </Form.Group>
+
+      <Form.Group className="mb-3" controlId="tags">
+        <Form.Label>Course Tags</Form.Label>
+        <Form.Control
+          type="text"
+          name="tags"
+          value={formData.tags}
+          onChange={handleChange}
+          placeholder="Enter tags separated by commas (e.g., react, javascript, frontend)"
+        />
+        <Form.Text className="text-muted">
+          Add relevant tags to help students find this course
+        </Form.Text>
+      </Form.Group>
+
+      <Form.Group className="mb-3" controlId="certificateAvailable">
+        <Form.Check
+          type="checkbox"
+          name="certificateAvailable"
+          checked={formData.certificateAvailable}
+          onChange={(e) => setFormData(prev => ({ ...prev, certificateAvailable: e.target.checked }))}
+          label="Certificate of completion available"
+        />
+      </Form.Group>
+
       <Button
         variant="primary"
         type="submit"
@@ -231,7 +352,14 @@ CourseForm.propTypes = {
     level: PropTypes.string,
     price: PropTypes.number,
     duration: PropTypes.string,
-    thumbnail: PropTypes.string
+    thumbnail: PropTypes.string,
+    curriculum: PropTypes.string,
+    prerequisites: PropTypes.string,
+    whatYouWillLearn: PropTypes.string,
+    instructor: PropTypes.string,
+    language: PropTypes.string,
+    certificateAvailable: PropTypes.bool,
+    tags: PropTypes.string
   }),
   onSubmit: PropTypes.func.isRequired,
   isEdit: PropTypes.bool

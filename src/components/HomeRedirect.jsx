@@ -1,30 +1,39 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import Home from '../routes/Public/Home';
 
 export default function HomeRedirect() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Wait for auth to load, then redirect authenticated users
-    if (!loading && isAuthenticated) {
-      navigate('/catalog', { replace: true });
+    if (!loading && isAuthenticated && user) {
+      // Redirect based on user role
+      switch (user.role) {
+        case 'student':
+          navigate('/student/dashboard', { replace: true });
+          break;
+        case 'instructor':
+          navigate('/instructor/dashboard', { replace: true });
+          break;
+        case 'admin':
+          navigate('/admin-dashboard', { replace: true });
+          break;
+        default:
+          navigate('/catalog', { replace: true });
+      }
+    } else if (!loading && !isAuthenticated) {
+      // Redirect unauthenticated users to home
+      navigate('/', { replace: true });
     }
-  }, [isAuthenticated, loading, navigate]);
+  }, [isAuthenticated, user, loading, navigate]);
 
-  // Show loading or landing page for unauthenticated users
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+  // Show loading spinner while determining redirect
+  return (
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+      <div className="spinner-border text-primary" role="status">
+        <span className="visually-hidden">Redirecting...</span>
       </div>
-    );
-  }
-
-  // Show landing page only for unauthenticated users
-  return !isAuthenticated ? <Home /> : null;
+    </div>
+  );
 }

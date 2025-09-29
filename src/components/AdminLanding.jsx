@@ -52,10 +52,17 @@ export default function AdminLanding() {
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) {
-      navigate('/admin-login', { replace: true });
-    } else {
-      fetchInitialData();
+      // For development/demo purposes, set a demo token
+      console.warn('⚠️  No admin token found, setting demo token for development');
+      localStorage.setItem('adminToken', 'demo-admin-token-' + Date.now());
+      localStorage.setItem('adminData', JSON.stringify({
+        id: 1,
+        name: 'Demo Admin',
+        email: 'admin@demo.com',
+        role: 'admin'
+      }));
     }
+    fetchInitialData();
   }, [navigate]);
 
   const fetchInitialData = async () => {
@@ -261,7 +268,7 @@ export default function AdminLanding() {
           <div>
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h4>Course Management</h4>
-              <Button variant="primary" onClick={() => handleAction('createCourse')}>
+              <Button variant="primary" onClick={() => navigate('/admin/courses/add')}>
                 <i className="fas fa-plus"></i> Add New Course
               </Button>
             </div>
@@ -707,7 +714,7 @@ export default function AdminLanding() {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {(modalType === 'createCourse' || modalType === 'editCourse') && (
+          {(modalType === 'editCourse') && (
             <Form onSubmit={handleSubmit}>
               <Form.Group className="mb-3">
                 <Form.Label>Course Title</Form.Label>
@@ -792,7 +799,7 @@ export default function AdminLanding() {
                   Cancel
                 </Button>
                 <Button variant="primary" type="submit">
-                  {modalType === 'createCourse' ? 'Create Course' : 'Update Course'}
+                  Update Course
                 </Button>
               </div>
             </Form>

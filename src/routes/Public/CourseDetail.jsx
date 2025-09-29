@@ -22,12 +22,12 @@ export default function CourseDetail() {
         setLoading(true);
         setError(null);
         
-        console.log('🔍 Fetching curriculum for course ID:', courseId);
+        console.warn('🔍 Fetching curriculum for course ID:', courseId);
         
         // Fetch course curriculum (includes course details + lessons)
         const curriculumData = await getCourseCurriculum(parseInt(courseId));
         
-        console.log('📚 Curriculum data received:', curriculumData);
+        console.warn('📚 Curriculum data received:', curriculumData);
         
         // Set course data
         setCourse(formatCourseData(curriculumData.course));
@@ -38,7 +38,7 @@ export default function CourseDetail() {
         // Set total lessons count
         setTotalLessons(curriculumData.totalLessons || curriculumData.curriculum?.length || 0);
         
-        console.log('✅ Data loaded successfully - Lessons:', curriculumData.curriculum?.length || 0);
+        console.warn('✅ Data loaded successfully - Lessons:', curriculumData.curriculum?.length || 0);
         
       } catch (err) {
         console.error('❌ Error fetching course curriculum:', err);

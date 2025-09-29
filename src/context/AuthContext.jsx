@@ -61,14 +61,18 @@ export function AuthProvider({ children }) {
             payload: { user, token }
           });
         } catch (err) {
+          console.warn('Token validation failed:', err.message);
           localStorage.removeItem('token');
           dispatch({
             type: 'AUTH_ERROR',
-            payload: err.message || 'Session expired'
+            payload: null // Set to null to ensure clean state
           });
         }
       } else {
-        dispatch({ type: 'AUTH_ERROR', payload: null });
+        dispatch({ 
+          type: 'AUTH_ERROR', 
+          payload: null 
+        });
       }
     };
 

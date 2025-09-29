@@ -9,7 +9,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './context/AuthContext';
 import { UiProvider } from './context/UiContext';
 
-// Public Routes
+import Home from './routes/Public/Home';
 import HomeRedirect from './components/HomeRedirect';
 import Catalog from './routes/Public/Catalog';
 import CourseDetail from './routes/Public/CourseDetail';
@@ -39,6 +39,7 @@ import Privacy from './routes/Public/Privacy';
 // Admin
 import AdminLogin from './components/AdminLogin';
 import AdminLanding from './components/AdminLanding';
+import AddCourse from './routes/Admin/AddCourse';
 
 
 
@@ -64,6 +65,7 @@ export default function App() {
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin-dashboard" element={<AdminLanding />} />
+            <Route path="/admin/courses/add" element={<AddCourse />} />
             
             <Route
               path="*"
@@ -72,7 +74,7 @@ export default function App() {
                   <Navbar />
                   <main className="flex-grow-1">
                     <Routes>
-                      <Route path="/" element={<HomeRedirect />} />
+                      <Route path="/" element={<Home />} />
                       <Route path="/dashboard" element={<HomeRedirect />} />
                       <Route path="/catalog" element={<Catalog />} />
                       <Route path="/courses/:courseId" element={<CourseDetail />} />

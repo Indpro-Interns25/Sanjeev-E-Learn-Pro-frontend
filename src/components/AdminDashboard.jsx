@@ -4,6 +4,8 @@ import { Container, Row, Col, Card, Button, Nav, Badge, Table, Modal, Form, Aler
 import { mockCourses } from '../data/mockCourses';
 import { mockLessons } from '../data/mockLessons';
 import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin } from '../services/admin';
+import { createCourse, updateCourse, deleteCourse } from '../services/courses';
+import CourseForm from './forms/CourseForm';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -112,6 +114,38 @@ export default function AdminDashboard() {
   const confirmAction = () => {
     showAlert(`${modalType} action completed successfully!`);
     setShowModal(false);
+  };
+
+  const handleCourseSubmit = async (courseData) => {
+    try {
+      if (modalType === 'addCourse') {
+        const newCourse = await createCourse(courseData);
+        setCourses(prev => [...prev, newCourse]);
+        showAlert('Course created successfully!', 'success');
+      } else if (modalType === 'editCourse') {
+        const updatedCourse = await updateCourse(selectedItem.id, courseData);
+        setCourses(prev => prev.map(course => 
+          course.id === selectedItem.id ? updatedCourse : course
+        ));
+        showAlert('Course updated successfully!', 'success');
+      }
+      setShowModal(false);
+      setSelectedItem(null);
+    } catch (error) {
+      showAlert(`Error: ${error.message}`, 'danger');
+    }
+  };
+
+  const handleDeleteCourse = async () => {
+    try {
+      await deleteCourse(selectedItem.id);
+      setCourses(prev => prev.filter(course => course.id !== selectedItem.id));
+      showAlert('Course deleted successfully!', 'success');
+      setShowModal(false);
+      setSelectedItem(null);
+    } catch (error) {
+      showAlert(`Error deleting course: ${error.message}`, 'danger');
+    }
   };
 
   const renderOverview = () => {
@@ -252,7 +286,7 @@ export default function AdminDashboard() {
             <h2>Course Management</h2>
             <div>
               <Button variant="success" className="me-2" onClick={() => handleAction('addCourse')}>
-                <i className="bi bi-plus"></i> Add Course
+                <i className="bi bi-plus"></i> Add New Course
               </Button>
               <Button variant="outline-primary" onClick={() => handleAction('manageCategories')}>
                 <i className="bi bi-tags"></i> Manage Categories
@@ -270,36 +304,49 @@ export default function AdminDashboard() {
           <Table responsive>
             <thead>
               <tr>
-                <th>Course Name</th>
-                <th>Instructor</th>
+                <th>Title</th>
                 <th>Category</th>
-                <th>Status</th>
-                <th>Students</th>
+                <th>Level</th>
                 <th>Price</th>
+                <th>Students</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {courses.slice(0, 10).map(course => (
                 <tr key={course.id}>
-                  <td>{course.title}</td>
-                  <td>{course.instructor_name || `Instructor ${course.instructor_id}`}</td>
+                  <td>
+                    <div>
+                      <strong>{course.title}</strong>
+                      <br />
+                      <small className="text-muted">{course.description?.substring(0, 60)}...</small>
+                    </div>
+                  </td>
                   <td>
                     <Badge bg="secondary">{course.category}</Badge>
                   </td>
                   <td>
-                    <Badge bg={course.status === 'published' ? 'success' : 'warning'}>
-                      {course.status}
+                    <Badge bg={
+                      course.level === 'beginner' ? 'success' :
+                      course.level === 'intermediate' ? 'warning' : 'info'
+                    }>
+                      {course.level}
                     </Badge>
                   </td>
-                  <td>{course.enrolled_count}</td>
                   <td>${parseFloat(course.price).toFixed(2)}</td>
+                  <td>{course.enrolled_count || 298}</td>
+                  <td>
+                    <Badge bg={course.status === 'published' ? 'success' : 'warning'}>
+                      {course.status || 'published'}
+                    </Badge>
+                  </td>
                   <td>
                     <Button size="sm" variant="outline-primary" className="me-2" onClick={() => handleAction('editCourse', course)}>
-                      <i className="bi bi-pencil"></i>
+                      Edit
                     </Button>
                     <Button size="sm" variant="outline-danger" onClick={() => handleAction('deleteCourse', course)}>
-                      <i className="bi bi-trash"></i>
+                      Delete
                     </Button>
                   </td>
                 </tr>
@@ -837,7 +884,7 @@ export default function AdminDashboard() {
       </Row>
 
       {/* Action Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal show={showModal} onHide={() => setShowModal(false)} size={modalType.includes('Course') || modalType.includes('Lesson') ? 'lg' : 'md'}>
         <Modal.Header closeButton>
           <Modal.Title>
             {modalType === 'addCourse' && 'Add New Course'}
@@ -855,13 +902,101 @@ export default function AdminDashboard() {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {modalType.includes('delete') ? (
+          {modalType === 'addCourse' && (
+            <CourseForm 
+              onSubmit={handleCourseSubmit}
+              isEdit={false}
+            />
+          )}
+          
+          {modalType === 'editCourse' && (
+            <CourseForm 
+              course={selectedItem}
+              onSubmit={handleCourseSubmit}
+              isEdit={true}
+            />
+          )}
+          
+          {modalType === 'addLesson' && (
+            <div>
+              <p>Add Lesson form will be implemented here.</p>
+              <Form>
+                <Form.Group className="mb-3">
+                  <Form.Label>Lesson Title</Form.Label>
+                  <Form.Control type="text" placeholder="Enter lesson title" />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Course</Form.Label>
+                  <Form.Select>
+                    <option>Select a course</option>
+                    {courses.map(course => (
+                      <option key={course.id} value={course.id}>{course.title}</option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Duration</Form.Label>
+                  <Form.Control type="text" placeholder="e.g., 15 minutes" />
+                </Form.Group>
+                <Button variant="primary" onClick={() => {
+                  showAlert('Lesson created successfully!', 'success');
+                  setShowModal(false);
+                }}>
+                  Create Lesson
+                </Button>
+              </Form>
+            </div>
+          )}
+          
+          {modalType === 'editLesson' && (
+            <div>
+              <p>Edit Lesson form will be implemented here.</p>
+              <Form>
+                <Form.Group className="mb-3">
+                  <Form.Label>Lesson Title</Form.Label>
+                  <Form.Control type="text" defaultValue={selectedItem?.title} />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Duration</Form.Label>
+                  <Form.Control type="text" defaultValue={selectedItem?.duration} />
+                </Form.Group>
+                <Button variant="primary" onClick={() => {
+                  showAlert('Lesson updated successfully!', 'success');
+                  setShowModal(false);
+                }}>
+                  Update Lesson
+                </Button>
+              </Form>
+            </div>
+          )}
+          
+          {modalType === 'deleteCourse' && (
+            <div>
+              <p>Are you sure you want to delete the course <strong>&ldquo;{selectedItem?.title}&rdquo;</strong>? This action cannot be undone.</p>
+              <div className="d-flex justify-content-end mt-3">
+                <Button variant="secondary" className="me-2" onClick={() => setShowModal(false)}>
+                  Cancel
+                </Button>
+                <Button variant="danger" onClick={handleDeleteCourse}>
+                  Delete Course
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {modalType.includes('delete') && modalType !== 'deleteCourse' && (
             <p>Are you sure you want to delete &ldquo;{selectedItem?.title || selectedItem?.name}&rdquo;? This action cannot be undone.</p>
-          ) : modalType.includes('approve') ? (
-            <p>Are you sure you want to approve {selectedItem?.name}?</p>
-          ) : modalType.includes('reject') ? (
-            <p>Are you sure you want to reject {selectedItem?.name}?</p>
-          ) : modalType === 'manageCategories' ? (
+          )}
+          
+          {modalType.includes('approve') && (
+            <p>Are you sure you want to approve <strong>{selectedItem?.name}</strong>?</p>
+          )}
+          
+          {modalType.includes('reject') && (
+            <p>Are you sure you want to reject <strong>{selectedItem?.name}</strong>?</p>
+          )}
+          
+          {modalType === 'manageCategories' && (
             <div>
               <h6>Current Categories:</h6>
               {categories.map(cat => (
@@ -879,23 +1014,28 @@ export default function AdminDashboard() {
                 </Form.Group>
               </Form>
             </div>
-          ) : (
+          )}
+          
+          {!modalType.includes('add') && !modalType.includes('edit') && !modalType.includes('delete') && !modalType.includes('approve') && !modalType.includes('reject') && !modalType.includes('manage') && (
             <p>This feature will open a detailed form for {modalType}.</p>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cancel
-          </Button>
-          <Button 
-            variant={modalType.includes('delete') || modalType.includes('reject') ? 'danger' : 'primary'} 
-            onClick={confirmAction}
-          >
-            {modalType.includes('delete') ? 'Delete' : 
-             modalType.includes('reject') ? 'Reject' :
-             modalType.includes('approve') ? 'Approve' : 'Confirm'}
-          </Button>
-        </Modal.Footer>
+        {/* Only show footer for non-form modals */}
+        {!modalType.includes('Course') && !modalType.includes('Lesson') && modalType !== 'manageCategories' && (
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant={modalType.includes('delete') || modalType.includes('reject') ? 'danger' : 'primary'} 
+              onClick={confirmAction}
+            >
+              {modalType.includes('delete') ? 'Delete' : 
+               modalType.includes('reject') ? 'Reject' :
+               modalType.includes('approve') ? 'Approve' : 'Confirm'}
+            </Button>
+          </Modal.Footer>
+        )}
       </Modal>
     </Container>
   );
