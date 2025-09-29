@@ -3,10 +3,10 @@ import { Form, Button, Alert } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import { getCourseCategories } from '../../services/courses';
 
-const COURSE_LEVELS = [
-  { value: 'beginner', label: 'Beginner' },
-  { value: 'intermediate', label: 'Intermediate' },
-  { value: 'advanced', label: 'Advanced' }
+const COURSE_STATUS = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'published', label: 'Published' },
+  { value: 'archived', label: 'Archived' }
 ];
 
 export default function CourseForm({ course, onSubmit, isEdit = false }) {
@@ -14,17 +14,12 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
     title: '',
     description: '',
     category: '',
-    level: 'beginner',
+    thumbnail: '',
     price: '',
     duration: '',
-    thumbnail: '',
-    curriculum: '',
-    prerequisites: '',
-    whatYouWillLearn: '',
-    instructor: '',
-    language: 'English',
-    certificateAvailable: true,
-    tags: ''
+    status: 'draft',
+    enrolled_count: 0,
+    rating: 0
   });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -78,24 +73,23 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
         title: course.title || '',
         description: course.description || '',
         category: course.category || '',
-        level: course.level || 'beginner',
+        thumbnail: course.thumbnail || '',
         price: course.price || '',
         duration: course.duration || '',
-        thumbnail: course.thumbnail || '',
-        curriculum: course.curriculum || '',
-        prerequisites: course.prerequisites || '',
-        whatYouWillLearn: course.whatYouWillLearn || '',
-        instructor: course.instructor || '',
-        language: course.language || 'English',
-        certificateAvailable: course.certificateAvailable !== undefined ? course.certificateAvailable : true,
-        tags: course.tags || ''
+        status: course.status || 'draft',
+        enrolled_count: course.enrolled_count || 0,
+        rating: course.rating || 0
       });
     }
   }, [course, isEdit]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    const finalValue = name === 'price' ? parseFloat(value) || value : value;
+    const { name, value, type } = e.target;
+    let finalValue = value;
+
+    if (type === 'number') {
+      finalValue = parseFloat(value) || value;
+    }
 
     setFormData(prev => ({
       ...prev,
@@ -126,7 +120,7 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
       )}
 
       <Form.Group className="mb-3" controlId="title">
-        <Form.Label>Course Title</Form.Label>
+        <Form.Label>Course Title <span className="text-danger">*</span></Form.Label>
         <Form.Control
           type="text"
           name="title"
@@ -138,7 +132,7 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
       </Form.Group>
 
       <Form.Group className="mb-3" controlId="description">
-        <Form.Label>Description</Form.Label>
+        <Form.Label>Description <span className="text-danger">*</span></Form.Label>
         <Form.Control
           as="textarea"
           name="description"
@@ -151,7 +145,7 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
       </Form.Group>
 
       <Form.Group className="mb-3" controlId="category">
-        <Form.Label>Category</Form.Label>
+        <Form.Label>Category <span className="text-danger">*</span></Form.Label>
         <Form.Select
           name="category"
           value={formData.category}
@@ -171,24 +165,20 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
         </Form.Select>
       </Form.Group>
 
-      <Form.Group className="mb-3" controlId="level">
-        <Form.Label>Level</Form.Label>
-        <Form.Select
-          name="level"
-          value={formData.level}
+      <Form.Group className="mb-3" controlId="thumbnail">
+        <Form.Label>Thumbnail URL <span className="text-danger">*</span></Form.Label>
+        <Form.Control
+          type="url"
+          name="thumbnail"
+          value={formData.thumbnail}
           onChange={handleChange}
+          placeholder="Enter thumbnail image URL"
           required
-        >
-          {COURSE_LEVELS.map(level => (
-            <option key={level.value} value={level.value}>
-              {level.label}
-            </option>
-          ))}
-        </Form.Select>
+        />
       </Form.Group>
 
       <Form.Group className="mb-3" controlId="price">
-        <Form.Label>Price ($)</Form.Label>
+        <Form.Label>Price ($) <span className="text-danger">*</span></Form.Label>
         <Form.Control
           type="number"
           name="price"
@@ -202,128 +192,63 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
       </Form.Group>
 
       <Form.Group className="mb-3" controlId="duration">
-        <Form.Label>Duration</Form.Label>
+        <Form.Label>Duration <span className="text-danger">*</span></Form.Label>
         <Form.Control
           type="text"
           name="duration"
           value={formData.duration}
           onChange={handleChange}
-          placeholder="e.g., 6 weeks"
+          placeholder="e.g., 6 hours, 3 weeks, etc."
           required
         />
       </Form.Group>
 
-      <Form.Group className="mb-3" controlId="thumbnail">
-        <Form.Label>Thumbnail URL</Form.Label>
-        <Form.Control
-          type="url"
-          name="thumbnail"
-          value={formData.thumbnail}
-          onChange={handleChange}
-          placeholder="Enter thumbnail image URL"
-          required
-        />
-      </Form.Group>
-
-      <Form.Group className="mb-3" controlId="curriculum">
-        <Form.Label>Course Curriculum</Form.Label>
-        <Form.Control
-          as="textarea"
-          name="curriculum"
-          value={formData.curriculum}
-          onChange={handleChange}
-          rows={6}
-          placeholder="Enter detailed course curriculum (what topics will be covered, module breakdown, etc.)"
-          required
-        />
-        <Form.Text className="text-muted">
-          Describe the main topics, modules, and learning path for this course
-        </Form.Text>
-      </Form.Group>
-
-      <Form.Group className="mb-3" controlId="whatYouWillLearn">
-        <Form.Label>What You Will Learn</Form.Label>
-        <Form.Control
-          as="textarea"
-          name="whatYouWillLearn"
-          value={formData.whatYouWillLearn}
-          onChange={handleChange}
-          rows={4}
-          placeholder="List the key skills and knowledge students will gain from this course"
-          required
-        />
-        <Form.Text className="text-muted">
-          Highlight the main learning outcomes and benefits
-        </Form.Text>
-      </Form.Group>
-
-      <Form.Group className="mb-3" controlId="prerequisites">
-        <Form.Label>Prerequisites</Form.Label>
-        <Form.Control
-          as="textarea"
-          name="prerequisites"
-          value={formData.prerequisites}
-          onChange={handleChange}
-          rows={3}
-          placeholder="What should students know before taking this course?"
-        />
-        <Form.Text className="text-muted">
-          List any required knowledge, skills, or previous courses (optional)
-        </Form.Text>
-      </Form.Group>
-
-      <Form.Group className="mb-3" controlId="instructor">
-        <Form.Label>Instructor Name</Form.Label>
-        <Form.Control
-          type="text"
-          name="instructor"
-          value={formData.instructor}
-          onChange={handleChange}
-          placeholder="Enter instructor's full name"
-          required
-        />
-      </Form.Group>
-
-      <Form.Group className="mb-3" controlId="language">
-        <Form.Label>Course Language</Form.Label>
+      <Form.Group className="mb-3" controlId="status">
+        <Form.Label>Status <span className="text-danger">*</span></Form.Label>
         <Form.Select
-          name="language"
-          value={formData.language}
+          name="status"
+          value={formData.status}
           onChange={handleChange}
           required
         >
-          <option value="English">English</option>
-          <option value="Spanish">Spanish</option>
-          <option value="French">French</option>
-          <option value="German">German</option>
-          <option value="Hindi">Hindi</option>
-          <option value="Chinese">Chinese</option>
-          <option value="Japanese">Japanese</option>
+          {COURSE_STATUS.map(status => (
+            <option key={status.value} value={status.value}>
+              {status.label}
+            </option>
+          ))}
         </Form.Select>
       </Form.Group>
 
-      <Form.Group className="mb-3" controlId="tags">
-        <Form.Label>Course Tags</Form.Label>
+      <Form.Group className="mb-3" controlId="enrolled_count">
+        <Form.Label>Enrolled Count</Form.Label>
         <Form.Control
-          type="text"
-          name="tags"
-          value={formData.tags}
+          type="number"
+          name="enrolled_count"
+          value={formData.enrolled_count}
           onChange={handleChange}
-          placeholder="Enter tags separated by commas (e.g., react, javascript, frontend)"
+          min="0"
+          placeholder="Number of enrolled students"
         />
         <Form.Text className="text-muted">
-          Add relevant tags to help students find this course
+          Number of students currently enrolled (optional, defaults to 0)
         </Form.Text>
       </Form.Group>
 
-      <Form.Group className="mb-3" controlId="certificateAvailable">
-        <Form.Check
-          type="checkbox"
-          name="certificateAvailable"
-          checked={formData.certificateAvailable}
-          onChange={(e) => setFormData(prev => ({ ...prev, certificateAvailable: e.target.checked }))}
-          label="Certificate of completion available"
+      <Form.Group className="mb-3" controlId="rating">
+        <Form.Label>Rating</Form.Label>
+        <Form.Control
+          type="number"
+          name="rating"
+          value={formData.rating}
+          onChange={handleChange}
+          step="0.1"
+          min="0"
+          max="5"
+          placeholder="Course rating (0-5)"
         />
+        <Form.Text className="text-muted">
+          Course rating from 0 to 5 stars (optional, defaults to 0)
+        </Form.Text>
       </Form.Group>
 
       <Button
@@ -349,17 +274,12 @@ CourseForm.propTypes = {
     title: PropTypes.string,
     description: PropTypes.string,
     category: PropTypes.string,
-    level: PropTypes.string,
-    price: PropTypes.number,
-    duration: PropTypes.string,
     thumbnail: PropTypes.string,
-    curriculum: PropTypes.string,
-    prerequisites: PropTypes.string,
-    whatYouWillLearn: PropTypes.string,
-    instructor: PropTypes.string,
-    language: PropTypes.string,
-    certificateAvailable: PropTypes.bool,
-    tags: PropTypes.string
+    price: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    duration: PropTypes.string,
+    status: PropTypes.string,
+    enrolled_count: PropTypes.number,
+    rating: PropTypes.number
   }),
   onSubmit: PropTypes.func.isRequired,
   isEdit: PropTypes.bool
