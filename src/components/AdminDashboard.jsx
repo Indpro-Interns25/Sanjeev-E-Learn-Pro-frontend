@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Nav, Badge, Table, Modal, Form, Alert, Spinner } from 'react-bootstrap';
 import { mockCourses } from '../data/mockCourses';
 import { mockLessons } from '../data/mockLessons';
-import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin } from '../services/admin';
+import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin, getAllStudents, getAllInstructors, createInstructor, updateInstructor, deleteInstructor } from '../services/admin';
 import { createCourse, updateCourse, deleteCourse } from '../services/courses';
+import { getAllEnrollments, enrollUserInCourse, getUserEnrollments } from '../services/enrollment';
 import CourseForm from './forms/CourseForm';
+import EnrollmentForm from './forms/EnrollmentForm';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -45,6 +47,7 @@ export default function AdminDashboard() {
   // Real data from API - will be populated by fetchAdminData
   const [students, setStudents] = useState([]);
   const [instructors, setInstructors] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
 
   const [categories] = useState([
     { id: 1, name: 'Programming', courseCount: 8 },
@@ -69,13 +72,14 @@ export default function AdminDashboard() {
         const adminToken = localStorage.getItem('adminToken');
         console.warn('🔑 Admin token check:', adminToken ? 'Present' : 'Missing');
         
-        // Fetch admin stats, courses, lessons, students, and instructors in parallel
-        const [adminStats, coursesData, lessonsData, studentsData, instructorsData] = await Promise.all([
+        // Fetch admin stats, courses, lessons, students, instructors, and enrollments in parallel
+        const [adminStats, coursesData, lessonsData, studentsData, instructorsData, enrollmentsData] = await Promise.all([
           getAdminStats(),
           getAllCoursesAdmin(),
           getAllLessonsAdmin(),
           getAllStudents(),
-          getAllInstructors()
+          getAllInstructors(),
+          getAllEnrollments()
         ]);
         
         // Use stats directly from API (they're already formatted correctly)
@@ -84,6 +88,7 @@ export default function AdminDashboard() {
         console.warn('👨‍🏫 Instructors data length:', instructorsData?.length);
         console.warn('📚 Courses data length:', coursesData?.length);
         console.warn('📝 Lessons data length:', lessonsData?.length);
+        console.warn('📋 Enrollments data length:', enrollmentsData?.length);
         
         // Debug: Log all received data
         console.warn('🔍 Raw API responses:');
@@ -91,12 +96,14 @@ export default function AdminDashboard() {
         console.warn('  - Instructors data:', instructorsData);
         console.warn('  - Courses data:', coursesData);
         console.warn('  - Lessons data:', lessonsData);
+        console.warn('  - Enrollments data:', enrollmentsData);
         
         setStats(adminStats); // Use admin stats directly - they already have the correct format
         setCourses(coursesData);
         setLessons(lessonsData);
         setStudents(studentsData || []);
         setInstructors(instructorsData || []);
+        setEnrollments(enrollmentsData || []);
         
       } catch (err) {
         console.error('Error fetching admin data:', err);
@@ -134,6 +141,43 @@ export default function AdminDashboard() {
           { id: 43, name: 'Dr. Sarah Wilson', email: 'sarah.wilson@instructor.com', role: 'instructor', total_courses: 0, total_enrollments: 0 },
           { id: 44, name: 'Prof. Michael Brown', email: 'michael.brown@instructor.com', role: 'instructor', total_courses: 0, total_enrollments: 0 },
           { id: 45, name: 'Dr. Emily Davis', email: 'emily.davis@instructor.com', role: 'instructor', total_courses: 0, total_enrollments: 0 }
+        ]);
+        
+        // Set mock enrollments as fallback
+        setEnrollments([
+          { 
+            id: 1, 
+            student_name: 'John Doe', 
+            student_email: 'john@example.com',
+            course_title: 'React Fundamentals',
+            course_category: 'Programming',
+            enrollment_date: '2024-01-15',
+            progress_percentage: 75,
+            status: 'in_progress',
+            last_accessed: '2024-01-20'
+          },
+          { 
+            id: 2, 
+            student_name: 'Jane Smith', 
+            student_email: 'jane@example.com',
+            course_title: 'JavaScript Basics',
+            course_category: 'Programming',
+            enrollment_date: '2024-01-10',
+            progress_percentage: 100,
+            status: 'completed',
+            last_accessed: '2024-01-18'
+          },
+          { 
+            id: 3, 
+            student_name: 'Bob Johnson', 
+            student_email: 'bob@example.com',
+            course_title: 'UI/UX Design',
+            course_category: 'Design',
+            enrollment_date: '2024-01-12',
+            progress_percentage: 30,
+            status: 'in_progress',
+            last_accessed: '2024-01-19'
+          }
         ]);
       } finally {
         setLoading(false);
@@ -293,7 +337,7 @@ export default function AdminDashboard() {
       
       {/* Quick Stats Cards */}
       <Row className="mb-4">
-        <Col md={4} className="mb-3">
+        <Col md={3} className="mb-3">
           <Card className="bg-primary text-white h-100">
             <Card.Body>
               <div className="d-flex justify-content-between">
@@ -306,7 +350,7 @@ export default function AdminDashboard() {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4} className="mb-3">
+        <Col md={3} className="mb-3">
           <Card className="bg-success text-white h-100">
             <Card.Body>
               <div className="d-flex justify-content-between">
@@ -319,7 +363,7 @@ export default function AdminDashboard() {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4} className="mb-3">
+        <Col md={3} className="mb-3">
           <Card className="bg-info text-white h-100">
             <Card.Body>
               <div className="d-flex justify-content-between">
@@ -328,6 +372,19 @@ export default function AdminDashboard() {
                   <h3>{stats.totalCourses}</h3>
                 </div>
                 <i className="bi bi-journal-bookmark fs-1 opacity-75"></i>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3} className="mb-3">
+          <Card className="bg-warning text-white h-100">
+            <Card.Body>
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6>Total Enrollments</h6>
+                  <h3>{stats.totalEnrollments}</h3>
+                </div>
+                <i className="bi bi-bookmark-check fs-1 opacity-75"></i>
               </div>
             </Card.Body>
           </Card>
@@ -657,6 +714,98 @@ export default function AdminDashboard() {
     </>
   );
 
+  const renderEnrollmentManagement = () => (
+    <>
+      <Row className="mb-4">
+        <Col>
+          <div className="d-flex justify-content-between align-items-center">
+            <h2>Enrollment Management</h2>
+            <Button variant="success" onClick={() => handleAction('addEnrollment')}>
+              <i className="bi bi-plus"></i> Enroll Student
+            </Button>
+          </div>
+        </Col>
+      </Row>
+
+      <Card>
+        <Card.Header>
+          <h5 className="mb-0">All Enrollments</h5>
+        </Card.Header>
+        <Card.Body>
+          <Table responsive>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Enrollment Date</th>
+                <th>Progress</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {enrollments.map(enrollment => (
+                <tr key={enrollment.id}>
+                  <td>
+                    <div>
+                      <strong>{enrollment.student_name || enrollment.user_name}</strong>
+                      <br />
+                      <small className="text-muted">{enrollment.student_email || enrollment.user_email}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div>
+                      <strong>{enrollment.course_title}</strong>
+                      <br />
+                      <small className="text-muted">{enrollment.course_category}</small>
+                    </div>
+                  </td>
+                  <td>{new Date(enrollment.enrollment_date || enrollment.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <div className="d-flex align-items-center">
+                      <div className="progress me-2" style={{ width: '60px', height: '6px' }}>
+                        <div 
+                          className="progress-bar" 
+                          style={{ width: `${enrollment.progress_percentage || 0}%` }}
+                        ></div>
+                      </div>
+                      {enrollment.progress_percentage || 0}%
+                    </div>
+                  </td>
+                  <td>
+                    <Badge bg={enrollment.status === 'completed' ? 'success' : 
+                              enrollment.status === 'in_progress' ? 'primary' : 'secondary'}>
+                      {enrollment.status === 'in_progress' ? 'In Progress' : 
+                       enrollment.status === 'completed' ? 'Completed' : 'Enrolled'}
+                    </Badge>
+                  </td>
+                  <td>
+                    <Button size="sm" variant="outline-primary" className="me-2" onClick={() => handleAction('viewEnrollment', enrollment)}>
+                      <i className="bi bi-eye"></i>
+                    </Button>
+                    <Button size="sm" variant="outline-info" className="me-2" onClick={() => handleAction('viewProgress', enrollment)}>
+                      <i className="bi bi-graph-up"></i>
+                    </Button>
+                    <Button size="sm" variant="outline-danger" onClick={() => handleAction('unenrollStudent', enrollment)}>
+                      <i className="bi bi-x-circle"></i>
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+              {enrollments.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="text-center text-muted py-4">
+                    No enrollments found. Students can enroll in courses to see data here.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </Card.Body>
+      </Card>
+    </>
+  );
+
   const renderReportsAnalytics = () => (
     <>
       <Row className="mb-4">
@@ -881,6 +1030,7 @@ export default function AdminDashboard() {
       case 'lessons': return renderLessonManagement();
       case 'students': return renderStudentManagement();
       case 'instructors': return renderInstructorManagement();
+      case 'enrollments': return renderEnrollmentManagement();
       case 'reports': return renderReportsAnalytics();
       case 'settings': return renderSystemSettings();
       case 'support': return renderSupport();
@@ -937,6 +1087,14 @@ export default function AdminDashboard() {
                 style={{ cursor: 'pointer' }}
               >
                 <i className="bi bi-person-check me-2"></i>Instructors
+              </Nav.Link>
+              
+              <Nav.Link 
+                className={`text-white mb-2 ${activeSection === 'enrollments' ? 'bg-primary rounded' : ''}`}
+                onClick={() => setActiveSection('enrollments')}
+                style={{ cursor: 'pointer' }}
+              >
+                <i className="bi bi-bookmark-check me-2"></i>Enrollments
               </Nav.Link>
               
               <Nav.Link 
@@ -998,12 +1156,16 @@ export default function AdminDashboard() {
             {modalType === 'addLesson' && 'Add New Lesson'}
             {modalType === 'editLesson' && 'Edit Lesson'}
             {modalType === 'deleteLesson' && 'Delete Lesson'}
+            {modalType === 'addEnrollment' && 'Enroll Student in Course'}
+            {modalType === 'viewEnrollment' && 'View Enrollment Details'}
+            {modalType === 'viewProgress' && 'Student Progress'}
+            {modalType === 'unenrollStudent' && 'Unenroll Student'}
             {modalType === 'approveStudent' && 'Approve Student'}
             {modalType === 'rejectStudent' && 'Reject Student'}
             {modalType === 'approveInstructor' && 'Approve Instructor'}
             {modalType === 'rejectInstructor' && 'Reject Instructor'}
             {modalType === 'manageCategories' && 'Manage Categories'}
-            {!modalType.includes('add') && !modalType.includes('edit') && !modalType.includes('manage') && 'Confirm Action'}
+            {!modalType.includes('add') && !modalType.includes('edit') && !modalType.includes('manage') && !modalType.includes('view') && 'Confirm Action'}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -1147,6 +1309,115 @@ export default function AdminDashboard() {
             </div>
           )}
           
+          {modalType === 'addEnrollment' && (
+            <EnrollmentForm
+              students={students}
+              courses={courses}
+              onSubmit={async (enrollmentData) => {
+                try {
+                  // Refresh enrollments data after successful enrollment
+                  const updatedEnrollments = await getAllEnrollments();
+                  setEnrollments(updatedEnrollments || []);
+                  showAlert(`${enrollmentData.student.name} enrolled in ${enrollmentData.course.title} successfully!`, 'success');
+                  setShowModal(false);
+                } catch (error) {
+                  showAlert(`Error: ${error.message}`, 'danger');
+                }
+              }}
+              onCancel={() => setShowModal(false)}
+              loading={loading}
+            />
+          )}
+          
+          {modalType === 'viewEnrollment' && (
+            <div>
+              <Row>
+                <Col md={6}>
+                  <h6>Student Details</h6>
+                  <p><strong>Name:</strong> {selectedItem?.student_name || selectedItem?.user_name}</p>
+                  <p><strong>Email:</strong> {selectedItem?.student_email || selectedItem?.user_email}</p>
+                </Col>
+                <Col md={6}>
+                  <h6>Course Details</h6>
+                  <p><strong>Course:</strong> {selectedItem?.course_title}</p>
+                  <p><strong>Category:</strong> {selectedItem?.course_category}</p>
+                </Col>
+              </Row>
+              <Row className="mt-3">
+                <Col md={6}>
+                  <h6>Enrollment Info</h6>
+                  <p><strong>Enrolled:</strong> {selectedItem?.enrollment_date ? new Date(selectedItem.enrollment_date).toLocaleDateString() : 'N/A'}</p>
+                  <p><strong>Status:</strong> 
+                    <Badge bg={selectedItem?.status === 'completed' ? 'success' : 'primary'} className="ms-2">
+                      {selectedItem?.status === 'in_progress' ? 'In Progress' : selectedItem?.status}
+                    </Badge>
+                  </p>
+                </Col>
+                <Col md={6}>
+                  <h6>Progress</h6>
+                  <div className="mb-2">
+                    <div className="progress">
+                      <div 
+                        className="progress-bar" 
+                        style={{ width: `${selectedItem?.progress_percentage || 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <p>{selectedItem?.progress_percentage || 0}% Complete</p>
+                </Col>
+              </Row>
+            </div>
+          )}
+          
+          {modalType === 'viewProgress' && (
+            <div>
+              <h6>Learning Progress for {selectedItem?.student_name || selectedItem?.user_name}</h6>
+              <p className="text-muted">Course: {selectedItem?.course_title}</p>
+              
+              <div className="mb-3">
+                <div className="d-flex justify-content-between">
+                  <span>Overall Progress</span>
+                  <span>{selectedItem?.progress_percentage || 0}%</span>
+                </div>
+                <div className="progress mb-3">
+                  <div 
+                    className="progress-bar" 
+                    style={{ width: `${selectedItem?.progress_percentage || 0}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div>
+                <h6>Recent Activity</h6>
+                <div className="bg-light p-3 rounded">
+                  <p className="mb-1">Last accessed: {selectedItem?.last_accessed ? new Date(selectedItem.last_accessed).toLocaleDateString() : 'Never'}</p>
+                  <p className="mb-0">Time spent: {selectedItem?.time_spent || '0'} minutes</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {modalType === 'unenrollStudent' && (
+            <div>
+              <p>Are you sure you want to unenroll <strong>{selectedItem?.student_name || selectedItem?.user_name}</strong> from <strong>{selectedItem?.course_title}</strong>?</p>
+              <div className="alert alert-warning">
+                <i className="bi bi-exclamation-triangle me-2"></i>
+                This will remove their access to all course materials and their progress will be lost.
+              </div>
+              <div className="d-flex justify-content-end mt-3">
+                <Button variant="secondary" className="me-2" onClick={() => setShowModal(false)}>
+                  Cancel
+                </Button>
+                <Button variant="danger" onClick={() => {
+                  showAlert('Student unenrolled successfully', 'success');
+                  setShowModal(false);
+                }}>
+                  Unenroll Student
+                </Button>
+              </div>
+            </div>
+          )}
+          
           {modalType === 'deleteCourse' && (
             <div>
               <p>Are you sure you want to delete the course <strong>&ldquo;{selectedItem?.title}&rdquo;</strong>? This action cannot be undone.</p>
@@ -1198,7 +1469,14 @@ export default function AdminDashboard() {
           )}
         </Modal.Body>
         {/* Only show footer for non-form modals */}
-        {!modalType.includes('Course') && !modalType.includes('Lesson') && modalType !== 'manageCategories' && (
+        {!modalType.includes('Course') && 
+         !modalType.includes('Lesson') && 
+         !modalType.includes('Instructor') &&
+         modalType !== 'manageCategories' && 
+         modalType !== 'addEnrollment' &&
+         modalType !== 'viewEnrollment' &&
+         modalType !== 'viewProgress' &&
+         modalType !== 'unenrollStudent' && (
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowModal(false)}>
               Cancel

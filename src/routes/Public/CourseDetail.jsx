@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Badge, Tab, Nav, Card, Alert, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Button, Badge, Tab, Nav, Card, Alert, Spinner, Modal } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCourseData } from '../../services/courses';
 import { getCourseCurriculum } from '../../services/lessons';
+import { enrollUserInCourse, getUserEnrollments } from '../../services/enrollment';
 import Comments from '../../components/Comments';
 
 export default function CourseDetail() {
@@ -15,6 +16,10 @@ export default function CourseDetail() {
   const [totalLessons, setTotalLessons] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [enrolling, setEnrolling] = useState(false);
+  const [showEnrollModal, setShowEnrollModal] = useState(false);
+  const [alert, setAlert] = useState(null);
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -38,6 +43,30 @@ export default function CourseDetail() {
         // Set total lessons count
         setTotalLessons(curriculumData.totalLessons || curriculumData.curriculum?.length || 0);
         
+        // Check enrollment status if user is authenticated
+        if (isAuthenticated && user) {
+          let userId = user?.id || user?.user_id || user?.ID;
+          
+          // Fallback for demo purposes
+          if (!userId) {
+            userId = 1; // Demo user ID
+          }
+          
+          if (userId) {
+            try {
+              const enrollments = await getUserEnrollments(userId);
+              const enrolled = enrollments.some(enrollment => 
+                enrollment.course_id === parseInt(courseId)
+              );
+              setIsEnrolled(enrolled);
+              console.warn('📋 Enrollment status:', enrolled);
+            } catch (enrollmentError) {
+              console.warn('⚠️ Could not check enrollment status:', enrollmentError.message);
+              setIsEnrolled(false);
+            }
+          }
+        }
+        
         console.warn('✅ Data loaded successfully - Lessons:', curriculumData.curriculum?.length || 0);
         
       } catch (err) {
@@ -55,15 +84,76 @@ export default function CourseDetail() {
     if (courseId) {
       fetchCourseData();
     }
-  }, [courseId, navigate]);
+  }, [courseId, navigate, isAuthenticated, user]);
+
+  const showAlert = (message, type = 'success') => {
+    setAlert({ message, type });
+    setTimeout(() => setAlert(null), 4000);
+  };
 
   const handleEnroll = () => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: `/courses/${courseId}` } });
       return;
     }
-    // In a real app, this would make an API call to enroll
-    navigate(`/student/courses/${courseId}`);
+    
+    if (isEnrolled) {
+      // If already enrolled, navigate to appropriate courses page
+      if (isAuthenticated && user?.id) {
+        navigate(`/student/my-courses`);
+      } else {
+        navigate(`/catalog`);
+      }
+      return;
+    }
+    
+    // Show enrollment modal for confirmation
+    setShowEnrollModal(true);
+  };
+
+  const confirmEnrollment = async () => {
+    // Try to get user ID from different possible fields
+    let userId = user?.id || user?.user_id || user?.ID;
+    
+    // Fallback for demo/testing purposes - use a demo user ID if no user is found
+    if (!userId) {
+      console.warn('⚠️ No authenticated user found, using demo user ID for testing');
+      userId = 1; // Demo user ID
+      showAlert('Demo enrollment (no user logged in)', 'info');
+    }
+
+    console.warn('🎯 Starting enrollment process...');
+    console.warn('User object:', user);
+    console.warn('User ID (resolved):', userId);
+    console.warn('Course ID:', courseId);
+
+    setEnrolling(true);
+    try {
+      const result = await enrollUserInCourse(userId, parseInt(courseId));
+      console.warn('✅ Enrollment result:', result);
+      
+      setIsEnrolled(true);
+      setShowEnrollModal(false);
+      showAlert(`Successfully enrolled in ${course.title}!`, 'success');
+      
+      // Don't auto-navigate if using demo user
+      if (user?.id) {
+        setTimeout(() => {
+          navigate('/student/my-courses');
+        }, 2000);
+      } else {
+        // If not authenticated, redirect to catalog instead
+        setTimeout(() => {
+          navigate('/catalog');
+        }, 2000);
+      }
+      
+    } catch (err) {
+      console.error('❌ Enrollment error:', err);
+      showAlert(`Error enrolling in course: ${err.message}`, 'danger');
+    } finally {
+      setEnrolling(false);
+    }
   };
 
   // Loading state
@@ -122,6 +212,12 @@ export default function CourseDetail() {
 
   return (
     <Container className="py-5">
+      {alert && (
+        <Alert variant={alert.type} dismissible onClose={() => setAlert(null)} className="mb-4">
+          {alert.message}
+        </Alert>
+      )}
+      
       <Row>
         <Col lg={8}>
           <div className="position-relative mb-4 rounded-4 overflow-hidden shadow-lg">
@@ -270,13 +366,23 @@ export default function CourseDetail() {
                     </Button>
                   ) : (
                     <Button
-                      variant={user?.enrolledCourses?.includes(course.id) ? 'success' : 'primary'}
+                      variant={isEnrolled ? 'success' : 'primary'}
                       size="lg"
                       className="fw-semibold"
                       onClick={handleEnroll}
+                      disabled={enrolling}
                     >
-                      <i className={`bi ${user?.enrolledCourses?.includes(course.id) ? 'bi-play-circle' : 'bi-cart-plus'} me-2`}></i>
-                      {user?.enrolledCourses?.includes(course.id) ? 'Continue Learning' : 'Enroll Now'}
+                      {enrolling ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2"></span>
+                          Enrolling...
+                        </>
+                      ) : (
+                        <>
+                          <i className={`bi ${isEnrolled ? 'bi-play-circle' : 'bi-cart-plus'} me-2`}></i>
+                          {isEnrolled ? 'View My Courses' : 'Enroll Now'}
+                        </>
+                      )}
                     </Button>
                   )}
                 </div>
@@ -322,6 +428,81 @@ export default function CourseDetail() {
           </div>
         </Col>
       </Row>
+
+      {/* Enrollment Confirmation Modal */}
+      <Modal show={showEnrollModal} onHide={() => setShowEnrollModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <i className="bi bi-bookmark-plus me-2"></i>
+            Enroll in Course
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {course && (
+            <>
+              <div className="text-center mb-4">
+                <img
+                  src={course.thumbnail}
+                  alt={course.title}
+                  className="img-fluid rounded"
+                  style={{ maxHeight: '120px', objectFit: 'cover' }}
+                />
+              </div>
+              
+              <h5 className="text-center mb-3">{course.title}</h5>
+              
+              <div className="mb-3">
+                <div className="d-flex justify-content-between mb-2">
+                  <span>Course Level:</span>
+                  <Badge bg={course.level === 'beginner' ? 'success' : 
+                            course.level === 'intermediate' ? 'warning' : 'info'}>
+                    {course.level}
+                  </Badge>
+                </div>
+                <div className="d-flex justify-content-between mb-2">
+                  <span>Duration:</span>
+                  <span>{course.duration}</span>
+                </div>
+                <div className="d-flex justify-content-between mb-2">
+                  <span>Lessons:</span>
+                  <span>{totalLessons} lessons</span>
+                </div>
+                <div className="d-flex justify-content-between mb-2">
+                  <span>Price:</span>
+                  <span className="text-success fw-bold">Free</span>
+                </div>
+              </div>
+
+              <Alert variant="info" className="mb-3">
+                <i className="bi bi-info-circle me-2"></i>
+                By enrolling, you&apos;ll get lifetime access to all course materials and updates.
+              </Alert>
+
+              <p className="text-muted text-center">
+                Ready to start your learning journey?
+              </p>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowEnrollModal(false)} disabled={enrolling}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={confirmEnrollment} disabled={enrolling}>
+            {enrolling ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2"></span>
+                Enrolling...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-check-circle me-2"></i>
+                Confirm Enrollment
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 }
