@@ -46,7 +46,7 @@ export default function AppNavbar() {
             <Nav.Link as={Link} to="/about">About</Nav.Link>
             <Nav.Link as={Link} to="/contact">Contact</Nav.Link>
             {isAuthenticated && user?.role === 'student' && (
-              <Nav.Link as={Link} to="/student/dashboard">My Learning</Nav.Link>
+              <Nav.Link as={Link} to="/student/my-learning">My Learning</Nav.Link>
             )}
             {isAuthenticated && user?.role === 'instructor' && (
               <Nav.Link as={Link} to="/instructor/dashboard">Instructor Dashboard</Nav.Link>
@@ -57,11 +57,11 @@ export default function AppNavbar() {
           <Nav className="align-items-lg-center">
             {!isAuthenticated ? (
               <div className="d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-center">
-                <Button as={Link} to="/register" variant="outline-primary" size="sm" className="flex-fill flex-lg-grow-0">
-                  Sign In
-                </Button>
-                <Button as={Link} to="/login" variant="primary" size="sm" className="flex-fill flex-lg-grow-0">
+                <Button as={Link} to="/login" variant="outline-primary" size="sm" className="flex-fill flex-lg-grow-0">
                   Login
+                </Button>
+                <Button as={Link} to="/register" variant="primary" size="sm" className="flex-fill flex-lg-grow-0">
+                  Sign Up
                 </Button>
                 <Button 
                   as={Link} 
@@ -77,7 +77,7 @@ export default function AppNavbar() {
                     transition: 'all 0.2s ease'
                   }}
                 >
-                  Admin
+                  🔒 ADMIN
                 </Button>
               </div>
             ) : (

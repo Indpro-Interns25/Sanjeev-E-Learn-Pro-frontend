@@ -63,72 +63,55 @@ export async function enrollUserInCourse(userId, courseId) {
     if (!userId || !courseId) {
       throw new Error('User ID and Course ID are required for enrollment');
     }
+
+    // Convert to numbers to ensure consistency
+    const userIdNum = parseInt(userId);
+    const courseIdNum = parseInt(courseId);
     
-    const response = await apiClient.post('/api/enrollments', {
-      user_id: userId,
-      course_id: courseId
-    });
-    console.warn('✅ Enrollment successful:', response.data);
+    // Always use localStorage fallback since we don't have a real backend
+    console.warn('Using localStorage fallback for enrollment');
     
-    if (response.data.success && response.data.data) {
-      return response.data.data;
-    }
+    // Store enrollment locally
+    const localEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+    const newEnrollment = {
+      id: Date.now(),
+      user_id: userIdNum,
+      course_id: courseIdNum,
+      enrolled_at: new Date().toISOString(),
+      status: 'active',
+      progress: 0
+    };
     
-    return response.data || { success: true, message: 'Enrollment successful' };
-  } catch (error) {
-    console.error('🚨 Failed to enroll user:', error);
-    console.error('Error details:', {
-      code: error.code,
-      status: error.response?.status,
-      message: error.message,
-      responseData: error.response?.data
-    });
+    // Check if already enrolled
+    const alreadyEnrolled = localEnrollments.some(e => 
+      e.user_id === userIdNum && e.course_id === courseIdNum
+    );
     
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
-        error.response?.status === 401 || error.response?.status === 403 ||
-        error.response?.status === 500 || !error.response) {
-      console.warn('Backend API not available, simulating enrollment');
-      
-      // Store enrollment locally as fallback
-      const localEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
-      const newEnrollment = {
-        id: Date.now(),
-        user_id: userId,
-        course_id: courseId,
-        enrolled_at: new Date().toISOString(),
-        status: 'active',
-        progress: 0
-      };
-      
-      // Check if already enrolled
-      const alreadyEnrolled = localEnrollments.some(e => 
-        e.user_id === userId && e.course_id === courseId
-      );
-      
-      if (alreadyEnrolled) {
-        return { 
-          success: true, 
-          message: 'Already enrolled in this course',
-          enrollment: localEnrollments.find(e => 
-            e.user_id === userId && e.course_id === courseId
-          )
-        };
-      }
-      
-      localEnrollments.push(newEnrollment);
-      localStorage.setItem('enrollments', JSON.stringify(localEnrollments));
-      
+    if (alreadyEnrolled) {
       return { 
         success: true, 
-        message: 'Enrollment successful (offline mode)', 
-        enrollment: newEnrollment
+        message: 'Already enrolled in this course',
+        enrollment: localEnrollments.find(e => 
+          e.user_id === userIdNum && e.course_id === courseIdNum
+        )
       };
     }
     
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to enroll user in course';
+    localEnrollments.push(newEnrollment);
+    localStorage.setItem('enrollments', JSON.stringify(localEnrollments));
+    
+    console.warn('✅ Enrollment successful (localStorage):', newEnrollment);
+    
+    return { 
+      success: true, 
+      message: 'Enrollment successful', 
+      enrollment: newEnrollment
+    };
+  } catch (error) {
+    console.error('🚨 Failed to enroll user:', error);
+    
+    // Fallback error handling
+    const message = error.message || 'Failed to enroll user in course';
     throw new Error(message);
   }
 }
@@ -145,31 +128,22 @@ export async function getUserEnrollments(userId) {
     if (!userId) {
       throw new Error('User ID is required to fetch enrollments');
     }
+
+    // Convert to number to ensure consistency
+    const userIdNum = parseInt(userId);
     
-    const response = await apiClient.get(`/api/users/${userId}/enrollments`);
-    console.warn('📚 User enrollments:', response.data);
+    // Always use localStorage since we don't have a real backend
+    console.warn('Using localStorage for user enrollments');
     
-    // Handle the API response structure: { success: true, data: [...] }
-    if (response.data.success && response.data.data) {
-      return response.data.data;
-    }
+    // Check localStorage for enrollments
+    const localEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+    const userEnrollments = localEnrollments.filter(e => e.user_id === userIdNum);
     
-    return response.data || [];
+    console.warn('📱 Local enrollments found:', userEnrollments);
+    return userEnrollments;
+    
   } catch (error) {
     console.error('🚨 Failed to fetch user enrollments:', error);
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
-        error.response?.status === 401 || error.response?.status === 403 ||
-        error.response?.status === 500 || !error.response) {
-      console.warn('Backend API not available, checking local enrollments');
-      
-      // Check localStorage for enrollments
-      const localEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
-      const userEnrollments = localEnrollments.filter(e => e.user_id === userId);
-      
-      console.warn('📱 Local enrollments found:', userEnrollments);
-      return userEnrollments;
-    }
-    
     return [];
   }
 }

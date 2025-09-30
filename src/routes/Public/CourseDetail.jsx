@@ -52,19 +52,30 @@ export default function CourseDetail() {
             userId = 1; // Demo user ID
           }
           
+          console.warn('🔍 Checking enrollment for user:', userId, 'course:', courseId);
+          
           if (userId) {
             try {
               const enrollments = await getUserEnrollments(userId);
-              const enrolled = enrollments.some(enrollment => 
-                enrollment.course_id === parseInt(courseId)
-              );
+              console.warn('📚 All user enrollments:', enrollments);
+              
+              const enrolled = enrollments.some(enrollment => {
+                const enrollmentCourseId = parseInt(enrollment.course_id);
+                const currentCourseId = parseInt(courseId);
+                console.warn(`Comparing enrollment course ${enrollmentCourseId} with current course ${currentCourseId}`);
+                return enrollmentCourseId === currentCourseId;
+              });
+              
               setIsEnrolled(enrolled);
-              console.warn('📋 Enrollment status:', enrolled);
+              console.warn('📋 Final enrollment status:', enrolled);
             } catch (enrollmentError) {
               console.warn('⚠️ Could not check enrollment status:', enrollmentError.message);
               setIsEnrolled(false);
             }
           }
+        } else {
+          console.warn('❌ User not authenticated - showing enroll button');
+          setIsEnrolled(false);
         }
         
         console.warn('✅ Data loaded successfully - Lessons:', curriculumData.curriculum?.length || 0);
@@ -130,12 +141,11 @@ export default function CourseDetail() {
       
       setIsEnrolled(true);
       setShowEnrollModal(false);
-      showAlert(`Successfully enrolled in ${course.title}!`, 'success');
+      showAlert(`Successfully enrolled in ${course.title}! Redirecting to My Learning...`, 'success');
       
-      // Navigate to the specific enrolled course view (not all courses)
-      // Use a slightly longer delay to ensure localStorage is saved
+      // Navigate to My Learning to immediately see the enrolled course
       setTimeout(() => {
-        navigate(`/student/course/${courseId}`);
+        navigate(`/student/my-learning`);
       }, 2000);
       
     } catch (err) {

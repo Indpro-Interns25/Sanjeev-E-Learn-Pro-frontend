@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Spinner, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { getEnrolledCourses, getUserStats } from '../../services/user';
-import { mockCourses } from '../../data/mockCourses';
+import { getUserEnrollments } from '../../services/enrollment';
+import { getCourseById } from '../../services/courses';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -20,32 +20,70 @@ export default function StudentDashboard() {
   useEffect(() => {
     console.warn('🚀 StudentDashboard useEffect triggered');
     const fetchDashboardData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       try {
         console.warn('📥 Starting to fetch dashboard data...');
         setLoading(true);
         setError(null);
         
-        // Fetch enrolled courses and user stats in parallel
-        const [coursesData, statsData] = await Promise.all([
-          getEnrolledCourses(),
-          getUserStats()
-        ]);
+        // Fetch user enrollments first
+        const enrollments = await getUserEnrollments(user.id);
+        console.warn('📚 User enrollments:', enrollments);
         
-        console.warn('✅ Dashboard data fetched successfully');
-        setEnrolledCourses(coursesData);
-        setStats(statsData);
+        // Fetch course details for each enrollment
+        const coursePromises = enrollments.map(async (enrollment) => {
+          try {
+            const course = await getCourseById(enrollment.course_id);
+            return {
+              ...course,
+              enrollment_id: enrollment.id,
+              enrolled_at: enrollment.enrolled_at,
+              progress_percentage: enrollment.progress || 0,
+              status: enrollment.status || 'active',
+              completed_lessons: Math.floor((enrollment.progress || 0) / 100 * (course.lesson_count || 5)),
+              total_lessons: course.lesson_count || 5
+            };
+          } catch (error) {
+            console.error(`Failed to fetch course ${enrollment.course_id}:`, error);
+            return null;
+          }
+        });
+
+        const coursesWithDetails = await Promise.all(coursePromises);
+        const validCourses = coursesWithDetails.filter(course => course !== null);
+        
+        setEnrolledCourses(validCourses);
+        
+        // Calculate stats from enrolled courses
+        const activeEnrollments = validCourses.filter(course => course.status === 'active');
+        const completedEnrollments = validCourses.filter(course => course.progress_percentage >= 100);
+        const totalLessons = validCourses.reduce((sum, course) => sum + (course.total_lessons || 0), 0);
+        const completedLessons = validCourses.reduce((sum, course) => sum + (course.completed_lessons || 0), 0);
+        
+        setStats({
+          coursesInProgress: activeEnrollments.length,
+          completedCourses: completedEnrollments.length,
+          totalLessons: totalLessons,
+          completedLessons: completedLessons
+        });
+        
+        console.warn('✅ Dashboard data loaded successfully');
         
       } catch (err) {
         console.error('❌ Error fetching dashboard data:', err);
         setError(err.message);
         
-        // Fallback to mock data if API fails
-        setEnrolledCourses(mockCourses.slice(0, 3));
+        // Reset to empty state on error
+        setEnrolledCourses([]);
         setStats({
-          coursesInProgress: 3,
-          completedCourses: 1,
-          totalLessons: 15,
-          completedLessons: 5
+          coursesInProgress: 0,
+          completedCourses: 0,
+          totalLessons: 0,
+          completedLessons: 0
         });
       } finally {
         setLoading(false);
@@ -53,7 +91,7 @@ export default function StudentDashboard() {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [user]);
 
   // Loading state
   if (loading) {
