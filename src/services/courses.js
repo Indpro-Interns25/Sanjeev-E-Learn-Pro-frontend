@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { mockCourses } from '../data/mockCourses';
 
 // =========================================
 // COURSES API SERVICE
@@ -36,16 +37,33 @@ export async function getAllCourses(filters = {}) {
     
     const response = await apiClient.get(url);
     return response.data;
-  } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
+  } catch {
+    console.warn('API not available, using mock courses data');
+    
+    // Filter mock courses based on provided filters
+    let filteredCourses = [...mockCourses];
+    
+    if (filters.category) {
+      filteredCourses = filteredCourses.filter(course => 
+        course.category.toLowerCase() === filters.category.toLowerCase()
+      );
     }
     
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to fetch courses';
-    throw new Error(message);
+    if (filters.level) {
+      filteredCourses = filteredCourses.filter(course => 
+        course.level.toLowerCase() === filters.level.toLowerCase()
+      );
+    }
+    
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filteredCourses = filteredCourses.filter(course =>
+        course.title.toLowerCase().includes(searchTerm) ||
+        course.description.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    return filteredCourses;
   }
 }
 

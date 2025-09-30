@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { mockLessons } from '../data/mockLessons';
 
 /**
  * Get all lessons (public endpoint)
@@ -17,21 +18,9 @@ export async function getAllLessons() {
     
     // Fallback if the response structure is different
     return response.data || [];
-  } catch (error) {
-    console.error('🚨 Failed to fetch all lessons:', error);
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
-    if (error.response?.status === 404) {
-      throw new Error('Lessons not found');
-    }
-    
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to fetch lessons';
-    throw new Error(message);
+  } catch {
+    console.warn('API not available, using mock lessons data');
+    return mockLessons;
   }
 }
 

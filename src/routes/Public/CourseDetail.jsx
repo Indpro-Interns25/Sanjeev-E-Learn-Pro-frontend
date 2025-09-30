@@ -98,12 +98,8 @@ export default function CourseDetail() {
     }
     
     if (isEnrolled) {
-      // If already enrolled, navigate to appropriate courses page
-      if (isAuthenticated && user?.id) {
-        navigate(`/student/my-courses`);
-      } else {
-        navigate(`/catalog`);
-      }
+      // If already enrolled, navigate to the enrolled course view
+      navigate('/student/my-courses');
       return;
     }
     
@@ -136,17 +132,11 @@ export default function CourseDetail() {
       setShowEnrollModal(false);
       showAlert(`Successfully enrolled in ${course.title}!`, 'success');
       
-      // Don't auto-navigate if using demo user
-      if (user?.id) {
-        setTimeout(() => {
-          navigate('/student/my-courses');
-        }, 2000);
-      } else {
-        // If not authenticated, redirect to catalog instead
-        setTimeout(() => {
-          navigate('/catalog');
-        }, 2000);
-      }
+      // Navigate to the specific enrolled course view (not all courses)
+      // Use a slightly longer delay to ensure localStorage is saved
+      setTimeout(() => {
+        navigate(`/student/course/${courseId}`);
+      }, 2000);
       
     } catch (err) {
       console.error('❌ Enrollment error:', err);

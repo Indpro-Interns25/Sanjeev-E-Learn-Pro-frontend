@@ -19,6 +19,7 @@ import ForgotPassword from './routes/Public/ForgotPassword';
 import StudentDashboard from './routes/Student/StudentDashboard';
 import StudentCourses from './routes/Student/StudentCourses';
 import MyEnrolledCourses from './routes/Student/MyEnrolledCourses';
+import EnrolledCourseView from './routes/Student/EnrolledCourseView';
 import MyCourses from './routes/Student/MyCourses';
 import LessonPlayer from './routes/Student/LessonPlayer';
 import Progress from './routes/Student/Progress';
@@ -107,6 +108,10 @@ export default function App() {
                       <Route 
                         path="/student/my-courses" 
                         element={<MyEnrolledCourses />}
+                      />
+                      <Route 
+                        path="/student/course/:courseId" 
+                        element={<EnrolledCourseView />}
                       />
                       <Route 
                         path="/student/courses/:courseId" 
