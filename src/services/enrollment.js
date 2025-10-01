@@ -100,7 +100,13 @@ export async function enrollUserInCourse(userId, courseId) {
     localEnrollments.push(newEnrollment);
     localStorage.setItem('enrollments', JSON.stringify(localEnrollments));
     
+    // Dispatch custom event to notify other components of enrollment change
+    window.dispatchEvent(new CustomEvent('enrollmentChanged', {
+      detail: { userId: userIdNum, courseId: courseIdNum, enrollment: newEnrollment }
+    }));
+    
     console.warn('✅ Enrollment successful (localStorage):', newEnrollment);
+    console.warn('📢 Dispatched enrollmentChanged event');
     
     return { 
       success: true, 

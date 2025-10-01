@@ -1,19 +1,91 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Card, Spinner, Alert } from 'react-bootstrap';
 import { getAllCourses, getCourseCategories, formatCoursesData } from '../../services/courses';
+import { getUserEnrollments } from '../../services/enrollment';
+import { useAuth } from '../../hooks/useAuth';
 import CourseCard from '../../components/CourseCard';
 
 const LEVELS = ['All', 'Beginner', 'Intermediate', 'Advanced'];
 
 export default function Catalog() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedLevel, setSelectedLevel] = useState('All');
   const [courses, setCourses] = useState([]);
+  const [allCourses, setAllCourses] = useState([]); // Store all courses before filtering
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState([]);
   const [categories, setCategories] = useState(['All']);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searching, setSearching] = useState(false);
+
+  // Listen for enrollment changes (localStorage updates)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'enrollments') {
+        console.warn('🔄 Enrollment storage changed, refreshing enrolled courses...');
+        // Re-fetch enrolled courses when enrollments change
+        if (user?.id) {
+          getUserEnrollments(user.id).then(enrollments => {
+            const enrolledIds = enrollments.map(enrollment => enrollment.course_id);
+            console.warn('🔄 Updated enrolled course IDs:', enrolledIds);
+            setEnrolledCourseIds(enrolledIds);
+          }).catch(error => {
+            console.warn('❌ Failed to refresh enrollments:', error);
+          });
+        }
+      }
+    };
+
+    // Listen for storage events (from other tabs/windows)
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Listen for custom enrollment events (from same tab)
+    const handleEnrollmentChange = () => {
+      console.warn('🔄 Custom enrollment event detected, refreshing...');
+      if (user?.id) {
+        getUserEnrollments(user.id).then(enrollments => {
+          const enrolledIds = enrollments.map(enrollment => enrollment.course_id);
+          console.warn('🔄 Updated enrolled course IDs:', enrolledIds);
+          setEnrolledCourseIds(enrolledIds);
+        }).catch(error => {
+          console.warn('❌ Failed to refresh enrollments:', error);
+        });
+      }
+    };
+    
+    window.addEventListener('enrollmentChanged', handleEnrollmentChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('enrollmentChanged', handleEnrollmentChange);
+    };
+  }, [user?.id]);
+
+  // Fetch enrolled courses for current user
+  useEffect(() => {
+    const fetchEnrolledCourses = async () => {
+      if (!user?.id) {
+        console.warn('🚫 No user found for enrollment check');
+        setEnrolledCourseIds([]);
+        return;
+      }
+
+      try {
+        console.warn('📚 Fetching enrolled courses for user:', user.id);
+        const enrollments = await getUserEnrollments(user.id);
+        const enrolledIds = enrollments.map(enrollment => enrollment.course_id);
+        console.warn('✅ Enrolled course IDs:', enrolledIds);
+        setEnrolledCourseIds(enrolledIds);
+      } catch (error) {
+        console.warn('❌ Failed to fetch enrollments:', error);
+        setEnrolledCourseIds([]);
+      }
+    };
+
+    fetchEnrolledCourses();
+  }, [user?.id]);
 
   // Fetch initial data
   useEffect(() => {
@@ -30,7 +102,18 @@ export default function Catalog() {
         
         // Handle courses
         if (coursesResponse.status === 'fulfilled') {
-          setCourses(formatCoursesData(coursesResponse.value));
+          const formattedCourses = formatCoursesData(coursesResponse.value);
+          setAllCourses(formattedCourses);
+          
+          // Filter out enrolled courses
+          const availableCourses = formattedCourses.filter(course => 
+            !enrolledCourseIds.includes(course.id)
+          );
+          console.warn('📋 Total courses:', formattedCourses.length);
+          console.warn('📋 Available courses (not enrolled):', availableCourses.length);
+          console.warn('📋 Filtered out enrolled courses:', enrolledCourseIds);
+          
+          setCourses(availableCourses);
         } else {
           console.error('Failed to fetch courses:', coursesResponse.reason);
         }
@@ -54,13 +137,17 @@ export default function Catalog() {
     };
 
     fetchInitialData();
-  }, []);
+  }, [enrolledCourseIds]); // Re-fetch when enrolled courses change
 
   // Filter courses based on search and filters
   useEffect(() => {
     const filterCourses = async () => {
       if (!searchTerm && selectedCategory === 'All' && selectedLevel === 'All') {
-        // No filters applied, use original courses
+        // No search filters, use all courses but exclude enrolled ones
+        const availableCourses = allCourses.filter(course => 
+          !enrolledCourseIds.includes(course.id)
+        );
+        setCourses(availableCourses);
         return;
       }
 
@@ -86,7 +173,17 @@ export default function Catalog() {
         filters.sortOrder = 'desc';
         
         const filteredCourses = await getAllCourses(filters);
-        setCourses(formatCoursesData(filteredCourses));
+        const formattedCourses = formatCoursesData(filteredCourses);
+        
+        // Filter out enrolled courses from search results
+        const availableCourses = formattedCourses.filter(course => 
+          !enrolledCourseIds.includes(course.id)
+        );
+        
+        console.warn('🔍 Search results:', formattedCourses.length);
+        console.warn('🔍 Available after enrollment filter:', availableCourses.length);
+        
+        setCourses(availableCourses);
         
       } catch (err) {
         console.error('Error filtering courses:', err);
@@ -100,7 +197,7 @@ export default function Catalog() {
     const timeoutId = setTimeout(filterCourses, 300);
     
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, selectedCategory, selectedLevel]);
+  }, [searchTerm, selectedCategory, selectedLevel, allCourses, enrolledCourseIds]);
 
   if (loading) {
     return (
