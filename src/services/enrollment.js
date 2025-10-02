@@ -26,18 +26,18 @@ export async function getAllEnrollments() {
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
         error.response?.status === 401 || error.response?.status === 403) {
       console.warn('Backend API not available, returning mock enrollments data');
-      // Return mock enrollments data
+      // Return mock enrollments data with 0% progress for new enrollments
       return [
-        { id: 1, user_id: 1, course_id: 1, enrolled_at: '2024-01-15', status: 'active', progress: 25 },
-        { id: 2, user_id: 1, course_id: 2, enrolled_at: '2024-01-20', status: 'active', progress: 75 },
-        { id: 3, user_id: 2, course_id: 1, enrolled_at: '2024-01-18', status: 'active', progress: 50 },
-        { id: 4, user_id: 2, course_id: 3, enrolled_at: '2024-01-22', status: 'completed', progress: 100 },
-        { id: 5, user_id: 3, course_id: 2, enrolled_at: '2024-01-25', status: 'active', progress: 30 },
-        { id: 6, user_id: 4, course_id: 1, enrolled_at: '2024-01-28', status: 'active', progress: 10 },
-        { id: 7, user_id: 4, course_id: 4, enrolled_at: '2024-02-01', status: 'active', progress: 65 },
-        { id: 8, user_id: 5, course_id: 3, enrolled_at: '2024-02-03', status: 'active', progress: 85 },
-        { id: 9, user_id: 5, course_id: 5, enrolled_at: '2024-02-05', status: 'active', progress: 40 },
-        { id: 10, user_id: 6, course_id: 1, enrolled_at: '2024-02-08', status: 'active', progress: 20 }
+        { id: 1, user_id: 1, course_id: 1, enrolled_at: '2024-01-15', status: 'active', progress: 0, progress_percentage: 0 },
+        { id: 2, user_id: 1, course_id: 2, enrolled_at: '2024-01-20', status: 'active', progress: 0, progress_percentage: 0 },
+        { id: 3, user_id: 2, course_id: 1, enrolled_at: '2024-01-18', status: 'active', progress: 0, progress_percentage: 0 },
+        { id: 4, user_id: 2, course_id: 3, enrolled_at: '2024-01-22', status: 'active', progress: 0, progress_percentage: 0 },
+        { id: 5, user_id: 3, course_id: 2, enrolled_at: '2024-01-25', status: 'active', progress: 0, progress_percentage: 0 },
+        { id: 6, user_id: 4, course_id: 1, enrolled_at: '2024-01-28', status: 'active', progress: 0, progress_percentage: 0 },
+        { id: 7, user_id: 4, course_id: 4, enrolled_at: '2024-02-01', status: 'active', progress: 0, progress_percentage: 0 },
+        { id: 8, user_id: 5, course_id: 3, enrolled_at: '2024-02-03', status: 'active', progress: 0, progress_percentage: 0 },
+        { id: 9, user_id: 5, course_id: 5, enrolled_at: '2024-02-05', status: 'active', progress: 0, progress_percentage: 0 },
+        { id: 10, user_id: 6, course_id: 1, enrolled_at: '2024-02-08', status: 'active', progress: 0, progress_percentage: 0 }
       ];
     }
     

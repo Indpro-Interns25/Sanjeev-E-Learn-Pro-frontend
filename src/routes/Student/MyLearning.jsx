@@ -5,19 +5,25 @@ import { useAuth } from '../../hooks/useAuth';
 import { getUserEnrollments } from '../../services/enrollment';
 import { getCourseById } from '../../services/courses';
 import { getLessonsByCourse } from '../../data/mockLessons';
+import { getUserWatchTimes, getCourseProgress, getSavedCourseProgress } from '../../services/watchTime';
 
-// Simulate watch time per lesson (in minutes) for demo
-function getUserLessonWatchTimes(userId, courseId) {
-  // In a real app, fetch from backend or localStorage
-  // Here, we simulate with random data for demo based on course progress
-  const watchTimes = {};
+// Find the next lesson to continue with based on progress
+function getNextLessonId(courseId, userId) {
   const lessons = getLessonsByCourse(courseId);
-  lessons.forEach(lesson => {
-    // Simulate: user watched 0-100% of lesson duration (in minutes)
+  const watchTimes = getUserWatchTimes(userId);
+  
+  // Find the first lesson that's not fully watched
+  for (let lesson of lessons) {
     const duration = parseInt(lesson.duration) || 60;
-    watchTimes[lesson.id] = Math.floor(Math.random() * duration);
-  });
-  return watchTimes;
+    const watched = watchTimes[lesson.id] || 0;
+    
+    if (watched < duration) {
+      return lesson.id;
+    }
+  }
+  
+  // If all lessons are watched, return the first lesson
+  return lessons[0]?.id;
 }
 
 export default function MyLearning() {
@@ -25,7 +31,6 @@ export default function MyLearning() {
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [watchTimes, setWatchTimes] = useState({});
 
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
@@ -60,14 +65,21 @@ export default function MyLearning() {
           try {
             console.warn(`🔍 Fetching course details for course ID: ${enrollment.course_id}`);
             const course = await getCourseById(enrollment.course_id);
+            const lessons = getLessonsByCourse(enrollment.course_id);
+            
+            // Calculate real-time progress based on actual watch times
+            const progressData = getCourseProgress(user.id, enrollment.course_id, lessons);
+            
             const courseWithEnrollment = {
               ...course,
               enrollment_id: enrollment.id,
               enrolled_at: enrollment.enrolled_at,
-              progress: enrollment.progress || 0,
-              status: enrollment.status || 'active'
+              progress: progressData.progress, // Use real calculated progress
+              status: enrollment.status || 'active',
+              totalWatched: progressData.totalWatched,
+              totalDuration: progressData.totalDuration
             };
-            console.warn(`✅ Course details fetched:`, courseWithEnrollment);
+            console.warn(`✅ Course details fetched with real progress ${progressData.progress}%:`, courseWithEnrollment);
             return courseWithEnrollment;
           } catch (error) {
             console.error(`❌ Failed to fetch course ${enrollment.course_id}:`, error);
@@ -78,17 +90,9 @@ export default function MyLearning() {
         const coursesWithDetails = await Promise.all(coursePromises);
         const validCourses = coursesWithDetails.filter(course => course !== null);
         
-        console.warn('✅ Final enrolled courses with details:', validCourses);
+        console.warn('✅ Final enrolled courses with real-time progress:', validCourses);
         console.warn('📊 Number of valid courses:', validCourses.length);
         setEnrolledCourses(validCourses);
-        
-        // Generate watch times for each enrolled course
-        const allWatchTimes = {};
-        validCourses.forEach(course => {
-          const courseWatchTimes = getUserLessonWatchTimes(user.id, course.id);
-          Object.assign(allWatchTimes, courseWatchTimes);
-        });
-        setWatchTimes(allWatchTimes);
         
       } catch (error) {
         console.error('❌ Failed to fetch enrolled courses:', error);
@@ -100,6 +104,35 @@ export default function MyLearning() {
 
     fetchEnrolledCourses();
   }, [user]);
+
+  // Refresh progress when component becomes visible (user returns from watching videos)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user && enrolledCourses.length > 0) {
+        // Refresh course progress when user returns to the page
+        setTimeout(() => {
+          const updatedCourses = enrolledCourses.map(course => {
+            const lessons = getLessonsByCourse(course.id);
+            const progressData = getCourseProgress(user.id, course.id, lessons);
+            
+            return {
+              ...course,
+              progress: progressData.progress,
+              totalWatched: progressData.totalWatched,
+              totalDuration: progressData.totalDuration
+            };
+          });
+          setEnrolledCourses(updatedCourses);
+        }, 500); // Small delay to ensure localStorage is updated
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user, enrolledCourses]);
 
   if (!user) {
     return (
@@ -160,19 +193,43 @@ export default function MyLearning() {
       <h1 className="mb-4">My Learning Progress</h1>
       {enrolledCourses.map(course => {
         const lessons = getLessonsByCourse(course.id);
-        const totalMinutes = lessons.reduce((sum, l) => sum + (parseInt(l.duration) || 0), 0);
-        const watchedMinutes = lessons.reduce((sum, l) => sum + (watchTimes[l.id] || 0), 0);
-        const percent = totalMinutes ? Math.round((watchedMinutes / totalMinutes) * 100) : 0;
+        const watchTimes = getUserWatchTimes(user.id); // Get real watch times
+        
+        // Use real course progress
+        const percent = course.progress || 0;
+        
         return (
           <Card className="mb-4 shadow-sm" key={course.id}>
-            <Card.Body>
-              <div className="d-flex align-items-center mb-2">
-                <img src={course.thumbnail} alt={course.title} style={{width:60, height:40, objectFit:'cover', borderRadius:8, marginRight:16}} />
-                <div>
-                  <h4 className="mb-0">{course.title}</h4>
-                  <small className="text-muted">{course.category} &bull; {course.level}</small>
+            <Card.Header className="bg-light">
+              <div className="d-flex justify-content-between align-items-center">
+                <div className="d-flex align-items-center">
+                  <img 
+                    src={course.thumbnail} 
+                    alt={course.title} 
+                    style={{
+                      width: 50, 
+                      height: 35, 
+                      objectFit: 'cover', 
+                      borderRadius: 6, 
+                      marginRight: 12
+                    }} 
+                  />
+                  <div>
+                    <h5 className="mb-0">{course.title}</h5>
+                    <small className="text-muted">{course.category} &bull; {course.level}</small>
+                  </div>
+                </div>
+                <div className="text-end">
+                  <div className="mb-1">
+                    <span className="badge bg-primary">{percent}% Complete</span>
+                  </div>
+                  <small className="text-muted">
+                    {lessons.length} lesson{lessons.length !== 1 ? 's' : ''}
+                  </small>
                 </div>
               </div>
+            </Card.Header>
+            <Card.Body>
               <ProgressBar now={percent} label={`${percent}%`} className="mb-3" />
               <Table size="sm" bordered hover>
                 <thead>
@@ -180,20 +237,79 @@ export default function MyLearning() {
                     <th>Lesson</th>
                     <th>Watched (min)</th>
                     <th>Total (min)</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {lessons.map(lesson => (
-                    <tr key={lesson.id}>
-                      <td>{lesson.title}</td>
-                      <td>{watchTimes[lesson.id] || 0}</td>
-                      <td>{parseInt(lesson.duration) || 0}</td>
-                    </tr>
-                  ))}
+                  {lessons.map(lesson => {
+                    const duration = parseInt(lesson.duration) || 0;
+                    const watched = watchTimes[lesson.id] || 0;
+                    const isFullyWatched = watched >= duration;
+                    
+                    return (
+                      <tr key={lesson.id} className={isFullyWatched ? 'table-success' : ''}>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            {isFullyWatched ? (
+                              <i className="bi bi-check-circle-fill text-success me-2"></i>
+                            ) : watched > 0 ? (
+                              <i className="bi bi-play-circle-fill text-warning me-2"></i>
+                            ) : (
+                              <i className="bi bi-play-circle text-muted me-2"></i>
+                            )}
+                            {lesson.title}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            {watched}
+                            {isFullyWatched && (
+                              <i className="bi bi-check-circle-fill text-success ms-1" style={{fontSize: '0.8rem'}}></i>
+                            )}
+                          </div>
+                        </td>
+                        <td>{duration}</td>
+                        <td>
+                          <Button
+                            as={Link}
+                            to={`/student/courses/${course.id}/lessons/${lesson.id}`}
+                            variant={isFullyWatched ? "outline-success" : "outline-primary"}
+                            size="sm"
+                            className="d-flex align-items-center"
+                          >
+                            <i className={`bi ${isFullyWatched ? 'bi-arrow-clockwise' : 'bi-play-fill'} me-1`}></i>
+                            {isFullyWatched ? 'Rewatch' : 'Watch'}
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </Table>
-              <div className="text-end text-muted">
-                Watched: {watchedMinutes} / {totalMinutes} min
+              <div className="d-flex justify-content-between align-items-center">
+                <div className="text-muted">
+                  Watched: {course.totalWatched || 0} / {course.totalDuration || 0} min
+                </div>
+                <div className="d-flex gap-2">
+                  <Button
+                    as={Link}
+                    to={`/student/courses/${course.id}`}
+                    variant="outline-primary"
+                    size="sm"
+                  >
+                    <i className="bi bi-eye me-1"></i>
+                    View Course
+                  </Button>
+                  <Button
+                    as={Link}
+                    to={`/student/courses/${course.id}/lessons/${getNextLessonId(course.id, user.id)}`}
+                    variant="primary"
+                    size="sm"
+                  >
+                    <i className="bi bi-play-fill me-1"></i>
+                    Continue Learning
+                  </Button>
+                </div>
               </div>
             </Card.Body>
           </Card>

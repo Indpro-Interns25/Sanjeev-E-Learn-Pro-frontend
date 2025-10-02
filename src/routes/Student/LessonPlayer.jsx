@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getCourseById } from '../../data/mockCourses';
 import { getLessonById, markLessonComplete, getLessonsByCourse, isLessonComplete } from '../../data/mockLessons';
+import { saveWatchTime, videoProgressToMinutes } from '../../services/watchTime';
 import VideoPlayer from '../../components/VideoPlayer';
 import Comments from '../../components/Comments';
 
@@ -17,6 +18,7 @@ export default function LessonPlayer() {
   const [lessons, setLessons] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [lastSavedProgress, setLastSavedProgress] = useState(0);
   
   // Detect if we're in preview mode or student mode
   const isPreviewMode = window.location.pathname.includes('/preview');
@@ -48,6 +50,9 @@ export default function LessonPlayer() {
       const completed = isLessonComplete(user.id, parseInt(lessonId));
       setIsCompleted(completed);
     }
+    
+    // Reset progress tracking for new lesson
+    setLastSavedProgress(0);
   }, [courseId, lessonId, navigate, user, isStudentMode]);
 
   const handleComplete = () => {
@@ -119,6 +124,21 @@ export default function LessonPlayer() {
               videoUrl={lesson.videoUrl} 
               title={lesson.title}
               onProgress={(progress) => {
+                // Save watch time as user watches the video (throttled to avoid too many saves)
+                if (user && isStudentMode && progress > 0) {
+                  // Only save progress every 5% to reduce localStorage writes
+                  const progressRounded = Math.floor(progress / 5) * 5;
+                  
+                  if (progressRounded > lastSavedProgress) {
+                    const lessonDurationMinutes = parseInt(lesson.duration) || 0;
+                    const watchedMinutes = videoProgressToMinutes(progress, lessonDurationMinutes);
+                    
+                    // Save the watch time
+                    saveWatchTime(user.id, parseInt(lessonId), watchedMinutes);
+                    setLastSavedProgress(progressRounded);
+                  }
+                }
+
                 // Auto-complete lesson when video reaches 90% completion
                 if (user && isStudentMode && progress >= 90 && !isCompleted) {
                   markLessonComplete(user.id, parseInt(lessonId));
