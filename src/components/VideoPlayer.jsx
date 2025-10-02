@@ -214,6 +214,42 @@ export default function VideoPlayer({
     };
   }, []);
 
+  // YouTube progress simulation (since iframe doesn't provide timeupdate events)
+  useEffect(() => {
+    if (!isYouTube || !youtubeVideoId || !onProgress) return;
+    
+    let progressInterval;
+    let currentProgress = 0;
+    
+    // Simulate progress updates every 15 seconds for YouTube videos
+    const simulateProgress = () => {
+      currentProgress += 15; // Increment by 15% every 15 seconds
+      
+      if (currentProgress <= 100) {
+        console.warn(`📺 YouTube progress simulated: ${currentProgress}%`);
+        onProgress(currentProgress);
+      }
+      
+      if (currentProgress >= 100) {
+        clearInterval(progressInterval);
+      }
+    };
+    
+    // Start simulating progress after 3 seconds (assume user started watching)
+    const startDelay = setTimeout(() => {
+      progressInterval = setInterval(simulateProgress, 15000); // Every 15 seconds
+      onProgress(10); // Initial 10% after 3 seconds
+      console.warn('📺 YouTube progress tracking started');
+    }, 3000);
+    
+    return () => {
+      clearTimeout(startDelay);
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+    };
+  }, [isYouTube, youtubeVideoId, onProgress]);
+
   if (error) {
     return (
       <Alert variant="danger" className="text-center">
@@ -233,8 +269,21 @@ export default function VideoPlayer({
     return (
       <Card className="video-player-container">
         {title && (
-          <Card.Header className="bg-dark text-light">
+          <Card.Header className="bg-dark text-light d-flex justify-content-between align-items-center">
             <h6 className="mb-0">{title}</h6>
+            {onProgress && (
+              <Button
+                variant="success"
+                size="sm"
+                onClick={() => {
+                  onProgress(100);
+                  console.warn('📺 YouTube video marked as 100% watched manually');
+                }}
+              >
+                <i className="bi bi-check-circle me-1"></i>
+                Mark as Watched
+              </Button>
+            )}
           </Card.Header>
         )}
         <div 
@@ -242,7 +291,7 @@ export default function VideoPlayer({
           className={`youtube-wrapper ${isFullscreen ? 'fullscreen' : ''}`}
         >
           <iframe
-            src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1&controls=1&showinfo=0`}
+            src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1&controls=1&showinfo=0&autoplay=1`}
             title={title || 'Educational Video'}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
