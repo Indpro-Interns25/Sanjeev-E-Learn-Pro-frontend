@@ -355,23 +355,13 @@ export default function CourseDetail() {
                 </div>
 
                 <div className="d-grid gap-2 mb-3">
-                  {isAuthenticated && user?.role === 'instructor' ? (
-                    <Button
-                      variant="outline-primary"
-                      size="lg"
-                      className="fw-semibold"
-                      onClick={() => navigate(`/instructor/courses/${courseId}/edit`)}
-                    >
-                      <i className="bi bi-pencil-square me-2"></i>Edit Course
-                    </Button>
-                  ) : (
-                    <Button
-                      variant={isEnrolled ? 'success' : 'primary'}
-                      size="lg"
-                      className="fw-semibold"
-                      onClick={handleEnroll}
-                      disabled={enrolling}
-                    >
+                  <Button
+                    variant={isEnrolled ? 'success' : 'primary'}
+                    size="lg"
+                    className="fw-semibold"
+                    onClick={handleEnroll}
+                    disabled={enrolling}
+                  >
                       {enrolling ? (
                         <>
                           <span className="spinner-border spinner-border-sm me-2"></span>
@@ -384,7 +374,6 @@ export default function CourseDetail() {
                         </>
                       )}
                     </Button>
-                  )}
                 </div>
 
                 <div className="mb-3">

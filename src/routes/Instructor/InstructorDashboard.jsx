@@ -99,15 +99,6 @@ export default function InstructorDashboard() {
                   <div className="d-flex gap-2">
                     <Button
                       as={Link}
-                      to={`/instructor/courses/${course.id}/edit`}
-                      variant="outline-primary"
-                      size="sm"
-                      className="w-100"
-                    >
-                      Edit Course
-                    </Button>
-                    <Button
-                      as={Link}
                       to={`/instructor/courses/${course.id}/lessons`}
                       variant="outline-secondary"
                       size="sm"

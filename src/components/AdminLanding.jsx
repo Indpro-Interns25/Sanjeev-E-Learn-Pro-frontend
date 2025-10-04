@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Nav, Card, Table, Button, Badge, Form, Modal, Alert, Spinner } from 'react-bootstrap';
-import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin, getAllStudents, getAllInstructors } from '../services/admin';
-import { getCourseCategories } from '../services/courses';
+import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin, getAllStudents, getAllInstructors, deleteCourse, deleteLesson, checkDeleteEndpoints } from '../services/admin';
 
 export default function AdminLanding() {
   const navigate = useNavigate();
@@ -28,18 +27,8 @@ export default function AdminLanding() {
   const [lessons, setLessons] = useState([]);
   const [students, setStudents] = useState([]);
   const [instructors, setInstructors] = useState([]);
-  const [categories, setCategories] = useState([]);
   
   // Form states
-  const [courseForm, setCourseForm] = useState({
-    title: '',
-    description: '',
-    category: '',
-    level: 'beginner',
-    price: '',
-    duration: '',
-    thumbnail: ''
-  });
   const [lessonForm, setLessonForm] = useState({
     title: '',
     description: '',
@@ -71,16 +60,16 @@ export default function AdminLanding() {
       setError(null);
       
       // Fetch admin data in parallel with better error handling
-      const [adminStats, coursesData, lessonsData, categoriesData, studentsData, instructorsData] = await Promise.all([
+      const [adminStats, coursesData, lessonsData, studentsData, instructorsData] = await Promise.all([
         getAdminStats().catch(() => {
           console.warn('Admin stats API unavailable, using sample data');
           return { 
-            totalStudents: 156, 
-            totalInstructors: 23, 
-            totalCourses: 12, 
-            totalLessons: 89, 
-            totalEnrollments: 342, 
-            activeUsers: 78, 
+            totalStudents: 0, // Will be calculated from actual enrollments
+            totalInstructors: 3, 
+            totalCourses: 5, 
+            totalLessons: 12, 
+            totalEnrollments: 0, // Will be calculated from actual enrollments
+            activeUsers: 0, // Will be calculated from actual data
             recentActivity: [
               { type: 'enrollment', description: 'New student enrolled in React Basics', date: '2025-09-29' },
               { type: 'course', description: 'Advanced JavaScript course published', date: '2025-09-28' },
@@ -104,14 +93,9 @@ export default function AdminLanding() {
             { id: 3, title: 'ES6 Features', description: 'Modern JavaScript features', course_id: 2, course_title: 'Advanced JavaScript', duration: 60, order_sequence: 1, status: 'published' }
           ];
         }),
-        getCourseCategories().catch(() => ['Web Development', 'Programming', 'Data Science', 'Design', 'Business']),
         getAllStudents().catch(() => {
-          console.warn('Students API unavailable, using sample data');
-          return [
-            { id: 1, name: 'John Doe', email: 'john@example.com', enrolled_courses: 3, progress: 65, status: 'active', created_at: '2025-08-15' },
-            { id: 2, name: 'Jane Smith', email: 'jane@example.com', enrolled_courses: 2, progress: 80, status: 'active', created_at: '2025-09-01' },
-            { id: 3, name: 'Mike Johnson', email: 'mike@example.com', enrolled_courses: 1, progress: 25, status: 'active', created_at: '2025-09-10' }
-          ];
+          console.warn('Students API unavailable, will show only enrolled students');
+          return []; // Return empty array instead of mock data
         }),
         getAllInstructors().catch(() => {
           console.warn('Instructors API unavailable, using sample data');
@@ -126,9 +110,20 @@ export default function AdminLanding() {
       setStats(adminStats);
       setCourses(coursesData);
       setLessons(lessonsData);
-      setCategories(categoriesData);
       setStudents(studentsData);
       setInstructors(instructorsData);
+      
+      // Update stats with actual counts from fetched data
+      const updatedStats = {
+        ...adminStats,
+        totalStudents: studentsData.length,
+        totalInstructors: instructorsData.length,
+        totalCourses: coursesData.length,
+        totalLessons: lessonsData.length,
+        totalEnrollments: studentsData.reduce((total, student) => total + (student.enrolled_courses || 0), 0),
+        activeUsers: studentsData.filter(student => student.status === 'active').length + instructorsData.filter(instructor => instructor.status === 'active').length
+      };
+      setStats(updatedStats);
       
     } catch (err) {
       console.error('Error fetching admin data:', err);
@@ -140,7 +135,8 @@ export default function AdminLanding() {
 
   const showAlert = (message, type = 'success') => {
     setAlert({ message, type });
-    setTimeout(() => setAlert(null), 3000);
+    const timeout = type === 'danger' ? 8000 : 3000; // Show error messages longer
+    setTimeout(() => setAlert(null), timeout);
   };
 
   const handleAction = (action, item = null) => {
@@ -148,17 +144,7 @@ export default function AdminLanding() {
     setSelectedItem(item);
     
     // Pre-populate forms if editing
-    if (action === 'editCourse' && item) {
-      setCourseForm({
-        title: item.title,
-        description: item.description,
-        category: item.category,
-        level: item.level,
-        price: item.price,
-        duration: item.duration,
-        thumbnail: item.thumbnail || ''
-      });
-    } else if (action === 'editLesson' && item) {
+    if (action === 'editLesson' && item) {
       setLessonForm({
         title: item.title,
         description: item.description,
@@ -179,7 +165,6 @@ export default function AdminLanding() {
       showAlert(`${modalType.replace(/([A-Z])/g, ' $1').toLowerCase()} completed successfully!`);
       setShowModal(false);
       // Reset forms
-      setCourseForm({ title: '', description: '', category: '', level: 'beginner', price: '', duration: '', thumbnail: '' });
       setLessonForm({ title: '', description: '', courseId: '', duration: '', orderSequence: '', videoUrl: '' });
       fetchInitialData(); // Refresh data
     }, 1000);
@@ -242,7 +227,38 @@ export default function AdminLanding() {
 
             <Card>
               <Card.Header>
-                <h5>Recent Activity</h5>
+                <div className="d-flex justify-content-between align-items-center">
+                  <h5>Recent Activity</h5>
+                  <Button 
+                    variant="outline-info" 
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        setLoading(true);
+                        const result = await checkDeleteEndpoints();
+                        
+                        let message = '🔍 API Endpoint Check Results:\n\n';
+                        message += `📖 Course GET: ${result.courseGetAvailable ? '✅ Working' : '❌ Not Working'}\n`;
+                        message += `🗑️ Course DELETE: ${result.courseDeleteAvailable ? '✅ Available' : '❌ NOT AVAILABLE'}\n`;
+                        message += `🗑️ Lesson DELETE: ${result.lessonDeleteAvailable ? '✅ Available' : '❌ NOT AVAILABLE'}\n`;
+                        
+                        if (result.errors.length > 0) {
+                          message += '\n⚠️ Issues Found:\n' + result.errors.map(err => `• ${err}`).join('\n');
+                        } else if (result.courseDeleteAvailable && result.lessonDeleteAvailable) {
+                          message += '\n🎉 All delete endpoints are working! You can now delete courses and lessons.';
+                        }
+                        
+                        showAlert(message, result.errors.length > 0 ? 'warning' : 'info');
+                      } catch (error) {
+                        showAlert('Failed to check API endpoints: ' + error.message, 'danger');
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                  >
+                    🔍 Test API
+                  </Button>
+                </div>
               </Card.Header>
               <Card.Body>
                 {stats?.recentActivity?.length > 0 ? (
@@ -305,17 +321,14 @@ export default function AdminLanding() {
                             {course.level}
                           </Badge>
                         </td>
-                        <td>${course.price}</td>
-                        <td>{course.enrolled_count || 0}</td>
+                        <td>{course.price === 'Free' ? 'Free' : course.price}</td>
+                        <td>{course.enrolled_count || course.enrollment_count || 0}</td>
                         <td>
                           <Badge bg={course.status === 'published' ? 'success' : 'warning'}>
                             {course.status || 'draft'}
                           </Badge>
                         </td>
                         <td>
-                          <Button variant="outline-primary" size="sm" className="me-1" onClick={() => handleAction('editCourse', course)}>
-                            Edit
-                          </Button>
                           <Button variant="outline-danger" size="sm" onClick={() => handleAction('deleteCourse', course)}>
                             Delete
                           </Button>
@@ -401,7 +414,10 @@ export default function AdminLanding() {
         return (
           <div>
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h4>Student Management</h4>
+              <div>
+                <h4>Student Management</h4>
+                <small className="text-muted">All registered students</small>
+              </div>
             </div>
 
             <Card>
@@ -427,7 +443,11 @@ export default function AdminLanding() {
                           </div>
                         </td>
                         <td>{student.email}</td>
-                        <td>{student.enrolled_courses || 0}</td>
+                        <td>
+                          <Badge bg={student.enrolled_courses > 0 ? 'primary' : 'secondary'}>
+                            {student.enrolled_courses || 0}
+                          </Badge>
+                        </td>
                         <td>
                           <div className="progress" style={{ width: '100px' }}>
                             <div 
@@ -440,22 +460,31 @@ export default function AdminLanding() {
                         </td>
                         <td>{new Date(student.created_at || Date.now()).toLocaleDateString()}</td>
                         <td>
-                          <Badge bg={student.status === 'active' ? 'success' : 'warning'}>
-                            {student.status || 'active'}
+                          <Badge bg={student.status === 'active' ? 'success' : student.status === 'pending' ? 'warning' : 'secondary'}>
+                            {student.status || 'pending'}
                           </Badge>
                         </td>
                         <td>
                           <Button variant="outline-primary" size="sm" className="me-1">
                             View
                           </Button>
-                          <Button variant="outline-warning" size="sm">
+                          <Button 
+                            variant={student.status === 'active' ? 'outline-warning' : 'outline-success'} 
+                            size="sm"
+                          >
                             {student.status === 'active' ? 'Suspend' : 'Activate'}
                           </Button>
                         </td>
                       </tr>
                     )) : (
                       <tr>
-                        <td colSpan="7" className="text-center text-muted">No students found</td>
+                        <td colSpan="7" className="text-center text-muted">
+                          <div className="py-4">
+                            <i className="bi bi-people" style={{ fontSize: '2rem', color: '#6c757d' }}></i>
+                            <p className="mt-2 mb-1">No students found</p>
+                            <small className="text-muted">Students will appear here when they register on the platform</small>
+                          </div>
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -616,7 +645,11 @@ export default function AdminLanding() {
         <Alert 
           variant={alert.type} 
           className="position-fixed top-0 end-0 m-3" 
-          style={{ zIndex: 1050 }}
+          style={{ 
+            zIndex: 1050, 
+            maxWidth: '400px',
+            whiteSpace: 'pre-line' // This allows \n to create new lines
+          }}
           dismissible 
           onClose={() => setAlert(null)}
         >
@@ -714,97 +747,6 @@ export default function AdminLanding() {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {(modalType === 'editCourse') && (
-            <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-3">
-                <Form.Label>Course Title</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={courseForm.title}
-                  onChange={(e) => setCourseForm({...courseForm, title: e.target.value})}
-                  required
-                />
-              </Form.Group>
-              
-              <Form.Group className="mb-3">
-                <Form.Label>Description</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  value={courseForm.description}
-                  onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
-                  required
-                />
-              </Form.Group>
-              
-              <Form.Group className="mb-3">
-                <Form.Label>Category</Form.Label>
-                <Form.Select
-                  value={courseForm.category}
-                  onChange={(e) => setCourseForm({...courseForm, category: e.target.value})}
-                  required
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-              
-              <Form.Group className="mb-3">
-                <Form.Label>Level</Form.Label>
-                <Form.Select
-                  value={courseForm.level}
-                  onChange={(e) => setCourseForm({...courseForm, level: e.target.value})}
-                  required
-                >
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </Form.Select>
-              </Form.Group>
-              
-              <Form.Group className="mb-3">
-                <Form.Label>Price ($)</Form.Label>
-                <Form.Control
-                  type="number"
-                  step="0.01"
-                  value={courseForm.price}
-                  onChange={(e) => setCourseForm({...courseForm, price: e.target.value})}
-                  required
-                />
-              </Form.Group>
-              
-              <Form.Group className="mb-3">
-                <Form.Label>Duration (hours)</Form.Label>
-                <Form.Control
-                  type="number"
-                  value={courseForm.duration}
-                  onChange={(e) => setCourseForm({...courseForm, duration: e.target.value})}
-                  required
-                />
-              </Form.Group>
-              
-              <Form.Group className="mb-3">
-                <Form.Label>Thumbnail URL</Form.Label>
-                <Form.Control
-                  type="url"
-                  value={courseForm.thumbnail}
-                  onChange={(e) => setCourseForm({...courseForm, thumbnail: e.target.value})}
-                />
-              </Form.Group>
-              
-              <div className="d-flex justify-content-end">
-                <Button variant="secondary" className="me-2" onClick={() => setShowModal(false)}>
-                  Cancel
-                </Button>
-                <Button variant="primary" type="submit">
-                  Update Course
-                </Button>
-              </div>
-            </Form>
-          )}
-
           {(modalType === 'createLesson' || modalType === 'editLesson') && (
             <Form onSubmit={handleSubmit}>
               <Form.Group className="mb-3">
@@ -890,12 +832,40 @@ export default function AdminLanding() {
                 <Button variant="secondary" className="me-2" onClick={() => setShowModal(false)}>
                   Cancel
                 </Button>
-                <Button variant="danger" onClick={() => {
-                  showAlert(`${modalType?.includes('Course') ? 'Course' : 'Lesson'} deleted successfully!`);
-                  setShowModal(false);
-                  fetchInitialData();
-                }}>
-                  Delete
+                <Button 
+                  variant="danger" 
+                  onClick={async () => {
+                    try {
+                      setLoading(true);
+                      
+                      if (modalType === 'deleteCourse') {
+                        await deleteCourse(selectedItem.id);
+                        showAlert('Course deleted successfully!');
+                      } else if (modalType === 'deleteLesson') {
+                        await deleteLesson(selectedItem.id);
+                        showAlert('Lesson deleted successfully!');
+                      }
+                      
+                      setShowModal(false);
+                      fetchInitialData(); // Refresh data
+                    } catch (error) {
+                      console.error('Delete error:', error);
+                      
+                      // Show detailed error message
+                      let errorMessage = error.message;
+                      if (error.message.includes('404') || error.message.includes('not found')) {
+                        errorMessage = `❌ API Error: The delete endpoint is not implemented on the backend server. Please ask the backend developer to add the DELETE route for ${modalType === 'deleteCourse' ? 'courses' : 'lessons'}.`;
+                      }
+                      
+                      showAlert(errorMessage, 'danger');
+                      setShowModal(false); // Close modal even on error
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                >
+                  {loading ? 'Deleting...' : 'Delete'}
                 </Button>
               </div>
             </div>

@@ -107,28 +107,39 @@ export default function AdminDashboard() {
         
       } catch (err) {
         console.error('Error fetching admin data:', err);
-        setError(err.message);
+        console.warn('🚨 Network calls failed - backend server on port 3002 may not be running');
+        console.warn('📡 Error details:', {
+          message: err.message,
+          code: err.code,
+          status: err.response?.status,
+          url: err.config?.url
+        });
+        setError('Backend server not available - showing demo interface with 0 students');
         
         // Always show fallback data instead of zeros
         console.warn('⚠️ Using fallback data due to error:', err.message);
         const fallbackStats = {
-          totalStudents: 6,
+          totalStudents: 0, // Changed to 0 instead of demo numbers
           totalInstructors: 3, 
           totalCourses: 6,
           totalLessons: 8,
-          totalEnrollments: 10,
-          activeUsers: 9,
+          totalEnrollments: 0, // Changed to 0 instead of demo numbers
+          activeUsers: 0, // Changed to 0 instead of demo numbers
           recentActivity: [
-            { type: 'user_registration', title: 'Dr. Emily Davis', description: 'emily.davis@instructor.com', timestamp: '2025-09-30T12:08:56.481Z' },
-            { type: 'user_registration', title: 'Prof. Michael Brown', description: 'michael.brown@instructor.com', timestamp: '2025-09-30T12:08:56.481Z' },
-            { type: 'user_registration', title: 'Dr. Sarah Wilson', description: 'sarah.wilson@instructor.com', timestamp: '2025-09-30T12:08:56.481Z' },
-            { type: 'user_registration', title: 'Mike Johnson', description: 'mike.johnson@student.com', timestamp: '2025-09-30T12:08:56.481Z' },
-            { type: 'user_registration', title: 'Jane Smith', description: 'jane.smith@student.com', timestamp: '2025-09-30T12:08:56.481Z' }
+            { type: 'system', title: 'Backend Unavailable', description: 'No network connection to backend server (port 3002)', timestamp: new Date().toISOString() }
           ]
         };
         
         setStats(fallbackStats);
-        setCourses(mockCourses);
+        
+        // Set courses with zero enrollments
+        const coursesWithZeroEnrollment = mockCourses.map(course => ({
+          ...course,
+          enrolled: 0,
+          enrolled_count: 0,
+          enrollment_count: 0
+        }));
+        setCourses(coursesWithZeroEnrollment);
         setLessons(mockLessons);
         
         // Set mock students and instructors as fallback
@@ -469,63 +480,140 @@ export default function AdminDashboard() {
         </Col>
       </Row>
 
+      {/* Course Statistics Overview */}
+      <Row className="mb-4">
+        <Col md={3}>
+          <Card className="h-100">
+            <Card.Body className="text-center">
+              <i className="bi bi-journal-bookmark fs-1 text-primary mb-2"></i>
+              <h4>{courses.length}</h4>
+              <p className="text-muted mb-0">Total Courses</p>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className="h-100">
+            <Card.Body className="text-center">
+              <i className="bi bi-check-circle fs-1 text-success mb-2"></i>
+              <h4>{courses.filter(c => c.status === 'published').length}</h4>
+              <p className="text-muted mb-0">Published</p>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className="h-100">
+            <Card.Body className="text-center">
+              <i className="bi bi-clock fs-1 text-warning mb-2"></i>
+              <h4>{courses.filter(c => c.status === 'draft').length}</h4>
+              <p className="text-muted mb-0">Drafts</p>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className="h-100">
+            <Card.Body className="text-center">
+              <i className="bi bi-people fs-1 text-info mb-2"></i>
+              <h4>{courses.reduce((total, course) => total + (parseInt(course.enrolled_count) || 0), 0)}</h4>
+              <p className="text-muted mb-0">Total Enrollments</p>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Courses Table */}
       <Card>
         <Card.Header>
-          <h5 className="mb-0">All Courses</h5>
+          <div className="d-flex justify-content-between align-items-center">
+            <h5 className="mb-0">All Courses</h5>
+            <div className="d-flex gap-2">
+              <Button variant="outline-secondary" size="sm">
+                <i className="bi bi-filter"></i> Filter
+              </Button>
+              <Button variant="outline-secondary" size="sm">
+                <i className="bi bi-download"></i> Export
+              </Button>
+            </div>
+          </div>
         </Card.Header>
         <Card.Body>
-          <Table responsive>
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Level</th>
-                <th>Price</th>
-                <th>Students</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {courses.slice(0, 10).map(course => (
-                <tr key={course.id}>
-                  <td>
-                    <div>
-                      <strong>{course.title}</strong>
-                      <br />
-                      <small className="text-muted">{course.description?.substring(0, 60)}...</small>
-                    </div>
-                  </td>
-                  <td>
-                    <Badge bg="secondary">{course.category}</Badge>
-                  </td>
-                  <td>
-                    <Badge bg={
-                      course.level === 'beginner' ? 'success' :
-                      course.level === 'intermediate' ? 'warning' : 'info'
-                    }>
-                      {course.level}
-                    </Badge>
-                  </td>
-                  <td>${parseFloat(course.price).toFixed(2)}</td>
-                  <td>{course.enrolled_count || 298}</td>
-                  <td>
-                    <Badge bg={course.status === 'published' ? 'success' : 'warning'}>
-                      {course.status || 'published'}
-                    </Badge>
-                  </td>
-                  <td>
-                    <Button size="sm" variant="outline-primary" className="me-2" onClick={() => handleAction('editCourse', course)}>
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="outline-danger" onClick={() => handleAction('deleteCourse', course)}>
-                      Delete
-                    </Button>
-                  </td>
+          {courses.length === 0 ? (
+            <div className="text-center py-5">
+              <i className="bi bi-journal-bookmark display-1 text-muted mb-3"></i>
+              <h4>No Courses Available</h4>
+              <p className="text-muted">Start by creating your first course to build your educational platform.</p>
+              <Button variant="primary" onClick={() => handleAction('addCourse')}>
+                <i className="bi bi-plus"></i> Create First Course
+              </Button>
+            </div>
+          ) : (
+            <Table responsive hover>
+              <thead className="table-light">
+                <tr>
+                  <th>Course Details</th>
+                  <th>Category</th>
+                  <th>Level</th>
+                  <th>Price</th>
+                  <th>Enrollments</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {courses.map(course => (
+                  <tr key={course.id}>
+                    <td>
+                      <div>
+                        <strong className="d-block">{course.title}</strong>
+                        <small className="text-muted">{course.description?.substring(0, 80)}...</small>
+                      </div>
+                    </td>
+                    <td>
+                      <Badge bg="secondary" className="px-2 py-1">
+                        {course.category}
+                      </Badge>
+                    </td>
+                    <td>
+                      <Badge bg={
+                        course.level === 'beginner' ? 'success' :
+                        course.level === 'intermediate' ? 'warning' : 'info'
+                      } className="px-2 py-1">
+                        {course.level}
+                      </Badge>
+                    </td>
+                    <td>
+                      <span className="fw-bold">
+                        {course.price === 'Free' || course.price === 0 ? 'Free' : `$${parseFloat(course.price || 0).toFixed(2)}`}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        <i className="bi bi-people me-1 text-primary"></i>
+                        <span className="fw-bold">{course.enrolled_count || 0}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <Badge bg={course.status === 'published' ? 'success' : 'warning'} className="px-2 py-1">
+                        {course.status || 'draft'}
+                      </Badge>
+                    </td>
+                    <td>
+                      <div className="d-flex gap-1">
+                        <Button size="sm" variant="outline-primary" onClick={() => handleAction('editCourse', course)}>
+                          <i className="bi bi-pencil"></i>
+                        </Button>
+                        <Button size="sm" variant="outline-info" onClick={() => handleAction('viewCourse', course)}>
+                          <i className="bi bi-eye"></i>
+                        </Button>
+                        <Button size="sm" variant="outline-danger" onClick={() => handleAction('deleteCourse', course)}>
+                          <i className="bi bi-trash"></i>
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
         </Card.Body>
       </Card>
     </>
@@ -818,34 +906,21 @@ export default function AdminDashboard() {
         <Col md={6} className="mb-3">
           <Card>
             <Card.Header>
-              <h6>Course Enrollment</h6>
+              <h6>System Information</h6>
             </Card.Header>
             <Card.Body>
-              <Table responsive>
-                <thead>
-                  <tr>
-                    <th>Course</th>
-                    <th>Enrolled</th>
-                    <th>Completion Rate</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {courses.slice(0, 5).map(course => (
-                    <tr key={course.id}>
-                      <td>{course.title}</td>
-                      <td>{course.enrolled_count || course.enrollment_count}</td>
-                      <td>
-                        <div className="d-flex align-items-center">
-                          <div className="progress me-2" style={{ width: '60px', height: '6px' }}>
-                            <div className="progress-bar" style={{ width: `${Math.min(100, (course.enrolled_count / 1000) * 100)}%` }}></div>
-                          </div>
-                          {Math.round((course.enrolled_count / 1000) * 100)}%
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
+              <div className="mb-3">
+                <small className="text-muted">Platform Status</small>
+                <div className="fw-bold text-success">Active</div>
+              </div>
+              <div className="mb-3">
+                <small className="text-muted">Database Status</small>
+                <div className="fw-bold text-success">Connected</div>
+              </div>
+              <div>
+                <small className="text-muted">Last Updated</small>
+                <div className="fw-bold">{new Date().toLocaleDateString()}</div>
+              </div>
             </Card.Body>
           </Card>
         </Col>
@@ -1153,6 +1228,7 @@ export default function AdminDashboard() {
             {modalType === 'addCourse' && 'Add New Course'}
             {modalType === 'editCourse' && 'Edit Course'}
             {modalType === 'deleteCourse' && 'Delete Course'}
+            {modalType === 'viewCourse' && 'Course Details'}
             {modalType === 'addLesson' && 'Add New Lesson'}
             {modalType === 'editLesson' && 'Edit Lesson'}
             {modalType === 'deleteLesson' && 'Delete Lesson'}
@@ -1182,6 +1258,54 @@ export default function AdminDashboard() {
               onSubmit={handleCourseSubmit}
               isEdit={true}
             />
+          )}
+          
+          {modalType === 'viewCourse' && selectedItem && (
+            <div>
+              <Row>
+                <Col md={6}>
+                  <h6>Course Information</h6>
+                  <p><strong>Title:</strong> {selectedItem.title}</p>
+                  <p><strong>Category:</strong> {selectedItem.category}</p>
+                  <p><strong>Level:</strong> {selectedItem.level}</p>
+                  <p><strong>Price:</strong> {selectedItem.price === 'Free' || selectedItem.price === 0 ? 'Free' : `$${parseFloat(selectedItem.price || 0).toFixed(2)}`}</p>
+                </Col>
+                <Col md={6}>
+                  <h6>Statistics</h6>
+                  <p><strong>Status:</strong> 
+                    <Badge bg={selectedItem.status === 'published' ? 'success' : 'warning'} className="ms-2">
+                      {selectedItem.status || 'draft'}
+                    </Badge>
+                  </p>
+                  <p><strong>Enrollments:</strong> {selectedItem.enrolled_count || 0}</p>
+                  <p><strong>Rating:</strong> {selectedItem.rating || 'N/A'}</p>
+                  <p><strong>Created:</strong> {selectedItem.created_at ? new Date(selectedItem.created_at).toLocaleDateString() : 'N/A'}</p>
+                </Col>
+              </Row>
+              {selectedItem.description && (
+                <Row className="mt-3">
+                  <Col>
+                    <h6>Description</h6>
+                    <p className="text-muted">{selectedItem.description}</p>
+                  </Col>
+                </Row>
+              )}
+              {selectedItem.curriculum && selectedItem.curriculum.length > 0 && (
+                <Row className="mt-3">
+                  <Col>
+                    <h6>Curriculum</h6>
+                    <ul className="list-unstyled">
+                      {selectedItem.curriculum.map((item, index) => (
+                        <li key={index} className="mb-1">
+                          <i className="bi bi-check-circle text-success me-2"></i>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </Col>
+                </Row>
+              )}
+            </div>
           )}
           
           {modalType === 'addLesson' && (
