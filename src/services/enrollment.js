@@ -7,7 +7,7 @@ import apiClient from './apiClient';
 export async function getAllEnrollments() {
   try {
     console.warn('📚 Fetching all enrollments from API...');
-    const response = await apiClient.get('/api/admin/enrollments');
+    const response = await apiClient.get('/api/enrollments');
     console.warn('📊 Enrollments response:', response.data);
     
     // Handle the API response structure: { success: true, data: [...] }
@@ -200,6 +200,100 @@ export async function getUserEnrollments(userId) {
 }
 
 /**
+ * Get enrollment count for a specific course
+ * @param {number} courseId - The course ID
+ * @returns {Promise<number>} Promise that resolves to enrollment count
+ */
+export async function getCourseEnrollmentCount(courseId) {
+  try {
+    console.warn(`📊 Fetching enrollment count for course ${courseId}...`);
+    
+    if (!courseId) {
+      return 0;
+    }
+
+    const courseIdNum = parseInt(courseId);
+    
+    try {
+      // Try to get all enrollments and count for this course
+      const allEnrollments = await getAllEnrollments();
+      const courseEnrollments = allEnrollments.filter(enrollment => 
+        enrollment.course_id === courseIdNum
+      );
+      
+      const count = courseEnrollments.length;
+      console.warn(`✅ Course ${courseId} has ${count} enrollments`);
+      return count;
+      
+    } catch (apiError) {
+      console.warn('❌ API failed, falling back to localStorage for enrollment count:', apiError.message);
+      
+      // Fallback to localStorage
+      const localEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+      const courseEnrollments = localEnrollments.filter(e => e.course_id === courseIdNum);
+      
+      return courseEnrollments.length;
+    }
+    
+  } catch (error) {
+    console.error('🚨 Failed to get course enrollment count:', error);
+    return 0;
+  }
+}
+
+/**
+ * Get enrollment counts for multiple courses
+ * @param {Array<number>} courseIds - Array of course IDs
+ * @returns {Promise<Object>} Promise that resolves to object with courseId: count mapping
+ */
+export async function getMultipleCourseEnrollmentCounts(courseIds) {
+  try {
+    console.warn('📊 Fetching enrollment counts for multiple courses:', courseIds);
+    
+    if (!Array.isArray(courseIds) || courseIds.length === 0) {
+      return {};
+    }
+
+    try {
+      // Get all enrollments once
+      const allEnrollments = await getAllEnrollments();
+      
+      // Count enrollments per course
+      const counts = {};
+      courseIds.forEach(courseId => {
+        const courseIdNum = parseInt(courseId);
+        const courseEnrollments = allEnrollments.filter(enrollment => 
+          enrollment.course_id === courseIdNum
+        );
+        counts[courseId] = courseEnrollments.length;
+      });
+      
+      console.warn('✅ Multiple course enrollment counts:', counts);
+      return counts;
+      
+    } catch (apiError) {
+      console.warn('❌ API failed, falling back to localStorage for enrollment counts:', apiError.message);
+      
+      // Fallback to localStorage
+      const localEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+      const counts = {};
+      
+      courseIds.forEach(courseId => {
+        const courseIdNum = parseInt(courseId);
+        const courseEnrollments = localEnrollments.filter(e => e.course_id === courseIdNum);
+        counts[courseId] = courseEnrollments.length;
+      });
+      
+      return counts;
+    }
+    
+  } catch (error) {
+    console.error('🚨 Failed to get multiple course enrollment counts:', error);
+    return {};
+  }
+}
+
+/**
  * Check if user can access a lesson (based on course enrollment)
  * @param {number} userId - The user ID
  * @param {number} lessonId - The lesson ID
@@ -226,5 +320,7 @@ export default {
   getAllEnrollments,
   enrollUserInCourse,
   getUserEnrollments,
+  getCourseEnrollmentCount,
+  getMultipleCourseEnrollmentCounts,
   canUserAccessLesson
 };

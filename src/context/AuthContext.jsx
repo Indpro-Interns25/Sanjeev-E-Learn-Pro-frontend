@@ -51,7 +51,40 @@ export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   useEffect(() => {
+    const cleanupDemoData = () => {
+      // Clean up any demo data from localStorage
+      const realUserIds = [33, 34, 35, 36, 49, 50, 51, 52, 53];
+      
+      // Check if current user is a demo user
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        try {
+          const user = JSON.parse(savedUser);
+          if (user.id && !realUserIds.includes(user.id)) {
+            console.warn('🚮 Removing demo user from localStorage:', user);
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+          }
+        } catch (parseError) {
+          console.warn('Error parsing saved user during cleanup:', parseError.message);
+        }
+      }
+      
+      // Clean up demo enrollments
+      const enrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+      const cleanedEnrollments = enrollments.filter(enrollment => 
+        realUserIds.includes(enrollment.user_id)
+      );
+      if (cleanedEnrollments.length !== enrollments.length) {
+        console.warn('🧹 Cleaned demo enrollments from localStorage');
+        localStorage.setItem('enrollments', JSON.stringify(cleanedEnrollments));
+      }
+    };
+
     const initAuth = async () => {
+      // Clean up demo data first
+      cleanupDemoData();
+      
       const token = localStorage.getItem('token');
       const savedUser = localStorage.getItem('user');
       

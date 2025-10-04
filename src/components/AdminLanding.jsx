@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Nav, Card, Table, Button, Badge, Form, Modal, Alert, Spinner } from 'react-bootstrap';
 import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin, getAllStudents, getAllInstructors, deleteCourse, deleteLesson, createInstructor } from '../services/admin';
 import { createLesson, updateLesson } from '../services/lessons';
+import { createCourse } from '../services/courses';
 import { getUserEnrollments } from '../services/enrollment';
 
 export default function AdminLanding() {
@@ -38,6 +39,7 @@ export default function AdminLanding() {
     title: '',
     description: '',
     courseId: '',
+    customCourseName: '',
     duration: '',
     orderSequence: '',
     videoUrl: '',
@@ -217,11 +219,36 @@ export default function AdminLanding() {
       setLoading(true);
       
       if (modalType === 'createLesson') {
+        let courseId = lessonForm.courseId;
+        
+        // If "Other" is selected, create a new course first
+        if (lessonForm.courseId === 'other') {
+          if (!lessonForm.customCourseName.trim()) {
+            throw new Error('Please enter a course name');
+          }
+          
+          const newCourseData = {
+            title: lessonForm.customCourseName.trim(),
+            description: `Course for ${lessonForm.customCourseName.trim()}`,
+            category: 'General',
+            thumbnail: 'https://via.placeholder.com/400x300/007bff/ffffff?text=Course',
+            duration: 'Self-paced',
+            status: 'published'
+          };
+          
+          const newCourse = await createCourse(newCourseData);
+          courseId = newCourse.id;
+          
+          // Refresh courses list to include the new course
+          const updatedCourses = await getAllCoursesAdmin();
+          setCourses(updatedCourses);
+        }
+        
         // Call the real API to create a lesson
         const lessonData = {
           title: lessonForm.title,
           description: lessonForm.description,
-          course_id: parseInt(lessonForm.courseId),
+          course_id: parseInt(courseId),
           duration: parseInt(lessonForm.duration),
           order_sequence: parseInt(lessonForm.orderSequence),
           video_url: lessonForm.videoUrl,
@@ -229,7 +256,12 @@ export default function AdminLanding() {
         };
         
         await createLesson(lessonData);
-        showAlert('Lesson created successfully!', 'success');
+        showAlert(
+          lessonForm.courseId === 'other' 
+            ? `New course "${lessonForm.customCourseName}" and lesson created successfully!` 
+            : 'Lesson created successfully!', 
+          'success'
+        );
         
       } else if (modalType === 'editLesson') {
         // Call the real API to update a lesson
@@ -261,7 +293,7 @@ export default function AdminLanding() {
       
       // Close modal and reset forms
       setShowModal(false);
-      setLessonForm({ title: '', description: '', courseId: '', duration: '', orderSequence: '', videoUrl: '', status: 'draft' });
+      setLessonForm({ title: '', description: '', courseId: '', customCourseName: '', duration: '', orderSequence: '', videoUrl: '', status: 'draft' });
       setInstructorForm({ name: '', email: '', specialization: '', bio: '', experience: '', status: 'active' });
       
       // Refresh data to show changes
@@ -1066,15 +1098,32 @@ export default function AdminLanding() {
                 <Form.Label>Course</Form.Label>
                 <Form.Select
                   value={lessonForm.courseId}
-                  onChange={(e) => setLessonForm({...lessonForm, courseId: e.target.value})}
+                  onChange={(e) => setLessonForm({...lessonForm, courseId: e.target.value, customCourseName: ''})}
                   required
                 >
                   <option value="">Select Course</option>
                   {courses.map((course) => (
                     <option key={course.id} value={course.id}>{course.title}</option>
                   ))}
+                  <option value="other">Other (Create New Course)</option>
                 </Form.Select>
               </Form.Group>
+              
+              {lessonForm.courseId === 'other' && (
+                <Form.Group className="mb-3">
+                  <Form.Label>New Course Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={lessonForm.customCourseName}
+                    onChange={(e) => setLessonForm({...lessonForm, customCourseName: e.target.value})}
+                    placeholder="Enter new course name"
+                    required
+                  />
+                  <Form.Text className="text-muted">
+                    This will create a new course with the lesson
+                  </Form.Text>
+                </Form.Group>
+              )}
               
               <Form.Group className="mb-3">
                 <Form.Label>Duration (minutes)</Form.Label>

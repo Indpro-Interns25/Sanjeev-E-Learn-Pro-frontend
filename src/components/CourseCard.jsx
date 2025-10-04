@@ -1,8 +1,30 @@
 import { Card, Badge, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
+import { getCourseEnrollmentCount } from '../services/enrollment';
 
 export default function CourseCard({ course }) {
+  const [realEnrollmentCount, setRealEnrollmentCount] = useState(0);
+  const [loadingCount, setLoadingCount] = useState(true);
+
+  useEffect(() => {
+    const fetchEnrollmentCount = async () => {
+      try {
+        setLoadingCount(true);
+        const count = await getCourseEnrollmentCount(course.id);
+        setRealEnrollmentCount(count);
+      } catch (error) {
+        console.error('Failed to fetch enrollment count for course:', course.id, error);
+        setRealEnrollmentCount(0);
+      } finally {
+        setLoadingCount(false);
+      }
+    };
+
+    fetchEnrollmentCount();
+  }, [course.id]);
+
   return (
     <Card className="h-100 course-card border-0 shadow-sm rounded-4" style={{ transition: 'transform 0.2s', cursor: 'pointer' }}
       onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
@@ -39,7 +61,7 @@ export default function CourseCard({ course }) {
             </small>
             <small className="text-muted">
               <i className="bi bi-people me-1"></i>
-              {(course.enrolled_count || course.enrolled || 0).toLocaleString()} enrolled
+              {loadingCount ? '...' : realEnrollmentCount.toLocaleString()} enrolled
             </small>
           </div>
           <div className="d-flex justify-content-between align-items-center">

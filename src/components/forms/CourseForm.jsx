@@ -15,11 +15,8 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
     description: '',
     category: '',
     thumbnail: '',
-    price: '',
     duration: '',
-    status: 'draft',
-    enrolled_count: 0,
-    rating: 0
+    status: 'draft'
   });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -74,11 +71,8 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
         description: course.description || '',
         category: course.category || '',
         thumbnail: course.thumbnail || '',
-        price: course.price || '',
         duration: course.duration || '',
-        status: course.status || 'draft',
-        enrolled_count: course.enrolled_count || 0,
-        rating: course.rating || 0
+        status: course.status || 'draft'
       });
     }
   }, [course, isEdit]);
@@ -177,20 +171,6 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
         />
       </Form.Group>
 
-      <Form.Group className="mb-3" controlId="price">
-        <Form.Label>Price ($) <span className="text-danger">*</span></Form.Label>
-        <Form.Control
-          type="number"
-          name="price"
-          value={formData.price}
-          onChange={handleChange}
-          step="0.01"
-          min="0"
-          placeholder="Enter course price"
-          required
-        />
-      </Form.Group>
-
       <Form.Group className="mb-3" controlId="duration">
         <Form.Label>Duration <span className="text-danger">*</span></Form.Label>
         <Form.Control
@@ -219,38 +199,6 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
         </Form.Select>
       </Form.Group>
 
-      <Form.Group className="mb-3" controlId="enrolled_count">
-        <Form.Label>Enrolled Count</Form.Label>
-        <Form.Control
-          type="number"
-          name="enrolled_count"
-          value={formData.enrolled_count}
-          onChange={handleChange}
-          min="0"
-          placeholder="Number of enrolled students"
-        />
-        <Form.Text className="text-muted">
-          Number of students currently enrolled (optional, defaults to 0)
-        </Form.Text>
-      </Form.Group>
-
-      <Form.Group className="mb-3" controlId="rating">
-        <Form.Label>Rating</Form.Label>
-        <Form.Control
-          type="number"
-          name="rating"
-          value={formData.rating}
-          onChange={handleChange}
-          step="0.1"
-          min="0"
-          max="5"
-          placeholder="Course rating (0-5)"
-        />
-        <Form.Text className="text-muted">
-          Course rating from 0 to 5 stars (optional, defaults to 0)
-        </Form.Text>
-      </Form.Group>
-
       <Button
         variant="primary"
         type="submit"
@@ -275,11 +223,8 @@ CourseForm.propTypes = {
     description: PropTypes.string,
     category: PropTypes.string,
     thumbnail: PropTypes.string,
-    price: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     duration: PropTypes.string,
-    status: PropTypes.string,
-    enrolled_count: PropTypes.number,
-    rating: PropTypes.number
+    status: PropTypes.string
   }),
   onSubmit: PropTypes.func.isRequired,
   isEdit: PropTypes.bool

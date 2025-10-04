@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCourseData } from '../../services/courses';
 import { getCourseCurriculum } from '../../services/lessons';
-import { enrollUserInCourse, getUserEnrollments } from '../../services/enrollment';
+import { enrollUserInCourse, getUserEnrollments, getCourseEnrollmentCount } from '../../services/enrollment';
 import Comments from '../../components/Comments';
 
 export default function CourseDetail() {
@@ -20,6 +20,8 @@ export default function CourseDetail() {
   const [enrolling, setEnrolling] = useState(false);
   const [showEnrollModal, setShowEnrollModal] = useState(false);
   const [alert, setAlert] = useState(null);
+  const [realEnrollmentCount, setRealEnrollmentCount] = useState(0);
+  const [loadingEnrollmentCount, setLoadingEnrollmentCount] = useState(true);
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -92,6 +94,26 @@ export default function CourseDetail() {
     }
   }, [courseId, navigate, isAuthenticated, user]);
 
+  // Fetch real enrollment count
+  useEffect(() => {
+    const fetchEnrollmentCount = async () => {
+      if (!courseId) return;
+      
+      try {
+        setLoadingEnrollmentCount(true);
+        const count = await getCourseEnrollmentCount(courseId);
+        setRealEnrollmentCount(count);
+      } catch (error) {
+        console.error('Failed to fetch enrollment count:', error);
+        setRealEnrollmentCount(0);
+      } finally {
+        setLoadingEnrollmentCount(false);
+      }
+    };
+
+    fetchEnrollmentCount();
+  }, [courseId]);
+
   // Listen for enrollment changes to refresh enrollment status
   useEffect(() => {
     const handleEnrollmentChange = async (event) => {
@@ -157,6 +179,14 @@ export default function CourseDetail() {
       setIsEnrolled(true);
       setShowEnrollModal(false);
       showAlert(`Successfully enrolled in ${course.title}! Redirecting to My Learning...`, 'success');
+      
+      // Refresh enrollment count
+      try {
+        const newCount = await getCourseEnrollmentCount(courseId);
+        setRealEnrollmentCount(newCount);
+      } catch (countError) {
+        console.warn('Failed to refresh enrollment count:', countError);
+      }
       
       // Force refresh of enrollments by dispatching custom event
       window.dispatchEvent(new CustomEvent('enrollmentChanged', {
@@ -271,7 +301,7 @@ export default function CourseDetail() {
                 <span className="text-white ms-2">{parseFloat(course.rating || 0).toFixed(1)} / 5</span>
                 <span className="text-white ms-3">
                   <i className="bi bi-people me-1"></i>
-                  {(course.enrolled_count || course.enrolled || 0).toLocaleString()} students
+                  {loadingEnrollmentCount ? '...' : realEnrollmentCount.toLocaleString()} students
                 </span>
               </div>
             </div>
@@ -428,7 +458,7 @@ export default function CourseDetail() {
                 <div className="d-flex justify-content-between text-muted small">
                   <div>
                     <i className="bi bi-people me-1"></i>
-                    {(course.enrolled_count || course.enrolled || 0).toLocaleString()} students
+                    {loadingEnrollmentCount ? '...' : realEnrollmentCount.toLocaleString()} students
                   </div>
                   <div className="text-warning">
                     {[...Array(5)].map((_, i) => (

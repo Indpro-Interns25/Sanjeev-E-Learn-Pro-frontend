@@ -105,15 +105,11 @@ export default function Catalog() {
           const formattedCourses = formatCoursesData(coursesResponse.value);
           setAllCourses(formattedCourses);
           
-          // Filter out enrolled courses
-          const availableCourses = formattedCourses.filter(course => 
-            !enrolledCourseIds.includes(course.id)
-          );
+          // Show all courses regardless of enrollment status
           console.warn('📋 Total courses:', formattedCourses.length);
-          console.warn('📋 Available courses (not enrolled):', availableCourses.length);
-          console.warn('📋 Filtered out enrolled courses:', enrolledCourseIds);
+          console.warn('📋 Enrolled courses:', enrolledCourseIds);
           
-          setCourses(availableCourses);
+          setCourses(formattedCourses);
         } else {
           console.error('Failed to fetch courses:', coursesResponse.reason);
         }
@@ -143,11 +139,8 @@ export default function Catalog() {
   useEffect(() => {
     const filterCourses = async () => {
       if (!searchTerm && selectedCategory === 'All' && selectedLevel === 'All') {
-        // No search filters, use all courses but exclude enrolled ones
-        const availableCourses = allCourses.filter(course => 
-          !enrolledCourseIds.includes(course.id)
-        );
-        setCourses(availableCourses);
+        // No search filters, show all courses
+        setCourses(allCourses);
         return;
       }
 
@@ -175,15 +168,11 @@ export default function Catalog() {
         const filteredCourses = await getAllCourses(filters);
         const formattedCourses = formatCoursesData(filteredCourses);
         
-        // Filter out enrolled courses from search results
-        const availableCourses = formattedCourses.filter(course => 
-          !enrolledCourseIds.includes(course.id)
-        );
-        
+        // Show all courses regardless of enrollment status
         console.warn('🔍 Search results:', formattedCourses.length);
-        console.warn('🔍 Available after enrollment filter:', availableCourses.length);
+        console.warn('🔍 Available courses (all):', formattedCourses.length);
         
-        setCourses(availableCourses);
+        setCourses(formattedCourses);
         
       } catch (err) {
         console.error('Error filtering courses:', err);
