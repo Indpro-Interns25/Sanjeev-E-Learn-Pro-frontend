@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Nav, Card, Table, Button, Badge, Form, Modal, Alert, Spinner } from 'react-bootstrap';
-import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin, getAllStudents, getAllInstructors, deleteCourse, deleteLesson, checkDeleteEndpoints } from '../services/admin';
+import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin, getAllStudents, getAllInstructors, deleteCourse, deleteLesson, createInstructor } from '../services/admin';
+import { createLesson, updateLesson } from '../services/lessons';
+import { getAllEnrollments, getUserEnrollments } from '../services/enrollment';
 
 export default function AdminLanding() {
   const navigate = useNavigate();
@@ -27,6 +29,7 @@ export default function AdminLanding() {
   const [lessons, setLessons] = useState([]);
   const [students, setStudents] = useState([]);
   const [instructors, setInstructors] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
   
   // Form states
   const [lessonForm, setLessonForm] = useState({
@@ -35,7 +38,13 @@ export default function AdminLanding() {
     courseId: '',
     duration: '',
     orderSequence: '',
-    videoUrl: ''
+    videoUrl: '',
+    status: 'published'
+  });
+
+  const [instructorForm, setInstructorForm] = useState({
+    name: '',
+    email: ''
   });
 
   useEffect(() => {
@@ -60,7 +69,7 @@ export default function AdminLanding() {
       setError(null);
       
       // Fetch admin data in parallel with better error handling
-      const [adminStats, coursesData, lessonsData, studentsData, instructorsData] = await Promise.all([
+      const [adminStats, coursesData, lessonsData, studentsData, instructorsData, enrollmentsData] = await Promise.all([
         getAdminStats().catch(() => {
           console.warn('Admin stats API unavailable, using sample data');
           return { 
@@ -80,9 +89,9 @@ export default function AdminLanding() {
         getAllCoursesAdmin().catch(() => {
           console.warn('Courses API unavailable, using sample data');
           return [
-            { id: 1, title: 'React Basics', description: 'Learn React fundamentals', category: 'Web Development', level: 'beginner', price: 99.99, enrolled_count: 45, status: 'published' },
-            { id: 2, title: 'Advanced JavaScript', description: 'Master JavaScript concepts', category: 'Programming', level: 'advanced', price: 149.99, enrolled_count: 32, status: 'published' },
-            { id: 3, title: 'Python for Data Science', description: 'Data analysis with Python', category: 'Data Science', level: 'intermediate', price: 199.99, enrolled_count: 67, status: 'published' }
+            { id: 1, title: 'React Basics', description: 'Learn React fundamentals', category: 'Web Development', level: 'beginner', price: 'Free', enrolled_count: 0, status: 'published' },
+            { id: 2, title: 'Advanced JavaScript', description: 'Master JavaScript concepts', category: 'Programming', level: 'advanced', price: 'Free', enrolled_count: 0, status: 'published' },
+            { id: 3, title: 'Python for Data Science', description: 'Data analysis with Python', category: 'Data Science', level: 'intermediate', price: 'Free', enrolled_count: 0, status: 'published' }
           ];
         }),
         getAllLessonsAdmin().catch(() => {
@@ -104,6 +113,10 @@ export default function AdminLanding() {
             { id: 2, name: 'Prof. David Chen', email: 'david@example.com', specialization: 'Data Science', courses_count: 3, students_count: 89, rating: 4.9, status: 'active', created_at: '2025-02-20' },
             { id: 3, name: 'Alex Rodriguez', email: 'alex@example.com', specialization: 'JavaScript', courses_count: 2, students_count: 67, rating: 4.7, status: 'active', created_at: '2025-03-10' }
           ];
+        }),
+        getAllEnrollments().catch(() => {
+          console.warn('Enrollments API unavailable, using fallback data');
+          return [];
         })
       ]);
       
@@ -112,6 +125,27 @@ export default function AdminLanding() {
       setLessons(lessonsData);
       setStudents(studentsData);
       setInstructors(instructorsData);
+      setEnrollments(enrollmentsData);
+      
+      // Fetch individual enrollment counts for each student
+      const studentsWithEnrollmentCounts = await Promise.all(
+        studentsData.map(async (student) => {
+          try {
+            const userEnrollments = await getUserEnrollments(student.id);
+            return {
+              ...student,
+              enrolled_courses_count: userEnrollments.length
+            };
+          } catch (error) {
+            console.warn(`Failed to fetch enrollments for student ${student.id}:`, error);
+            return {
+              ...student,
+              enrolled_courses_count: 0
+            };
+          }
+        })
+      );
+      setStudents(studentsWithEnrollmentCounts);
       
       // Update stats with actual counts from fetched data
       const updatedStats = {
@@ -151,23 +185,98 @@ export default function AdminLanding() {
         courseId: item.course_id,
         duration: item.duration,
         orderSequence: item.order_sequence,
-        videoUrl: item.video_url || ''
+        videoUrl: item.video_url || '',
+        status: item.status || 'published'
+      });
+    } else if (action === 'createLesson') {
+      // Reset form for creating new lesson
+      setLessonForm({
+        title: '',
+        description: '',
+        courseId: '',
+        duration: '',
+        orderSequence: '',
+        videoUrl: '',
+        status: 'draft'
+      });
+    } else if (action === 'createInstructor') {
+      // Reset form for creating new instructor
+      setInstructorForm({
+        name: '',
+        email: '',
+        specialization: '',
+        bio: '',
+        experience: '',
+        status: 'active'
       });
     }
     
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate API call
-    setTimeout(() => {
-      showAlert(`${modalType.replace(/([A-Z])/g, ' $1').toLowerCase()} completed successfully!`);
+    
+    try {
+      setLoading(true);
+      
+      if (modalType === 'createLesson') {
+        // Call the real API to create a lesson
+        const lessonData = {
+          title: lessonForm.title,
+          description: lessonForm.description,
+          course_id: parseInt(lessonForm.courseId),
+          duration: parseInt(lessonForm.duration),
+          order_sequence: parseInt(lessonForm.orderSequence),
+          video_url: lessonForm.videoUrl,
+          status: lessonForm.status || 'draft'
+        };
+        
+        await createLesson(lessonData);
+        showAlert('Lesson created successfully!', 'success');
+        
+      } else if (modalType === 'editLesson') {
+        // Call the real API to update a lesson
+        const lessonData = {
+          title: lessonForm.title,
+          description: lessonForm.description,
+          course_id: parseInt(lessonForm.courseId),
+          duration: parseInt(lessonForm.duration),
+          order_sequence: parseInt(lessonForm.orderSequence),
+          video_url: lessonForm.videoUrl,
+          status: lessonForm.status || 'draft'
+        };
+        
+        await updateLesson(selectedItem.id, lessonData);
+        showAlert('Lesson updated successfully!', 'success');
+        
+      } else if (modalType === 'createInstructor') {
+        // Call the API to create a new instructor
+        const instructorData = {
+          name: instructorForm.name,
+          email: instructorForm.email,
+          password: 'defaultPassword123', // You might want to generate this or ask for it
+          role: 'instructor'
+        };
+        
+        await createInstructor(instructorData);
+        showAlert('Instructor created successfully!', 'success');
+      }
+      
+      // Close modal and reset forms
       setShowModal(false);
-      // Reset forms
-      setLessonForm({ title: '', description: '', courseId: '', duration: '', orderSequence: '', videoUrl: '' });
-      fetchInitialData(); // Refresh data
-    }, 1000);
+      setLessonForm({ title: '', description: '', courseId: '', duration: '', orderSequence: '', videoUrl: '', status: 'draft' });
+      setInstructorForm({ name: '', email: '', specialization: '', bio: '', experience: '', status: 'active' });
+      
+      // Refresh data to show changes
+      await fetchInitialData();
+      
+    } catch (error) {
+      console.error('Error with lesson operation:', error);
+      showAlert(`Error: ${error.message}`, 'danger');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogout = () => {
@@ -225,59 +334,73 @@ export default function AdminLanding() {
               </div>
             </div>
 
-            <Card>
-              <Card.Header>
-                <div className="d-flex justify-content-between align-items-center">
-                  <h5>Recent Activity</h5>
-                  <Button 
-                    variant="outline-info" 
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        setLoading(true);
-                        const result = await checkDeleteEndpoints();
-                        
-                        let message = '🔍 API Endpoint Check Results:\n\n';
-                        message += `📖 Course GET: ${result.courseGetAvailable ? '✅ Working' : '❌ Not Working'}\n`;
-                        message += `🗑️ Course DELETE: ${result.courseDeleteAvailable ? '✅ Available' : '❌ NOT AVAILABLE'}\n`;
-                        message += `🗑️ Lesson DELETE: ${result.lessonDeleteAvailable ? '✅ Available' : '❌ NOT AVAILABLE'}\n`;
-                        
-                        if (result.errors.length > 0) {
-                          message += '\n⚠️ Issues Found:\n' + result.errors.map(err => `• ${err}`).join('\n');
-                        } else if (result.courseDeleteAvailable && result.lessonDeleteAvailable) {
-                          message += '\n🎉 All delete endpoints are working! You can now delete courses and lessons.';
-                        }
-                        
-                        showAlert(message, result.errors.length > 0 ? 'warning' : 'info');
-                      } catch (error) {
-                        showAlert('Failed to check API endpoints: ' + error.message, 'danger');
-                      } finally {
-                        setLoading(false);
-                      }
-                    }}
-                  >
-                    🔍 Test API
-                  </Button>
-                </div>
-              </Card.Header>
-              <Card.Body>
-                {stats?.recentActivity?.length > 0 ? (
-                  <ul className="list-unstyled">
-                    {stats.recentActivity.slice(0, 5).map((activity, index) => (
-                      <li key={index} className="mb-2">
-                        <Badge bg="secondary" className="me-2">{activity.type}</Badge>
-                        {activity.description}
-                        <small className="text-muted ms-2">{activity.date}</small>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted">No recent activity</p>
-                )}
-              </Card.Body>
-            </Card>
+            <div className="row">
+              <div className="col-md-12">
+                <Card className="shadow-sm">
+                  <Card.Header className="bg-light">
+                    <h5 className="mb-0"><i className="fas fa-chart-line me-2"></i>System Overview</h5>
+                  </Card.Header>
+                  <Card.Body>
+                    <div className="row g-4">
+                      <div className="col-md-3">
+                        <div className="text-center p-3 bg-success bg-opacity-10 rounded">
+                          <div className="display-6 text-success mb-2">
+                            <i className="fas fa-server"></i>
+                          </div>
+                          <h6 className="text-muted mb-1">Platform Status</h6>
+                          <Badge bg="success" className="px-3 py-2">
+                            <i className="fas fa-circle me-1"></i>Online
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="text-center p-3 bg-primary bg-opacity-10 rounded">
+                          <div className="display-6 text-primary mb-2">
+                            <i className="fas fa-book-open"></i>
+                          </div>
+                          <h6 className="text-muted mb-1">Total Content</h6>
+                          <h4 className="text-primary mb-0">{(stats?.totalCourses || 0) + (stats?.totalLessons || 0)}</h4>
+                          <small className="text-muted">Courses & Lessons</small>
+                        </div>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="text-center p-3 bg-info bg-opacity-10 rounded">
+                          <div className="display-6 text-info mb-2">
+                            <i className="fas fa-users"></i>
+                          </div>
+                          <h6 className="text-muted mb-1">Active Users</h6>
+                          <h4 className="text-info mb-0">{(stats?.totalStudents || 0) + (stats?.totalInstructors || 0)}</h4>
+                          <small className="text-muted">Students & Instructors</small>
+                        </div>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="text-center p-3 bg-warning bg-opacity-10 rounded">
+                          <div className="display-6 text-warning mb-2">
+                            <i className="fas fa-clock"></i>
+                          </div>
+                          <h6 className="text-muted mb-1">Last Updated</h6>
+                          <Badge bg="warning" text="dark" className="px-3 py-2">
+                            {new Date().toLocaleDateString()}
+                          </Badge>
+                          <div><small className="text-muted">{new Date().toLocaleTimeString()}</small></div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </div>
+            </div>
           </div>
         );
+
+                      <Button 
+                        variant="outline-success" 
+                        onClick={() => setActiveSection('lessons')}
+                      >
+                        � Manage Lessons
+                      </Button>
+
+
 
       case 'courses':
         return (
@@ -298,7 +421,6 @@ export default function AdminLanding() {
                       <th>Category</th>
                       <th>Level</th>
                       <th>Price</th>
-                      <th>Students</th>
                       <th>Status</th>
                       <th>Actions</th>
                     </tr>
@@ -321,8 +443,7 @@ export default function AdminLanding() {
                             {course.level}
                           </Badge>
                         </td>
-                        <td>{course.price === 'Free' ? 'Free' : course.price}</td>
-                        <td>{course.enrolled_count || course.enrollment_count || 0}</td>
+                        <td>{course.price === 'Free' ? 'Free' : `$${parseFloat(course.price || 0).toFixed(2)}`}</td>
                         <td>
                           <Badge bg={course.status === 'published' ? 'success' : 'warning'}>
                             {course.status || 'draft'}
@@ -336,7 +457,7 @@ export default function AdminLanding() {
                       </tr>
                     )) : (
                       <tr>
-                        <td colSpan="7" className="text-center text-muted">No courses found</td>
+                        <td colSpan="6" className="text-center text-muted">No courses found</td>
                       </tr>
                     )}
                   </tbody>
@@ -386,15 +507,26 @@ export default function AdminLanding() {
                         <td>#{lesson.order_sequence}</td>
                         <td>
                           <Badge bg={lesson.status === 'published' ? 'success' : 'warning'}>
-                            {lesson.status || 'draft'}
+                            {lesson.status || 'published'}
                           </Badge>
                         </td>
                         <td>
-                          <Button variant="outline-primary" size="sm" className="me-1" onClick={() => handleAction('editLesson', lesson)}>
-                            Edit
+                          <Button 
+                            variant="outline-primary" 
+                            size="sm" 
+                            className="me-1" 
+                            onClick={() => handleAction('editLesson', lesson)}
+                            title="Edit lesson"
+                          >
+                            <i className="bi bi-pencil"></i> Edit
                           </Button>
-                          <Button variant="outline-danger" size="sm" onClick={() => handleAction('deleteLesson', lesson)}>
-                            Delete
+                          <Button 
+                            variant="outline-danger" 
+                            size="sm" 
+                            onClick={() => handleAction('deleteLesson', lesson)}
+                            title="Delete lesson"
+                          >
+                            <i className="bi bi-trash"></i> Delete
                           </Button>
                         </td>
                       </tr>
@@ -416,7 +548,7 @@ export default function AdminLanding() {
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div>
                 <h4>Student Management</h4>
-                <small className="text-muted">All registered students</small>
+                <small className="text-muted">Basic student information overview</small>
               </div>
             </div>
 
@@ -428,61 +560,56 @@ export default function AdminLanding() {
                       <th>Name</th>
                       <th>Email</th>
                       <th>Enrolled Courses</th>
-                      <th>Progress</th>
                       <th>Join Date</th>
-                      <th>Status</th>
-                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {students.length > 0 ? students.map((student) => (
                       <tr key={student.id}>
                         <td>
-                          <div>
-                            <strong>{student.name || student.username}</strong>
-                          </div>
-                        </td>
-                        <td>{student.email}</td>
-                        <td>
-                          <Badge bg={student.enrolled_courses > 0 ? 'primary' : 'secondary'}>
-                            {student.enrolled_courses || 0}
-                          </Badge>
-                        </td>
-                        <td>
-                          <div className="progress" style={{ width: '100px' }}>
-                            <div 
-                              className="progress-bar bg-success" 
-                              style={{ width: `${student.progress || 0}%` }}
-                            >
-                              {student.progress || 0}%
+                          <div className="d-flex align-items-center">
+                            <div className="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                              <i className="fas fa-user text-primary"></i>
+                            </div>
+                            <div>
+                              <strong>{student.name || student.username}</strong>
+                              <div><small className="text-muted">ID: {student.id}</small></div>
                             </div>
                           </div>
                         </td>
-                        <td>{new Date(student.created_at || Date.now()).toLocaleDateString()}</td>
                         <td>
-                          <Badge bg={student.status === 'active' ? 'success' : student.status === 'pending' ? 'warning' : 'secondary'}>
-                            {student.status || 'pending'}
-                          </Badge>
+                          <div>
+                            {student.email}
+                            <div><small className="text-muted">Contact Information</small></div>
+                          </div>
                         </td>
                         <td>
-                          <Button variant="outline-primary" size="sm" className="me-1">
-                            View
-                          </Button>
-                          <Button 
-                            variant={student.status === 'active' ? 'outline-warning' : 'outline-success'} 
-                            size="sm"
-                          >
-                            {student.status === 'active' ? 'Suspend' : 'Activate'}
-                          </Button>
+                          <div className="d-flex align-items-center">
+                            <div className="bg-success bg-opacity-10 rounded-circle p-2 me-2">
+                              <i className="fas fa-book text-success"></i>
+                            </div>
+                            <div>
+                              <strong className="text-success">{student.enrolled_courses_count || 0}</strong>
+                              <div><small className="text-muted">Course{(student.enrolled_courses_count || 0) !== 1 ? 's' : ''} Enrolled</small></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div>
+                            {new Date(student.created_at || Date.now()).toLocaleDateString()}
+                            <div><small className="text-muted">Registration Date</small></div>
+                          </div>
                         </td>
                       </tr>
                     )) : (
                       <tr>
-                        <td colSpan="7" className="text-center text-muted">
-                          <div className="py-4">
-                            <i className="bi bi-people" style={{ fontSize: '2rem', color: '#6c757d' }}></i>
-                            <p className="mt-2 mb-1">No students found</p>
-                            <small className="text-muted">Students will appear here when they register on the platform</small>
+                        <td colSpan="4" className="text-center text-muted">
+                          <div className="py-5">
+                            <div className="display-1 text-muted mb-3">
+                              <i className="fas fa-users"></i>
+                            </div>
+                            <h5 className="text-muted mb-2">No Students Found</h5>
+                            <p className="text-muted mb-0">Students will appear here when they register on the platform</p>
                           </div>
                         </td>
                       </tr>
@@ -498,7 +625,10 @@ export default function AdminLanding() {
         return (
           <div>
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h4>Instructor Management</h4>
+              <div>
+                <h4>Instructor Management</h4>
+                <small className="text-muted">Basic instructor information overview</small>
+              </div>
               <Button variant="primary" onClick={() => handleAction('createInstructor')}>
                 <i className="fas fa-plus"></i> Add New Instructor
               </Button>
@@ -511,51 +641,66 @@ export default function AdminLanding() {
                     <tr>
                       <th>Name</th>
                       <th>Email</th>
-                      <th>Courses</th>
-                      <th>Students</th>
-                      <th>Rating</th>
-                      <th>Join Date</th>
+                      <th>Role</th>
+                      <th>Total Courses</th>
                       <th>Status</th>
-                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {instructors.length > 0 ? instructors.map((instructor) => (
                       <tr key={instructor.id}>
                         <td>
-                          <div>
-                            <strong>{instructor.name || instructor.username}</strong>
-                            <br />
-                            <small className="text-muted">{instructor.specialization || 'General'}</small>
+                          <div className="d-flex align-items-center">
+                            <div className="bg-warning bg-opacity-10 rounded-circle p-2 me-2">
+                              <i className="fas fa-chalkboard-teacher text-warning"></i>
+                            </div>
+                            <div>
+                              <strong>{instructor.name || instructor.username}</strong>
+                              <div><small className="text-muted">ID: {instructor.id}</small></div>
+                            </div>
                           </div>
                         </td>
-                        <td>{instructor.email}</td>
-                        <td>{instructor.courses_count || 0}</td>
-                        <td>{instructor.students_count || 0}</td>
+                        <td>
+                          <div>
+                            {instructor.email}
+                            <div><small className="text-muted">Contact Information</small></div>
+                          </div>
+                        </td>
+                        <td>
+                          <div>
+                            <Badge bg="primary" className="px-2 py-1">
+                              {instructor.role || 'instructor'}
+                            </Badge>
+                          </div>
+                        </td>
                         <td>
                           <div className="d-flex align-items-center">
-                            <span className="me-1">⭐</span>
-                            {instructor.rating || 'N/A'}
+                            <div className="bg-success bg-opacity-10 rounded-circle p-2 me-2">
+                              <i className="fas fa-book text-success"></i>
+                            </div>
+                            <div>
+                              <strong className="text-success">{instructor.total_courses || 0}</strong>
+                              <div><small className="text-muted">Course{(instructor.total_courses || 0) !== 1 ? 's' : ''} Created</small></div>
+                            </div>
                           </div>
                         </td>
-                        <td>{new Date(instructor.created_at || Date.now()).toLocaleDateString()}</td>
                         <td>
-                          <Badge bg={instructor.status === 'active' ? 'success' : 'warning'}>
-                            {instructor.status || 'active'}
+                          <Badge bg="success">
+                            Active
                           </Badge>
-                        </td>
-                        <td>
-                          <Button variant="outline-primary" size="sm" className="me-1">
-                            View
-                          </Button>
-                          <Button variant="outline-secondary" size="sm">
-                            Edit
-                          </Button>
                         </td>
                       </tr>
                     )) : (
                       <tr>
-                        <td colSpan="8" className="text-center text-muted">No instructors found</td>
+                        <td colSpan="5" className="text-center text-muted">
+                          <div className="py-5">
+                            <div className="display-1 text-muted mb-3">
+                              <i className="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <h5 className="text-muted mb-2">No Instructors Found</h5>
+                            <p className="text-muted mb-0">Instructors will appear here when they are added to the platform</p>
+                          </div>
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -743,7 +888,7 @@ export default function AdminLanding() {
         <Modal.Header closeButton>
           <Modal.Title>
             {modalType?.includes('create') ? 'Create' : modalType?.includes('edit') ? 'Edit' : 'Manage'}{' '}
-            {modalType?.includes('Course') ? 'Course' : modalType?.includes('Lesson') ? 'Lesson' : 'Item'}
+            {modalType?.includes('Course') ? 'Course' : modalType?.includes('Lesson') ? 'Lesson' : modalType?.includes('Instructor') ? 'Instructor' : 'Item'}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -801,7 +946,27 @@ export default function AdminLanding() {
                   value={lessonForm.orderSequence}
                   onChange={(e) => setLessonForm({...lessonForm, orderSequence: e.target.value})}
                   required
+                  min="1"
+                  placeholder="e.g., 1, 2, 3..."
                 />
+                <Form.Text className="text-muted">
+                  The order in which this lesson appears in the course (1 = first lesson)
+                </Form.Text>
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Status</Form.Label>
+                <Form.Select
+                  value={lessonForm.status || 'draft'}
+                  onChange={(e) => setLessonForm({...lessonForm, status: e.target.value})}
+                  required
+                >
+                  <option value="draft">Draft (Hidden from students)</option>
+                  <option value="published">Published (Visible to students)</option>
+                </Form.Select>
+                <Form.Text className="text-muted">
+                  Draft lessons are hidden from students. Published lessons are visible.
+                </Form.Text>
               </Form.Group>
               
               <Form.Group className="mb-3">
@@ -810,15 +975,123 @@ export default function AdminLanding() {
                   type="url"
                   value={lessonForm.videoUrl}
                   onChange={(e) => setLessonForm({...lessonForm, videoUrl: e.target.value})}
+                  placeholder="https://youtube.com/watch?v=..."
                 />
+                <Form.Text className="text-muted">
+                  Optional: YouTube, Vimeo, or other video platform URL
+                </Form.Text>
               </Form.Group>
               
               <div className="d-flex justify-content-end">
-                <Button variant="secondary" className="me-2" onClick={() => setShowModal(false)}>
+                <Button variant="secondary" className="me-2" onClick={() => setShowModal(false)} disabled={loading}>
                   Cancel
                 </Button>
-                <Button variant="primary" type="submit">
-                  {modalType === 'createLesson' ? 'Create Lesson' : 'Update Lesson'}
+                <Button variant="primary" type="submit" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Spinner size="sm" className="me-2" />
+                      {modalType === 'createLesson' ? 'Creating...' : 'Updating...'}
+                    </>
+                  ) : (
+                    modalType === 'createLesson' ? 'Create Lesson' : 'Update Lesson'
+                  )}
+                </Button>
+              </div>
+            </Form>
+          )}
+
+          {modalType === 'createInstructor' && (
+            <Form onSubmit={handleSubmit}>
+              <Form.Group className="mb-3">
+                <Form.Label>Full Name *</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={instructorForm.name}
+                  onChange={(e) => setInstructorForm({...instructorForm, name: e.target.value})}
+                  placeholder="Enter instructor's full name"
+                  required
+                />
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Email Address *</Form.Label>
+                <Form.Control
+                  type="email"
+                  value={instructorForm.email}
+                  onChange={(e) => setInstructorForm({...instructorForm, email: e.target.value})}
+                  placeholder="Enter email address"
+                  required
+                />
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Specialization</Form.Label>
+                <Form.Select
+                  value={instructorForm.specialization}
+                  onChange={(e) => setInstructorForm({...instructorForm, specialization: e.target.value})}
+                >
+                  <option value="">Select specialization</option>
+                  <option value="Web Development">Web Development</option>
+                  <option value="Data Science">Data Science</option>
+                  <option value="Mobile Development">Mobile Development</option>
+                  <option value="Machine Learning">Machine Learning</option>
+                  <option value="DevOps">DevOps</option>
+                  <option value="UI/UX Design">UI/UX Design</option>
+                  <option value="Software Engineering">Software Engineering</option>
+                  <option value="Database Management">Database Management</option>
+                  <option value="Cybersecurity">Cybersecurity</option>
+                  <option value="General">General</option>
+                </Form.Select>
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Bio</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={instructorForm.bio}
+                  onChange={(e) => setInstructorForm({...instructorForm, bio: e.target.value})}
+                  placeholder="Brief description about the instructor"
+                />
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Years of Experience</Form.Label>
+                <Form.Control
+                  type="number"
+                  min="0"
+                  max="50"
+                  value={instructorForm.experience}
+                  onChange={(e) => setInstructorForm({...instructorForm, experience: e.target.value})}
+                  placeholder="Years of teaching/industry experience"
+                />
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Status</Form.Label>
+                <Form.Select
+                  value={instructorForm.status}
+                  onChange={(e) => setInstructorForm({...instructorForm, status: e.target.value})}
+                >
+                  <option value="active">Active</option>
+                  <option value="pending">Pending Approval</option>
+                  <option value="inactive">Inactive</option>
+                </Form.Select>
+              </Form.Group>
+              
+              <div className="d-flex justify-content-end">
+                <Button variant="secondary" className="me-2" onClick={() => setShowModal(false)} disabled={loading}>
+                  Cancel
+                </Button>
+                <Button variant="primary" type="submit" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Spinner size="sm" className="me-2" />
+                      Creating Instructor...
+                    </>
+                  ) : (
+                    'Create Instructor'
+                  )}
                 </Button>
               </div>
             </Form>

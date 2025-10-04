@@ -170,6 +170,63 @@ export async function getAllInstructors() {
 }
 
 /**
+ * Create a new instructor
+ * @param {Object} instructorData - The instructor data
+ * @returns {Promise<Object>} Promise that resolves to created instructor
+ */
+export async function createInstructor(instructorData) {
+  try {
+    console.warn('👨‍🏫 Creating instructor via API...', instructorData);
+    const response = await apiClient.post('/api/admin/instructors', instructorData);
+    console.warn('✅ Instructor created successfully:', response.data);
+    
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('🚨 Failed to create instructor:', error);
+    
+    // Handle specific API endpoint not found error
+    if (error.response?.status === 404) {
+      const mockInstructor = {
+        id: Date.now(),
+        ...instructorData,
+        created_at: new Date().toISOString(),
+        courses_count: 0,
+        students_count: 0,
+        rating: 'N/A'
+      };
+      console.warn('📝 Mock instructor created (API endpoint not implemented):', mockInstructor);
+      throw new Error('⚠️ API Endpoint Missing: The backend POST /api/admin/instructors endpoint is not implemented yet. Please ask the backend developer to create this endpoint to enable real instructor creation.');
+    }
+    
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
+        error.response?.status === 401 || error.response?.status === 403) {
+      console.warn('Backend API not available for instructor creation');
+      // For demo purposes, return a mock created instructor
+      const mockInstructor = {
+        id: Date.now(),
+        ...instructorData,
+        created_at: new Date().toISOString(),
+        courses_count: 0,
+        students_count: 0,
+        rating: 'N/A'
+      };
+      console.warn('📝 Mock instructor created:', mockInstructor);
+      throw new Error('🔌 Backend API not available. Instructor creation requires a working backend server.');
+    }
+    
+    const message = error.response?.data?.message || 
+                   error.response?.data?.error || 
+                   error.message || 
+                   'Failed to create instructor';
+    throw new Error(message);
+  }
+}
+
+/**
  * Get all courses (admin view)
  * @returns {Promise<Array>} Promise that resolves to courses array
  */

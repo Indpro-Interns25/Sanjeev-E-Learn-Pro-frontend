@@ -138,15 +138,32 @@ export async function getUserEnrollments(userId) {
     // Convert to number to ensure consistency
     const userIdNum = parseInt(userId);
     
-    // Always use localStorage since we don't have a real backend
-    console.warn('Using localStorage for user enrollments');
-    
-    // Check localStorage for enrollments
-    const localEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
-    const userEnrollments = localEnrollments.filter(e => e.user_id === userIdNum);
-    
-    console.warn('📱 Local enrollments found:', userEnrollments);
-    return userEnrollments;
+    try {
+      // First try the real API endpoint
+      const response = await apiClient.get(`/api/enrollments/users/${userIdNum}`);
+      console.warn('📊 User enrollments API response:', response.data);
+      
+      // Handle the API response - it should be an array directly
+      if (Array.isArray(response.data)) {
+        return response.data;
+      }
+      
+      // Handle wrapped response structure
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      
+      return response.data || [];
+    } catch (apiError) {
+      console.warn('API not available, falling back to localStorage');
+      
+      // Fallback to localStorage for enrollments
+      const localEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+      const userEnrollments = localEnrollments.filter(e => e.user_id === userIdNum);
+      
+      console.warn('📱 Local enrollments found:', userEnrollments);
+      return userEnrollments;
+    }
     
   } catch (error) {
     console.error('🚨 Failed to fetch user enrollments:', error);
