@@ -47,11 +47,6 @@ export default function CourseDetail() {
         if (isAuthenticated && user) {
           let userId = user?.id || user?.user_id || user?.ID;
           
-          // Fallback for demo purposes
-          if (!userId) {
-            userId = 1; // Demo user ID
-          }
-          
           console.warn('🔍 Checking enrollment for user:', userId, 'course:', courseId);
           
           if (userId) {
@@ -97,6 +92,26 @@ export default function CourseDetail() {
     }
   }, [courseId, navigate, isAuthenticated, user]);
 
+  // Listen for enrollment changes to refresh enrollment status
+  useEffect(() => {
+    const handleEnrollmentChange = async (event) => {
+      const { courseId: enrolledCourseId, userId: enrolledUserId } = event.detail;
+      
+      // Only refresh if this is the current course and current user
+      if (parseInt(enrolledCourseId) === parseInt(courseId) && 
+          enrolledUserId === (user?.id || user?.user_id || user?.ID)) {
+        console.warn('🔄 Enrollment change detected for current course, refreshing status...');
+        setIsEnrolled(true);
+      }
+    };
+
+    window.addEventListener('enrollmentChanged', handleEnrollmentChange);
+
+    return () => {
+      window.removeEventListener('enrollmentChanged', handleEnrollmentChange);
+    };
+  }, [courseId, user]);
+
   const showAlert = (message, type = 'success') => {
     setAlert({ message, type });
     setTimeout(() => setAlert(null), 4000);
@@ -122,11 +137,11 @@ export default function CourseDetail() {
     // Try to get user ID from different possible fields
     let userId = user?.id || user?.user_id || user?.ID;
     
-    // Fallback for demo/testing purposes - use a demo user ID if no user is found
+    // Require authentication for enrollment
     if (!userId) {
-      console.warn('⚠️ No authenticated user found, using demo user ID for testing');
-      userId = 1; // Demo user ID
-      showAlert('Demo enrollment (no user logged in)', 'info');
+      console.warn('⚠️ No authenticated user found');
+      showAlert('Please login to enroll in courses', 'warning');
+      return;
     }
 
     console.warn('🎯 Starting enrollment process...');
@@ -143,10 +158,20 @@ export default function CourseDetail() {
       setShowEnrollModal(false);
       showAlert(`Successfully enrolled in ${course.title}! Redirecting to My Learning...`, 'success');
       
+      // Force refresh of enrollments by dispatching custom event
+      window.dispatchEvent(new CustomEvent('enrollmentChanged', {
+        detail: { 
+          userId: userId, 
+          courseId: parseInt(courseId), 
+          enrollment: result.enrollment,
+          action: 'enrolled'
+        }
+      }));
+      
       // Navigate to My Learning to immediately see the enrolled course
       setTimeout(() => {
         navigate(`/student/my-learning`);
-      }, 2000);
+      }, 1500);
       
     } catch (err) {
       console.error('❌ Enrollment error:', err);

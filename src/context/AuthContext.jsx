@@ -69,9 +69,9 @@ export function AuthProvider({ children }) {
           // Fallback to saved user for offline mode
           try {
             const user = JSON.parse(savedUser);
-            // Ensure user has an ID for enrollments
-            if (!user.id) {
-              user.id = 1; // Default user ID for demo
+            // Validate user has required fields
+            if (!user.id || !user.email) {
+              throw new Error('Invalid saved user data');
             }
             dispatch({
               type: 'AUTH_SUCCESS',
@@ -112,9 +112,15 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.warn('Backend login failed, using demo user:', error.message);
       
-      // Create a demo user for offline mode
+      // Create a demo user for offline mode with unique ID based on email
+      const emailHash = email.split('').reduce((a, b) => {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a;
+      }, 0);
+      const uniqueId = Math.abs(emailHash) || Date.now();
+      
       const demoUser = {
-        id: 1,
+        id: uniqueId,
         name: email.split('@')[0] || 'Demo User',
         email: email,
         role: 'student',

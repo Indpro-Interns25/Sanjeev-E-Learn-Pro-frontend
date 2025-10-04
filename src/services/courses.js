@@ -1,5 +1,4 @@
 import apiClient from './apiClient';
-import { mockCourses } from '../data/mockCourses';
 
 // =========================================
 // COURSES API SERVICE
@@ -38,32 +37,11 @@ export async function getAllCourses(filters = {}) {
     const response = await apiClient.get(url);
     return response.data;
   } catch {
-    console.warn('API not available, using mock courses data');
+    console.warn('API not available, returning empty courses list');
+    console.warn('Please ensure your backend server is running to display real course data');
     
-    // Filter mock courses based on provided filters
-    let filteredCourses = [...mockCourses];
-    
-    if (filters.category) {
-      filteredCourses = filteredCourses.filter(course => 
-        course.category.toLowerCase() === filters.category.toLowerCase()
-      );
-    }
-    
-    if (filters.level) {
-      filteredCourses = filteredCourses.filter(course => 
-        course.level.toLowerCase() === filters.level.toLowerCase()
-      );
-    }
-    
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      filteredCourses = filteredCourses.filter(course =>
-        course.title.toLowerCase().includes(searchTerm) ||
-        course.description.toLowerCase().includes(searchTerm)
-      );
-    }
-    
-    return filteredCourses;
+    // Return empty array instead of mock data
+    return [];
   }
 }
 
@@ -334,8 +312,10 @@ export function formatCourseData(course) {
     price: parseFloat(course.price) || 0,
     // Ensure rating is a number  
     rating: parseFloat(course.rating) || 0,
-    // Handle enrolled count (API may return enrolled_count or enrolled)
-    enrolled: parseInt(course.enrolled_count || course.enrolled) || 0,
+    // Handle enrolled count from backend (API may return enrolled_count or enrolled)
+    // Only use the actual value from backend, no fallback to demo numbers
+    enrolled: parseInt(course.enrolled_count || course.enrolled || 0),
+    enrolled_count: parseInt(course.enrolled_count || course.enrolled || 0),
     // Format instructor data from API structure
     instructor: {
       name: course.instructor_name || 'Unknown Instructor',
@@ -344,8 +324,10 @@ export function formatCourseData(course) {
     // Format dates
     createdAt: new Date(course.created_at),
     updatedAt: new Date(course.updated_at),
-    // Add formatted price
-    formattedPrice: `$${parseFloat(course.price || 0).toFixed(2)}`,
+    // Add formatted price for free courses
+    formattedPrice: parseFloat(course.price || 0) === 0 || course.price === 'Free' || course.price === 'free' 
+      ? 'Free' 
+      : `$${parseFloat(course.price).toFixed(2)}`,
     // Add formatted rating
     formattedRating: parseFloat(course.rating || 0).toFixed(1),
   };

@@ -21,7 +21,7 @@ export default function MyEnrolledCourses() {
         setError(null);
 
         // Get user ID (with fallbacks)
-        const userId = user?.id || user?.user_id || user?.ID || 1; // Demo user fallback
+        const userId = user?.id || user?.user_id || user?.ID;
 
         console.warn('🎯 Fetching enrolled courses for user:', userId);
 
@@ -37,8 +37,9 @@ export default function MyEnrolledCourses() {
 
         // Check if we have any enrollments (from API or localStorage)
         if (!enrollments || enrollments.length === 0) {
-          console.warn('🔄 No enrollments found, showing demo data');
-          fetchDemoData();
+          console.warn('� No enrollments found for this user');
+          setEnrolledCourses([]);
+          setLoading(false);
           return;
         }
 
@@ -69,145 +70,21 @@ export default function MyEnrolledCourses() {
       } catch (err) {
         console.error('Error fetching enrolled courses:', err);
         setError(err.message);
-        fetchDemoData();
+        // Show empty state on error - only use backend data
+        setEnrolledCourses([]);
       } finally {
         setLoading(false);
       }
     };
 
-    const fetchDemoData = () => {
-      // Demo data when backend is not available or user not authenticated
-      const demoEnrolledCourses = [
-        {
-          id: 1,
-          title: 'Introduction to Web Development',
-          description: 'Learn the fundamentals of web development including HTML, CSS, and JavaScript.',
-          category: 'Web Development',
-          level: 'beginner',
-          price: '399',
-          instructor: 'Jane Instructor',
-          instructor_name: 'Jane Instructor',
-          duration: '6 weeks',
-          lesson_count: 5,
-          progress: 75,
-          enrolled_date: '2024-01-15'
-        },
-        {
-          id: 2,
-          title: 'Advanced React Programming',
-          description: 'Master React hooks, context, and advanced patterns for building modern web applications.',
-          category: 'JavaScript',
-          level: 'advanced',
-          price: '599',
-          instructor: 'Jane Instructor',
-          instructor_name: 'Jane Instructor',
-          duration: '8 weeks',
-          lesson_count: 4,
-          progress: 30,
-          enrolled_date: '2024-01-20'
-        },
-        {
-          id: 3,
-          title: 'Python for Data Science',
-          description: 'Introduction to data analysis and visualization using Python, NumPy, and Pandas.',
-          category: 'Data Science',
-          level: 'intermediate',
-          price: '549',
-          instructor: 'Jane Instructor',
-          instructor_name: 'Jane Instructor',
-          duration: '10 weeks',
-          lesson_count: 5,
-          progress: 50,
-          enrolled_date: '2024-01-25'
-        }
-      ];
-
-      setEnrolledCourses(demoEnrolledCourses);
-      setLoading(false);
-    };
-
     if (isAuthenticated && user) {
       fetchEnrolledCourses();
     } else {
-      // If not authenticated, redirect to login or show demo data
-      fetchDemoData();
+      // If not authenticated, show empty state
+      setEnrolledCourses([]);
+      setLoading(false);
     }
   }, [isAuthenticated, user]);
-
-  const createDemoEnrollments = () => {
-    // Create demo enrollments in localStorage for testing
-    const userId = user?.id || user?.user_id || user?.ID || 1;
-    
-    // Clear existing enrollments for this user first
-    const existingEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
-    const otherEnrollments = existingEnrollments.filter(e => e.user_id !== userId);
-    
-    const demoEnrollments = [
-      {
-        id: Date.now(),
-        user_id: userId,
-        course_id: 1,
-        enrolled_at: new Date().toISOString(),
-        status: 'active',
-        progress: 75,
-        progress_percentage: 75
-      },
-      {
-        id: Date.now() + 1,
-        user_id: userId,
-        course_id: 5,
-        enrolled_at: new Date().toISOString(),
-        status: 'active',
-        progress: 30,
-        progress_percentage: 30
-      },
-      {
-        id: Date.now() + 2,
-        user_id: userId,
-        course_id: 3,
-        enrolled_at: new Date().toISOString(),
-        status: 'active',
-        progress: 50,
-        progress_percentage: 50
-      }
-    ];
-
-    // Set new enrollments
-    const allEnrollments = [...otherEnrollments, ...demoEnrollments];
-    localStorage.setItem('enrollments', JSON.stringify(allEnrollments));
-    console.warn('✨ Demo enrollments created:', demoEnrollments);
-    console.warn('📱 All enrollments in localStorage:', allEnrollments);
-    
-    // Refresh the page data
-    window.location.reload();
-  };
-
-  const testSingleEnrollment = () => {
-    // Test enrolling in course 5 specifically
-    const userId = user?.id || user?.user_id || user?.ID || 1;
-    
-    const existingEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
-    const otherEnrollments = existingEnrollments.filter(e => 
-      !(e.user_id === userId && e.course_id === 5)
-    );
-    
-    const testEnrollment = {
-      id: Date.now(),
-      user_id: userId,
-      course_id: 5,
-      enrolled_at: new Date().toISOString(),
-      status: 'active',
-      progress: 0,
-      progress_percentage: 0
-    };
-
-    const allEnrollments = [...otherEnrollments, testEnrollment];
-    localStorage.setItem('enrollments', JSON.stringify(allEnrollments));
-    console.warn('🧪 Test enrollment created for course 5:', testEnrollment);
-    
-    // Refresh the page data
-    window.location.reload();
-  };
 
   const getCourseLessons = (courseId) => {
     return lessons.filter(lesson => 
@@ -241,18 +118,6 @@ export default function MyEnrolledCourses() {
                 <i className="bi bi-plus-circle me-2"></i>
                 Browse More Courses
               </Button>
-              <Button variant="outline-info" onClick={createDemoEnrollments}>
-                <i className="bi bi-database me-2"></i>
-                Try Demo Enrollments
-              </Button>
-              <Button variant="outline-warning" onClick={testSingleEnrollment}>
-                <i className="bi bi-flask me-2"></i>
-                Test Course 5
-              </Button>
-              <Button variant="outline-warning" onClick={testSingleEnrollment}>
-                <i className="bi bi-flask me-2"></i>
-                Test Course 5
-              </Button>
             </div>
           </div>
         </Col>
@@ -261,7 +126,7 @@ export default function MyEnrolledCourses() {
       {error && (
         <Alert variant="warning" className="mb-4">
           <i className="bi bi-exclamation-triangle me-2"></i>
-          Could not connect to server. Showing demo courses.
+          Could not connect to server. Please try again later.
         </Alert>
       )}
 

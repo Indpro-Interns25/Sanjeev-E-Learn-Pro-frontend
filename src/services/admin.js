@@ -49,22 +49,16 @@ export async function getAdminStats() {
     };
   } catch (error) {
     console.error('🚨 Failed to fetch admin stats:', error);
-    console.warn('⚠️ Using mock data due to API failure');
-    // Return mock stats instead of zeros when API fails
+    console.warn('⚠️ Returning empty stats due to API failure');
+    // Return empty stats when API fails - no mock data
     return {
-      totalStudents: 6, // Mock realistic data
-      totalInstructors: 3,
-      totalCourses: 6,
-      totalLessons: 8,
-      totalEnrollments: 10,
-      activeUsers: 9,
-      recentActivity: [
-        { type: 'user_registration', title: 'Dr. Emily Davis', description: 'emily.davis@instructor.com' },
-        { type: 'user_registration', title: 'Prof. Michael Brown', description: 'michael.brown@instructor.com' },
-        { type: 'user_registration', title: 'Dr. Sarah Wilson', description: 'sarah.wilson@instructor.com' },
-        { type: 'user_registration', title: 'Mike Johnson', description: 'mike.johnson@student.com' },
-        { type: 'user_registration', title: 'Jane Smith', description: 'jane.smith@student.com' }
-      ]
+      totalStudents: 0,
+      totalInstructors: 0,
+      totalCourses: 0,
+      totalLessons: 0,
+      totalEnrollments: 0,
+      activeUsers: 0,
+      recentActivity: []
     };
   }
 }
@@ -152,13 +146,9 @@ export async function getAllInstructors() {
     console.error('🚨 Failed to fetch instructors:', error);
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
         error.response?.status === 401 || error.response?.status === 403) {
-      console.warn('Backend API not available, returning mock instructors data');
-      // Return mock instructors data that matches API structure
-      return [
-        { id: 43, name: 'Dr. Sarah Wilson', email: 'sarah.wilson@instructor.com', role: 'instructor', total_courses: 0, total_enrollments: 0 },
-        { id: 44, name: 'Prof. Michael Brown', email: 'michael.brown@instructor.com', role: 'instructor', total_courses: 0, total_enrollments: 0 },
-        { id: 45, name: 'Dr. Emily Davis', email: 'emily.davis@instructor.com', role: 'instructor', total_courses: 0, total_enrollments: 0 }
-      ];
+      console.warn('Backend API not available, returning empty instructors list');
+      // Return empty array instead of mock data
+      return [];
     }
     
     const message = error.response?.data?.message || 
@@ -190,31 +180,12 @@ export async function createInstructor(instructorData) {
     
     // Handle specific API endpoint not found error
     if (error.response?.status === 404) {
-      const mockInstructor = {
-        id: Date.now(),
-        ...instructorData,
-        created_at: new Date().toISOString(),
-        courses_count: 0,
-        students_count: 0,
-        rating: 'N/A'
-      };
-      console.warn('📝 Mock instructor created (API endpoint not implemented):', mockInstructor);
       throw new Error('⚠️ API Endpoint Missing: The backend POST /api/admin/instructors endpoint is not implemented yet. Please ask the backend developer to create this endpoint to enable real instructor creation.');
     }
     
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
         error.response?.status === 401 || error.response?.status === 403) {
       console.warn('Backend API not available for instructor creation');
-      // For demo purposes, return a mock created instructor
-      const mockInstructor = {
-        id: Date.now(),
-        ...instructorData,
-        created_at: new Date().toISOString(),
-        courses_count: 0,
-        students_count: 0,
-        rating: 'N/A'
-      };
-      console.warn('📝 Mock instructor created:', mockInstructor);
       throw new Error('🔌 Backend API not available. Instructor creation requires a working backend server.');
     }
     
@@ -251,49 +222,9 @@ export async function getAllCoursesAdmin() {
     console.error('🚨 Failed to fetch admin courses:', error);
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
         error.response?.status === 401 || error.response?.status === 403) {
-      console.warn('Backend API not available, returning mock courses data');
-      // Return mock courses data with realistic enrollment numbers (should be 0 for new platform)
-      return [
-        { 
-          id: 1, 
-          title: 'Complete React Development Bootcamp', 
-          description: 'Learn React from basics to advanced concepts including hooks, context API, and state management',
-          category: 'Web Development', 
-          level: 'intermediate', 
-          price: 'Free',
-          enrolled_count: 0, // Real enrollment count (no demo data)
-          enrollment_count: '0',
-          status: 'published',
-          rating: '4.70',
-          instructor_id: 101
-        },
-        { 
-          id: 2, 
-          title: 'Node.js Backend Mastery', 
-          description: 'Build scalable backend applications with Node.js, Express, and MongoDB',
-          category: 'Web Development', 
-          level: 'advanced', 
-          price: 'Free',
-          enrolled_count: 0, // Real enrollment count (no demo data)
-          enrollment_count: '0',
-          status: 'published',
-          rating: '4.80',
-          instructor_id: 102
-        },
-        { 
-          id: 3, 
-          title: 'Python for Data Science', 
-          description: 'Data analysis with Python', 
-          category: 'Data Science', 
-          level: 'intermediate', 
-          price: 'Free',
-          enrolled_count: 0, // Real enrollment count (no demo data)
-          enrollment_count: '0',
-          status: 'published',
-          rating: '4.65',
-          instructor_id: 103
-        }
-      ];
+      console.warn('Backend API not available, returning empty courses list');
+      // Return empty array instead of mock data
+      return [];
     }
     
     const message = error.response?.data?.message || 
@@ -329,20 +260,9 @@ export async function getAllLessonsAdmin() {
     console.error('🚨 Failed to fetch admin lessons:', error);
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
         error.response?.status === 401 || error.response?.status === 403) {
-      console.warn('Backend API not available, returning mock lessons data');
-      // Return mock lessons data with realistic count
-      const mockLessons = [];
-      for (let i = 1; i <= 67; i++) {
-        mockLessons.push({
-          id: i,
-          title: `Lesson ${i}: Topic ${Math.ceil(i/5)}`,
-          course_id: Math.ceil(i/6),
-          duration: `${10 + (i % 30)} minutes`,
-          order_sequence: i % 10 + 1,
-          status: 'published'
-        });
-      }
-      return mockLessons;
+      console.warn('Backend API not available, returning empty lessons list');
+      // Return empty array instead of mock data
+      return [];
     }
     
     const message = error.response?.data?.message || 
@@ -433,9 +353,7 @@ export async function deleteLesson(lessonId) {
     } else if (error.response?.status === 500) {
       throw new Error('Server error occurred while deleting the lesson. Please try again later.');
     } else if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      console.warn('Backend API not available, simulating lesson deletion');
-      // Return mock success response for development
-      return { success: true, message: `Lesson ${lessonId} deleted successfully (simulated - backend not available)` };
+      throw new Error('Cannot connect to the server. Please check if the backend is running on http://localhost:3002');
     }
     
     const message = error.response?.data?.message || 

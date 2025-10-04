@@ -144,7 +144,10 @@ export default function EnrollmentForm({
               <option value="">Choose a course...</option>
               {courses.map(course => (
                 <option key={course.id} value={course.id}>
-                  {course.title} - ${parseFloat(course.price || 0).toFixed(2)}
+                  {course.title} - {parseFloat(course.price || 0) === 0 || course.price === 'Free' || course.price === 'free' 
+                    ? 'Free' 
+                    : `$${parseFloat(course.price).toFixed(2)}`
+                  }
                 </option>
               ))}
             </Form.Select>
@@ -157,7 +160,12 @@ export default function EnrollmentForm({
                 <p className="mb-1"><strong>Title:</strong> {selectedCourse.title}</p>
                 <p className="mb-1"><strong>Category:</strong> {selectedCourse.category}</p>
                 <p className="mb-1"><strong>Level:</strong> {selectedCourse.level}</p>
-                <p className="mb-0"><strong>Price:</strong> ${parseFloat(selectedCourse.price || 0).toFixed(2)}</p>
+                <p className="mb-0">
+                  <strong>Price:</strong> {parseFloat(selectedCourse.price || 0) === 0 || selectedCourse.price === 'Free' || selectedCourse.price === 'free' 
+                    ? 'Free' 
+                    : `$${parseFloat(selectedCourse.price).toFixed(2)}`
+                  }
+                </p>
               </Card.Body>
             </Card>
           )}

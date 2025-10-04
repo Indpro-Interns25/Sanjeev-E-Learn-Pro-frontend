@@ -56,39 +56,10 @@ export default function EnrolledCourseView() {
           lesson.course_id === parseInt(courseId) || lesson.courseId === parseInt(courseId)
         );
 
-        // If no enrollment found, allow access but show a message (for demo purposes)
+        // If no enrollment found, deny access
         if (!userEnrollment) {
-          console.warn('⚠️ No enrollment found, but allowing access for demo purposes');
-          // Create a demo enrollment for this session
-          const demoEnrollment = {
-            id: Date.now(),
-            user_id: userId,
-            course_id: parseInt(courseId),
-            enrolled_at: new Date().toISOString(),
-            status: 'active',
-            progress: 0,
-            progress_percentage: 0
-          };
-          
-          // Save to localStorage for consistency
-          const existingEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
-          const otherEnrollments = existingEnrollments.filter(e => 
-            !(e.user_id === userId && e.course_id === parseInt(courseId))
-          );
-          const allEnrollments = [...otherEnrollments, demoEnrollment];
-          localStorage.setItem('enrollments', JSON.stringify(allEnrollments));
-          
-          // Use the demo enrollment
-          const courseWithEnrollment = {
-            ...courseData,
-            enrollment: demoEnrollment,
-            progress: 0,
-            enrolled_date: demoEnrollment.enrolled_at
-          };
-
-          setCourse(courseWithEnrollment);
-          setLessons(courseLessons);
-          console.warn('✅ Demo enrollment created and course loaded:', courseWithEnrollment);
+          console.warn('⚠️ No enrollment found for this course');
+          setError('You are not enrolled in this course. Please enroll first to access the content.');
           return;
         }
 

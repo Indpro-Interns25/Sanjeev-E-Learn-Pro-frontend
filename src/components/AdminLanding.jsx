@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Nav, Card, Table, Button, Badge, Form, Modal, Alert, Spinner } from 'react-bootstrap';
 import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin, getAllStudents, getAllInstructors, deleteCourse, deleteLesson, createInstructor } from '../services/admin';
 import { createLesson, updateLesson } from '../services/lessons';
-import { getAllEnrollments, getUserEnrollments } from '../services/enrollment';
+import { getUserEnrollments } from '../services/enrollment';
 
 export default function AdminLanding() {
   const navigate = useNavigate();
@@ -29,7 +29,9 @@ export default function AdminLanding() {
   const [lessons, setLessons] = useState([]);
   const [students, setStudents] = useState([]);
   const [instructors, setInstructors] = useState([]);
-  const [enrollments, setEnrollments] = useState([]);
+  
+  // Reports loading state
+  const [reportsLoading, setReportsLoading] = useState(false);
   
   // Form states
   const [lessonForm, setLessonForm] = useState({
@@ -50,72 +52,54 @@ export default function AdminLanding() {
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) {
-      // For development/demo purposes, set a demo token
-      console.warn('⚠️  No admin token found, setting demo token for development');
-      localStorage.setItem('adminToken', 'demo-admin-token-' + Date.now());
-      localStorage.setItem('adminData', JSON.stringify({
-        id: 1,
-        name: 'Demo Admin',
-        email: 'admin@demo.com',
-        role: 'admin'
-      }));
+      // Redirect to login if no token is found
+      console.warn('⚠️  No admin token found, redirecting to login');
+      navigate('/admin-login', { replace: true });
+      return;
     }
     fetchInitialData();
   }, [navigate]);
+
+  // Load reports data when reports tab is active
+  useEffect(() => {
+    if (activeTab === 'reports') {
+      fetchReportsData();
+    }
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchInitialData = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Fetch admin data in parallel with better error handling
-      const [adminStats, coursesData, lessonsData, studentsData, instructorsData, enrollmentsData] = await Promise.all([
-        getAdminStats().catch(() => {
-          console.warn('Admin stats API unavailable, using sample data');
+      // Fetch admin data in parallel - only use real backend data
+      const [adminStats, coursesData, lessonsData, studentsData, instructorsData] = await Promise.all([
+        getAdminStats().catch((error) => {
+          console.warn('Admin stats API unavailable:', error.message);
           return { 
-            totalStudents: 0, // Will be calculated from actual enrollments
-            totalInstructors: 3, 
-            totalCourses: 5, 
-            totalLessons: 12, 
-            totalEnrollments: 0, // Will be calculated from actual enrollments
-            activeUsers: 0, // Will be calculated from actual data
-            recentActivity: [
-              { type: 'enrollment', description: 'New student enrolled in React Basics', date: '2025-09-29' },
-              { type: 'course', description: 'Advanced JavaScript course published', date: '2025-09-28' },
-              { type: 'lesson', description: 'New lesson added to Python for Beginners', date: '2025-09-27' }
-            ]
+            totalStudents: 0,
+            totalInstructors: 0, 
+            totalCourses: 0, 
+            totalLessons: 0, 
+            totalEnrollments: 0,
+            activeUsers: 0,
+            recentActivity: []
           };
         }),
-        getAllCoursesAdmin().catch(() => {
-          console.warn('Courses API unavailable, using sample data');
-          return [
-            { id: 1, title: 'React Basics', description: 'Learn React fundamentals', category: 'Web Development', level: 'beginner', price: 'Free', enrolled_count: 0, status: 'published' },
-            { id: 2, title: 'Advanced JavaScript', description: 'Master JavaScript concepts', category: 'Programming', level: 'advanced', price: 'Free', enrolled_count: 0, status: 'published' },
-            { id: 3, title: 'Python for Data Science', description: 'Data analysis with Python', category: 'Data Science', level: 'intermediate', price: 'Free', enrolled_count: 0, status: 'published' }
-          ];
+        getAllCoursesAdmin().catch((error) => {
+          console.warn('Courses API unavailable:', error.message);
+          return [];
         }),
-        getAllLessonsAdmin().catch(() => {
-          console.warn('Lessons API unavailable, using sample data');
-          return [
-            { id: 1, title: 'Introduction to React', description: 'Getting started with React', course_id: 1, course_title: 'React Basics', duration: 30, order_sequence: 1, status: 'published' },
-            { id: 2, title: 'JSX and Components', description: 'Understanding JSX syntax', course_id: 1, course_title: 'React Basics', duration: 45, order_sequence: 2, status: 'published' },
-            { id: 3, title: 'ES6 Features', description: 'Modern JavaScript features', course_id: 2, course_title: 'Advanced JavaScript', duration: 60, order_sequence: 1, status: 'published' }
-          ];
+        getAllLessonsAdmin().catch((error) => {
+          console.warn('Lessons API unavailable:', error.message);
+          return [];
         }),
-        getAllStudents().catch(() => {
-          console.warn('Students API unavailable, will show only enrolled students');
-          return []; // Return empty array instead of mock data
+        getAllStudents().catch((error) => {
+          console.warn('Students API unavailable:', error.message);
+          return [];
         }),
-        getAllInstructors().catch(() => {
-          console.warn('Instructors API unavailable, using sample data');
-          return [
-            { id: 1, name: 'Dr. Sarah Wilson', email: 'sarah@example.com', specialization: 'Web Development', courses_count: 4, students_count: 120, rating: 4.8, status: 'active', created_at: '2025-01-15' },
-            { id: 2, name: 'Prof. David Chen', email: 'david@example.com', specialization: 'Data Science', courses_count: 3, students_count: 89, rating: 4.9, status: 'active', created_at: '2025-02-20' },
-            { id: 3, name: 'Alex Rodriguez', email: 'alex@example.com', specialization: 'JavaScript', courses_count: 2, students_count: 67, rating: 4.7, status: 'active', created_at: '2025-03-10' }
-          ];
-        }),
-        getAllEnrollments().catch(() => {
-          console.warn('Enrollments API unavailable, using fallback data');
+        getAllInstructors().catch((error) => {
+          console.warn('Instructors API unavailable:', error.message);
           return [];
         })
       ]);
@@ -125,7 +109,6 @@ export default function AdminLanding() {
       setLessons(lessonsData);
       setStudents(studentsData);
       setInstructors(instructorsData);
-      setEnrollments(enrollmentsData);
       
       // Fetch individual enrollment counts for each student
       const studentsWithEnrollmentCounts = await Promise.all(
@@ -164,6 +147,19 @@ export default function AdminLanding() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReportsData = async () => {
+    try {
+      setReportsLoading(true);
+      // Simply refresh the main data for reports
+      await fetchInitialData();
+    } catch (error) {
+      console.error('Error refreshing reports data:', error);
+      showAlert('Failed to refresh reports data', 'danger');
+    } finally {
+      setReportsLoading(false);
     }
   };
 
@@ -443,7 +439,12 @@ export default function AdminLanding() {
                             {course.level}
                           </Badge>
                         </td>
-                        <td>{course.price === 'Free' ? 'Free' : `$${parseFloat(course.price || 0).toFixed(2)}`}</td>
+                        <td>
+                          {parseFloat(course.price || 0) === 0 || course.price === 'Free' || course.price === 'free' 
+                            ? 'Free' 
+                            : `$${parseFloat(course.price).toFixed(2)}`
+                          }
+                        </td>
                         <td>
                           <Badge bg={course.status === 'published' ? 'success' : 'warning'}>
                             {course.status || 'draft'}
@@ -713,69 +714,215 @@ export default function AdminLanding() {
       case 'reports':
         return (
           <div>
-            <h4 className="mb-4">Reports & Analytics</h4>
-            
-            {/* Summary Cards */}
-            <div className="row mb-4">
-              <div className="col-md-6">
-                <Card className="h-100">
-                  <Card.Header>
-                    <h6>Course Performance</h6>
-                  </Card.Header>
-                  <Card.Body>
-                    <div className="mb-3">
-                      <small>Most Popular Course</small>
-                      <div className="fw-bold">
-                        {courses.length > 0 ? 
-                          courses.reduce((prev, current) => 
-                            (prev.enrolled_count > current.enrolled_count) ? prev : current
-                          ).title || 'N/A'
-                          : 'No courses available'
-                        }
-                      </div>
-                    </div>
-                    <div>
-                      <small>Average Completion Rate</small>
-                      <div className="fw-bold">75%</div>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </div>
-              
-              <div className="col-md-6">
-                <Card className="h-100">
-                  <Card.Header>
-                    <h6>User Engagement</h6>
-                  </Card.Header>
-                  <Card.Body>
-                    <div className="mb-3">
-                      <small>Active Users This Month</small>
-                      <div className="fw-bold">{stats?.activeUsers || 0}</div>
-                    </div>
-                    <div>
-                      <small>New Enrollments</small>
-                      <div className="fw-bold">{stats?.totalEnrollments || 0}</div>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </div>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h4 className="mb-0">
+                <i className="bi bi-graph-up me-2"></i>Reports & Analytics
+              </h4>
+              <Button 
+                variant="outline-primary" 
+                size="sm"
+                onClick={fetchReportsData}
+                disabled={reportsLoading}
+              >
+                <i className="bi bi-arrow-clockwise me-1"></i>
+                {reportsLoading ? 'Refreshing...' : 'Refresh Data'}
+              </Button>
             </div>
 
-            {/* Charts Placeholder */}
-            <Card>
-              <Card.Header>
-                <h6>Analytics Dashboard</h6>
-              </Card.Header>
-              <Card.Body className="text-center" style={{ minHeight: '300px' }}>
-                <div className="d-flex align-items-center justify-content-center h-100">
-                  <div>
-                    <i className="bi bi-graph-up" style={{ fontSize: '3rem', color: '#6c757d' }}></i>
-                    <p className="text-muted mt-3">Advanced analytics and charts will be available here</p>
-                    <p className="text-muted">Including course completion rates, user engagement metrics, and revenue analytics</p>
+            {reportsLoading ? (
+              <div className="text-center py-5">
+                <Spinner animation="border" role="status" variant="primary" />
+                <p className="text-muted mt-3">Loading analytics data...</p>
+              </div>
+            ) : (
+              <>
+                {/* Basic Stats Overview */}
+                <div className="row mb-4">
+                  <div className="col-lg-3 col-md-6 mb-3">
+                    <Card className="border-0 shadow-sm h-100">
+                      <Card.Body className="text-center p-4">
+                        <div className="bg-primary bg-opacity-10 rounded-circle p-3 mb-3 d-inline-flex">
+                          <i className="bi bi-book-fill text-primary" style={{ fontSize: '1.5rem' }}></i>
+                        </div>
+                        <h4 className="text-primary mb-1">{stats?.totalCourses || 0}</h4>
+                        <p className="text-muted mb-0 small">Total Courses</p>
+                      </Card.Body>
+                    </Card>
+                  </div>
+
+                  <div className="col-lg-3 col-md-6 mb-3">
+                    <Card className="border-0 shadow-sm h-100">
+                      <Card.Body className="text-center p-4">
+                        <div className="bg-success bg-opacity-10 rounded-circle p-3 mb-3 d-inline-flex">
+                          <i className="bi bi-people-fill text-success" style={{ fontSize: '1.5rem' }}></i>
+                        </div>
+                        <h4 className="text-success mb-1">{stats?.totalStudents || 0}</h4>
+                        <p className="text-muted mb-0 small">Total Students</p>
+                      </Card.Body>
+                    </Card>
+                  </div>
+
+                  <div className="col-lg-3 col-md-6 mb-3">
+                    <Card className="border-0 shadow-sm h-100">
+                      <Card.Body className="text-center p-4">
+                        <div className="bg-info bg-opacity-10 rounded-circle p-3 mb-3 d-inline-flex">
+                          <i className="bi bi-person-check-fill text-info" style={{ fontSize: '1.5rem' }}></i>
+                        </div>
+                        <h4 className="text-info mb-1">{stats?.totalInstructors || 0}</h4>
+                        <p className="text-muted mb-0 small">Total Instructors</p>
+                      </Card.Body>
+                    </Card>
+                  </div>
+
+                  <div className="col-lg-3 col-md-6 mb-3">
+                    <Card className="border-0 shadow-sm h-100">
+                      <Card.Body className="text-center p-4">
+                        <div className="bg-warning bg-opacity-10 rounded-circle p-3 mb-3 d-inline-flex">
+                          <i className="bi bi-journal-bookmark-fill text-warning" style={{ fontSize: '1.5rem' }}></i>
+                        </div>
+                        <h4 className="text-warning mb-1">{stats?.totalEnrollments || 0}</h4>
+                        <p className="text-muted mb-0 small">Total Enrollments</p>
+                      </Card.Body>
+                    </Card>
                   </div>
                 </div>
-              </Card.Body>
-            </Card>
+
+                {/* Platform Summary */}
+                <div className="row mb-4">
+                  <div className="col-lg-8 mb-4">
+                    <Card className="border-0 shadow-sm h-100">
+                      <Card.Header className="bg-light border-0">
+                        <h6 className="mb-0">
+                          <i className="bi bi-speedometer2 me-2"></i>Platform Overview
+                        </h6>
+                      </Card.Header>
+                      <Card.Body>
+                        <div className="row g-3">
+                          <div className="col-6">
+                            <div className="d-flex align-items-center">
+                              <div className="bg-primary bg-opacity-10 rounded p-2 me-3">
+                                <i className="bi bi-play-circle text-primary"></i>
+                              </div>
+                              <div>
+                                <h6 className="mb-0">{stats?.totalLessons || 0}</h6>
+                                <small className="text-muted">Total Lessons</small>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="col-6">
+                            <div className="d-flex align-items-center">
+                              <div className="bg-success bg-opacity-10 rounded p-2 me-3">
+                                <i className="bi bi-check-circle text-success"></i>
+                              </div>
+                              <div>
+                                <h6 className="mb-0">{courses.filter(c => c.status === 'published').length || 0}</h6>
+                                <small className="text-muted">Published Courses</small>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="col-6">
+                            <div className="d-flex align-items-center">
+                              <div className="bg-info bg-opacity-10 rounded p-2 me-3">
+                                <i className="bi bi-person-workspace text-info"></i>
+                              </div>
+                              <div>
+                                <h6 className="mb-0">{instructors.filter(i => i.status === 'active').length || instructors.length}</h6>
+                                <small className="text-muted">Active Instructors</small>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="col-6">
+                            <div className="d-flex align-items-center">
+                              <div className="bg-warning bg-opacity-10 rounded p-2 me-3">
+                                <i className="bi bi-graph-up text-warning"></i>
+                              </div>
+                              <div>
+                                <h6 className="mb-0">{stats?.activeUsers || 0}</h6>
+                                <small className="text-muted">Active Users</small>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </div>
+
+                  <div className="col-lg-4 mb-4">
+                    <Card className="border-0 shadow-sm h-100">
+                      <Card.Header className="bg-light border-0">
+                        <h6 className="mb-0">
+                          <i className="bi bi-activity me-2"></i>Quick Stats
+                        </h6>
+                      </Card.Header>
+                      <Card.Body>
+                        <div className="text-center">
+                          <div className="bg-success bg-opacity-10 rounded-circle p-4 mb-3 d-inline-flex">
+                            <i className="bi bi-mortarboard-fill text-success" style={{ fontSize: '2rem' }}></i>
+                          </div>
+                          <h3 className="text-success mb-1">
+                            {((stats?.totalEnrollments || 0) / Math.max(stats?.totalCourses || 1, 1)).toFixed(1)}
+                          </h3>
+                          <p className="text-muted mb-0">Average Enrollments per Course</p>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                {stats?.recentActivity && stats.recentActivity.length > 0 && (
+                  <div className="row">
+                    <div className="col-12">
+                      <Card className="border-0 shadow-sm">
+                        <Card.Header className="bg-light border-0">
+                          <h6 className="mb-0">
+                            <i className="bi bi-clock-history me-2"></i>Recent Activity
+                          </h6>
+                        </Card.Header>
+                        <Card.Body>
+                          <div className="list-group list-group-flush">
+                            {stats.recentActivity.slice(0, 5).map((activity, index) => (
+                              <div key={index} className="list-group-item border-0 px-0">
+                                <div className="d-flex align-items-center">
+                                  <div className="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                    <i className="bi bi-bell text-primary"></i>
+                                  </div>
+                                  <div className="flex-grow-1">
+                                    <h6 className="mb-1">{activity.title || activity.description}</h6>
+                                    <small className="text-muted">{activity.description || activity.date}</small>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    </div>
+                  </div>
+                )}
+
+                {/* Empty State when no activity */}
+                {(!stats?.recentActivity || stats.recentActivity.length === 0) && (
+                  <div className="row">
+                    <div className="col-12">
+                      <Card className="border-0 shadow-sm">
+                        <Card.Body className="text-center py-5">
+                          <div className="bg-light rounded-circle p-4 mb-3 d-inline-flex">
+                            <i className="bi bi-graph-up text-muted" style={{ fontSize: '2rem' }}></i>
+                          </div>
+                          <h5 className="text-muted mb-2">Analytics Ready</h5>
+                          <p className="text-muted mb-0">
+                            Reports will populate automatically as users interact with your platform.
+                            <br />
+                            <small>Data is fetched directly from your backend API.</small>
+                          </p>
+                        </Card.Body>
+                      </Card>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         );
 

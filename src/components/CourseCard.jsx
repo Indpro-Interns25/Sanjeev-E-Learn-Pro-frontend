@@ -44,7 +44,12 @@ export default function CourseCard({ course }) {
           </div>
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <strong className="h5 mb-0">${parseFloat(course.price || 0).toFixed(2)}</strong>
+              <strong className="h5 mb-0">
+                {parseFloat(course.price || 0) === 0 || course.price === 'Free' || course.price === 'free' 
+                  ? 'Free' 
+                  : `$${parseFloat(course.price).toFixed(2)}`
+                }
+              </strong>
               <div className="text-warning small">
                 {[...Array(5)].map((_, i) => (
                   <i key={i} className={`bi bi-star${i < Math.round(parseFloat(course.rating || 0)) ? '-fill' : ''}`}></i>

@@ -47,11 +47,14 @@ export default function MyLearning() {
         console.warn('🔍 Fetching enrolled courses for My Learning...');
         console.warn('👤 Current user:', user);
         console.warn('🆔 User ID:', user.id);
+        console.warn('🔍 User object keys:', Object.keys(user));
+        console.warn('🔍 All user properties:', JSON.stringify(user, null, 2));
         
         // Get user's enrollments
         const enrollments = await getUserEnrollments(user.id);
         console.warn('📚 User enrollments found:', enrollments);
         console.warn('📊 Number of enrollments:', enrollments.length);
+        console.warn('🔍 Enrollment details:', JSON.stringify(enrollments, null, 2));
         
         if (enrollments.length === 0) {
           console.warn('❌ No enrollments found - showing empty state');
@@ -61,14 +64,20 @@ export default function MyLearning() {
         }
         
         // Fetch course details for each enrollment
-        const coursePromises = enrollments.map(async (enrollment) => {
+        const coursePromises = enrollments.map(async (enrollment, index) => {
           try {
-            console.warn(`🔍 Fetching course details for course ID: ${enrollment.course_id}`);
+            console.warn(`🔍 [${index + 1}/${enrollments.length}] Fetching course details for enrollment:`, enrollment);
+            console.warn(`🔍 Course ID: ${enrollment.course_id}, User ID: ${enrollment.user_id}`);
+            
             const course = await getCourseById(enrollment.course_id);
+            console.warn(`✅ Course data fetched for course ${enrollment.course_id}:`, course);
+            
             const lessons = getLessonsByCourse(enrollment.course_id);
+            console.warn(`📖 Lessons found for course ${enrollment.course_id}:`, lessons.length);
             
             // Calculate real-time progress based on actual watch times
             const progressData = getCourseProgress(user.id, enrollment.course_id, lessons);
+            console.warn(`📊 Progress calculated for course ${enrollment.course_id}:`, progressData);
             
             const courseWithEnrollment = {
               ...course,
@@ -83,6 +92,7 @@ export default function MyLearning() {
             return courseWithEnrollment;
           } catch (error) {
             console.error(`❌ Failed to fetch course ${enrollment.course_id}:`, error);
+            console.error(`❌ Error details:`, error.message);
             return null;
           }
         });
@@ -103,6 +113,21 @@ export default function MyLearning() {
     };
 
     fetchEnrolledCourses();
+
+    // Listen for enrollment changes to refresh the list
+    const handleEnrollmentChange = (event) => {
+      console.warn('🔄 Enrollment change detected, refreshing My Learning...', event.detail);
+      // Refresh after a short delay to ensure localStorage is updated
+      setTimeout(() => {
+        fetchEnrolledCourses();
+      }, 500);
+    };
+
+    window.addEventListener('enrollmentChanged', handleEnrollmentChange);
+
+    return () => {
+      window.removeEventListener('enrollmentChanged', handleEnrollmentChange);
+    };
   }, [user]);
 
   // Refresh progress when component becomes visible (user returns from watching videos)
