@@ -50,6 +50,22 @@ export async function enrollUserInCourse(userId, courseId) {
     // Try to use the real backend API first
     try {
       console.warn('🌐 Attempting to enroll via backend API...');
+      
+      // First check if user is already enrolled
+      const existingEnrollments = await getUserEnrollments(userIdNum);
+      const alreadyEnrolled = existingEnrollments.some(enrollment => 
+        enrollment.course_id === courseIdNum
+      );
+      
+      if (alreadyEnrolled) {
+        console.warn('⚠️ User already enrolled in this course');
+        return { 
+          success: true, 
+          message: 'Already enrolled in this course',
+          enrollment: existingEnrollments.find(e => e.course_id === courseIdNum)
+        };
+      }
+      
       const response = await apiClient.post('/api/enrollments', {
         user_id: userIdNum,
         course_id: courseIdNum

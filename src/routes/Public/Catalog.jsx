@@ -105,11 +105,15 @@ export default function Catalog() {
           const formattedCourses = formatCoursesData(coursesResponse.value);
           setAllCourses(formattedCourses);
           
-          // Show all courses regardless of enrollment status
+          // Filter out enrolled courses for the current user
+          const availableCourses = formattedCourses.filter(course => 
+            !enrolledCourseIds.includes(course.id)
+          );
           console.warn('📋 Total courses:', formattedCourses.length);
-          console.warn('📋 Enrolled courses:', enrolledCourseIds);
+          console.warn('📋 User enrolled courses:', enrolledCourseIds);
+          console.warn('📋 Available courses (not enrolled):', availableCourses.length);
           
-          setCourses(formattedCourses);
+          setCourses(availableCourses);
         } else {
           console.error('Failed to fetch courses:', coursesResponse.reason);
         }
@@ -139,19 +143,67 @@ export default function Catalog() {
   useEffect(() => {
     const filterCourses = async () => {
       if (!searchTerm && selectedCategory === 'All' && selectedLevel === 'All') {
-        // No search filters, show all courses
-        setCourses(allCourses);
+        // No search filters, show all courses except enrolled ones
+        const availableCourses = allCourses.filter(course => 
+          !enrolledCourseIds.includes(course.id)
+        );
+        setCourses(availableCourses);
         return;
       }
 
       try {
         setSearching(true);
         
-        const filters = {};
-        
+        // If we have search term, filter locally first for immediate results
         if (searchTerm) {
-          filters.search = searchTerm;
+          let filteredCourses = allCourses.filter(course => {
+            const searchLower = searchTerm.toLowerCase();
+            const searchWords = searchLower.split(' ').filter(word => word.length > 0);
+            
+            // Check if any search word matches in title, description, category, or instructor
+            return searchWords.some(word => 
+              course.title?.toLowerCase().includes(word) ||
+              course.description?.toLowerCase().includes(word) ||
+              course.category?.toLowerCase().includes(word) ||
+              course.instructor_name?.toLowerCase().includes(word)
+            ) || 
+            // Also check for exact phrase match
+            course.title?.toLowerCase().includes(searchLower) ||
+            course.description?.toLowerCase().includes(searchLower) ||
+            course.category?.toLowerCase().includes(searchLower) ||
+            course.instructor_name?.toLowerCase().includes(searchLower);
+          });
+          
+          // Apply category filter
+          if (selectedCategory !== 'All') {
+            filteredCourses = filteredCourses.filter(course => 
+              course.category === selectedCategory
+            );
+          }
+          
+          // Apply level filter
+          if (selectedLevel !== 'All') {
+            filteredCourses = filteredCourses.filter(course => 
+              (course.difficulty_level || course.level || 'beginner').toLowerCase() === selectedLevel.toLowerCase()
+            );
+          }
+          
+          // Filter out enrolled courses
+          const availableCourses = filteredCourses.filter(course => 
+            !enrolledCourseIds.includes(course.id)
+          );
+          
+          console.warn('🔍 Local search results:', filteredCourses.length);
+          console.warn('🔍 Available courses (not enrolled):', availableCourses.length);
+          console.warn('🔍 Search term:', searchTerm);
+          
+          setCourses(availableCourses);
+          setSearching(false);
+          return;
         }
+        
+        // If no search term, use category/level filters only
+        const filters = {};
         
         if (selectedCategory !== 'All') {
           filters.category = selectedCategory;
@@ -168,11 +220,14 @@ export default function Catalog() {
         const filteredCourses = await getAllCourses(filters);
         const formattedCourses = formatCoursesData(filteredCourses);
         
-        // Show all courses regardless of enrollment status
-        console.warn('🔍 Search results:', formattedCourses.length);
-        console.warn('🔍 Available courses (all):', formattedCourses.length);
+        // Filter out enrolled courses from search results
+        const availableCourses = formattedCourses.filter(course => 
+          !enrolledCourseIds.includes(course.id)
+        );
+        console.warn('🔍 API filter results:', formattedCourses.length);
+        console.warn('🔍 Available courses (not enrolled):', availableCourses.length);
         
-        setCourses(formattedCourses);
+        setCourses(availableCourses);
         
       } catch (err) {
         console.error('Error filtering courses:', err);

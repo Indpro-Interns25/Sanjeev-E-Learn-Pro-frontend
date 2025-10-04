@@ -157,38 +157,6 @@ export default function LessonPlayer() {
               <h2 className="h4 mb-3">{lesson.title}</h2>
               <div className="lesson-content" dangerouslySetInnerHTML={{ __html: lesson.content }} />
               
-              {/* Test button for watch time tracking */}
-              {user && isStudentMode && (
-                <div className="mt-3 p-3 bg-light rounded">
-                  <h6>📊 Progress Tracking Test</h6>
-                  <div className="d-flex gap-2">
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      onClick={() => {
-                        const watchedMinutes = Math.floor((parseInt(lesson.duration) || 0) * 0.5);
-                        saveWatchTime(user.id, parseInt(lessonId), watchedMinutes);
-                        console.warn(`🧪 Test: Saved 50% watch time (${watchedMinutes} min)`);
-                      }}
-                    >
-                      Test 50% Watched
-                    </Button>
-                    <Button
-                      variant="outline-success"
-                      size="sm"
-                      onClick={() => {
-                        const watchedMinutes = parseInt(lesson.duration) || 0;
-                        saveWatchTime(user.id, parseInt(lessonId), watchedMinutes);
-                        console.warn(`🧪 Test: Saved 100% watch time (${watchedMinutes} min)`);
-                      }}
-                    >
-                      Test 100% Watched
-                    </Button>
-                  </div>
-                  <small className="text-muted">Use these buttons to test watch time tracking, then go back to My Learning to see updates.</small>
-                </div>
-              )}
-              
               {lesson.resources && lesson.resources.length > 0 && (
                 <div className="mt-4">
                   <h3 className="h5">Lesson Resources</h3>

@@ -100,9 +100,15 @@ export default function MyLearning() {
         const coursesWithDetails = await Promise.all(coursePromises);
         const validCourses = coursesWithDetails.filter(course => course !== null);
         
-        console.warn('✅ Final enrolled courses with real-time progress:', validCourses);
+        // Remove any potential duplicates based on course ID
+        const uniqueCourses = validCourses.filter((course, index, self) => 
+          index === self.findIndex(c => c.id === course.id)
+        );
+        
+        console.warn('✅ Final enrolled courses with real-time progress:', uniqueCourses);
         console.warn('📊 Number of valid courses:', validCourses.length);
-        setEnrolledCourses(validCourses);
+        console.warn('📊 Number of unique courses:', uniqueCourses.length);
+        setEnrolledCourses(uniqueCourses);
         
       } catch (error) {
         console.error('❌ Failed to fetch enrolled courses:', error);
