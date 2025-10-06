@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import CourseForm from '../../components/forms/CourseForm';
-import { createCourse } from '../../services/courses';
+import { createCourseAdmin } from '../../services/admin';
 
 export default function AddCourse() {
   const navigate = useNavigate();
@@ -14,16 +14,21 @@ export default function AddCourse() {
   };
 
   const handleCourseSubmit = async (courseData) => {
+    console.warn('🚀 AddCourse: submit handler called with:', courseData);
     try {
-      await createCourse(courseData);
+      const result = await createCourseAdmin(courseData);
+      console.warn('🚀 AddCourse: createCourseAdmin result:', result);
       showAlert('Course created successfully!', 'success');
-      
+
       // Navigate back to admin dashboard courses section after 2 seconds
       setTimeout(() => {
         navigate('/admin-dashboard');
       }, 2000);
     } catch (error) {
-      showAlert(`Error creating course: ${error.message}`, 'danger');
+      console.error('🚨 AddCourse: createCourseAdmin error:', error);
+      // Show detailed message when available
+      const detailed = error.response?.data || error.message || String(error);
+      showAlert(`Error creating course: ${detailed}`, 'danger');
     }
   };
 

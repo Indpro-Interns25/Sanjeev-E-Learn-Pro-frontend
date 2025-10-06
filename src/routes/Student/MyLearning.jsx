@@ -14,9 +14,17 @@ function getNextLessonId(courseId, userId) {
   
   // Find the first lesson that's not fully watched
   for (let lesson of lessons) {
-    const duration = parseInt(lesson.duration) || 60;
+    // Determine duration robustly
+    let duration = 60;
+    if (lesson.duration_number !== undefined && lesson.duration_number !== null) {
+      duration = parseInt(lesson.duration_number, 10) || 60;
+    } else if (lesson.duration) {
+      const m = String(lesson.duration).match(/(\d+)/);
+      duration = m ? parseInt(m[1], 10) || 60 : 60;
+    }
+
     const watched = watchTimes[lesson.id] || 0;
-    
+
     if (watched < duration) {
       return lesson.id;
     }
@@ -273,7 +281,13 @@ export default function MyLearning() {
                 </thead>
                 <tbody>
                   {lessons.map(lesson => {
-                    const duration = parseInt(lesson.duration) || 0;
+                    let duration = 0;
+                    if (lesson.duration_number !== undefined && lesson.duration_number !== null) {
+                      duration = parseInt(lesson.duration_number, 10) || 0;
+                    } else if (lesson.duration) {
+                      const m = String(lesson.duration).match(/(\d+)/);
+                      duration = m ? parseInt(m[1], 10) || 0 : 0;
+                    }
                     const watched = watchTimes[lesson.id] || 0;
                     const isFullyWatched = watched >= duration;
                     

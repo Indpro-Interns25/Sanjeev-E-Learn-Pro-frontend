@@ -35,7 +35,54 @@ export async function getAllCourses(filters = {}) {
     const url = queryString ? `/api/courses?${queryString}` : '/api/courses';
     
     const response = await apiClient.get(url);
-    return response.data;
+    
+    // Get course data
+    let courses = response.data;
+    
+    // Check if courses have instructor names, if not, try to fetch instructor data
+    if (courses.length > 0 && !courses[0].instructor_name && !courses[0].instructor?.name) {
+      console.warn('📚 Courses missing instructor names, attempting to fetch instructor data...');
+      
+      try {
+        // Try to fetch instructors from admin API to match with courses
+        const instructorsResponse = await apiClient.get('/api/admin/instructors');
+        
+        if (instructorsResponse.data.success && instructorsResponse.data.data) {
+          const instructors = instructorsResponse.data.data;
+          
+          // Create a map of instructor ID to instructor data
+          const instructorMap = {};
+          instructors.forEach(instructor => {
+            instructorMap[instructor.id] = instructor;
+          });
+          
+          // Enrich courses with instructor names
+          courses = courses.map(course => {
+            const instructor = instructorMap[course.instructor_id || course.user_id];
+            return {
+              ...course,
+              instructor_name: instructor ? instructor.name : 'Unknown Instructor',
+              instructor: instructor ? {
+                id: instructor.id,
+                name: instructor.name,
+                email: instructor.email
+              } : null
+            };
+          });
+          
+          console.warn('✅ Successfully enriched courses with instructor data');
+        }
+      } catch (instructorError) {
+        console.warn('❌ Failed to fetch instructor data for course enrichment:', instructorError.message);
+        // Set default instructor names for all courses
+        courses = courses.map(course => ({
+          ...course,
+          instructor_name: course.instructor_name || 'Unknown Instructor'
+        }));
+      }
+    }
+    
+    return courses;
   } catch {
     console.warn('API not available, returning empty courses list');
     console.warn('Please ensure your backend server is running to display real course data');
@@ -53,7 +100,30 @@ export async function getAllCourses(filters = {}) {
 export async function getCourseById(courseId) {
   try {
     const response = await apiClient.get(`/api/courses/${courseId}`);
-    return response.data;
+
+    // Support responses like { success: true, data: { ... } } or raw course object
+    const courseRaw = response.data && response.data.data ? response.data.data : response.data;
+
+    // Ensure the course is formatted consistently for the UI
+    let formatted = formatCourseData(courseRaw || {});
+
+    // If instructor is unknown but we have an instructor_id / user_id, try to enrich from admin instructors
+    const instructorId = courseRaw?.instructor_id || courseRaw?.user_id || null;
+    if ((formatted.instructor_name === 'Unknown Instructor' || !formatted.instructor_name) && instructorId) {
+      try {
+        const instructorsResp = await apiClient.get('/api/admin/instructors');
+        const instructors = instructorsResp.data && instructorsResp.data.data ? instructorsResp.data.data : instructorsResp.data || [];
+        const match = instructors.find(i => i.id === instructorId || String(i.id) === String(instructorId));
+        if (match) {
+          formatted.instructor_name = match.name || match.username || formatted.instructor_name;
+          formatted.instructor = { id: match.id, name: match.name || match.username, email: match.email };
+        }
+      } catch (e) {
+        console.warn('❌ Failed to enrich course instructor via admin API:', e?.message || e);
+      }
+    }
+
+    return formatted;
   } catch (error) {
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
       throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
@@ -306,6 +376,12 @@ export async function getCourseCategories() {
  * @returns {Object} Formatted course object
  */
 export function formatCourseData(course) {
+  // Extract instructor name from various possible fields
+  const instructorName = course.instructor_name || 
+                        course.instructor?.name || 
+                        course.instructor || 
+                        'Unknown Instructor';
+
   return {
     ...course,
     // Ensure price is a number
@@ -316,9 +392,11 @@ export function formatCourseData(course) {
     // Only use the actual value from backend, no fallback to demo numbers
     enrolled: parseInt(course.enrolled_count || course.enrolled || 0),
     enrolled_count: parseInt(course.enrolled_count || course.enrolled || 0),
+    // Ensure instructor_name is always available for components
+    instructor_name: instructorName,
     // Format instructor data from API structure
     instructor: {
-      name: course.instructor_name || 'Unknown Instructor',
+      name: instructorName,
       avatar: null // API doesn't provide avatar, use placeholder
     },
     // Format dates

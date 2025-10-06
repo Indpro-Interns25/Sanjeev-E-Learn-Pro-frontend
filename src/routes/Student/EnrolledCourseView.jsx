@@ -91,6 +91,15 @@ export default function EnrolledCourseView() {
     }
   }, [courseId, isAuthenticated, user, navigate]);
 
+  // Prefer backend-provided duration fields when available
+  const formatDuration = (item) => {
+    if (!item) return '';
+    if (item.duration_display) return item.duration_display;
+    if (typeof item.duration_number === 'number') return `${item.duration_number} minutes`;
+    if (item.duration) return item.duration;
+    return '';
+  };
+
   if (loading) {
     return (
       <Container className="py-5">
@@ -178,7 +187,7 @@ export default function EnrolledCourseView() {
                         <i className="bi bi-person me-1"></i>
                         {course.instructor?.name || course.instructor_name || course.instructor}
                       </span>
-                      <span><i className="bi bi-clock me-1"></i>{course.duration}</span>
+                      <span><i className="bi bi-clock me-1"></i>{formatDuration(course)}</span>
                       <span>
                         <i className="bi bi-calendar-check me-1"></i>
                         Enrolled: {course.enrolled_date ? new Date(course.enrolled_date).toLocaleDateString() : 'Recently'}
@@ -242,7 +251,7 @@ export default function EnrolledCourseView() {
                             </div>
                             <small className="text-muted d-block">
                               <i className="bi bi-clock me-1"></i>
-                              {lesson.duration}
+                              {formatDuration(lesson)}
                             </small>
                           </div>
                           <div>

@@ -86,6 +86,15 @@ export default function MyEnrolledCourses() {
     }
   }, [isAuthenticated, user]);
 
+  // Prefer backend-provided duration fields when available
+  const formatDuration = (item) => {
+    if (!item) return '';
+    if (item.duration_display) return item.duration_display;
+    if (typeof item.duration_number === 'number') return `${item.duration_number} minutes`;
+    if (item.duration) return item.duration;
+    return '';
+  };
+
   const getCourseLessons = (courseId) => {
     return lessons.filter(lesson => 
       lesson.course_id === courseId || lesson.courseId === courseId
@@ -186,7 +195,7 @@ export default function MyEnrolledCourses() {
                               <p className="mb-2">{course.description}</p>
                               <div className="d-flex gap-4 text-muted small">
                                 <span><i className="bi bi-person me-1"></i>{course.instructor || course.instructor_name}</span>
-                                <span><i className="bi bi-clock me-1"></i>{course.duration}</span>
+                                <span><i className="bi bi-clock me-1"></i>{formatDuration(course)}</span>
                                 <span><i className="bi bi-calendar-check me-1"></i>Enrolled: {course.enrolled_date ? new Date(course.enrolled_date).toLocaleDateString() : 'Recently'}</span>
                               </div>
                             </Col>
@@ -247,7 +256,7 @@ export default function MyEnrolledCourses() {
                                       </div>
                                       <small className="text-muted d-block">
                                         <i className="bi bi-clock me-1"></i>
-                                        {lesson.duration}
+                                        {formatDuration(lesson)}
                                       </small>
                                     </div>
                                     <div>

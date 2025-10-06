@@ -3,6 +3,7 @@ import { Container, Row, Col, Button, Badge, Tab, Nav, Card, Alert, Spinner, Mod
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCourseData } from '../../services/courses';
+import { getAllInstructors } from '../../services/admin';
 import { getCourseCurriculum } from '../../services/lessons';
 import { enrollUserInCourse, getUserEnrollments, getCourseEnrollmentCount } from '../../services/enrollment';
 import Comments from '../../components/Comments';
@@ -36,8 +37,29 @@ export default function CourseDetail() {
         
         console.warn('📚 Curriculum data received:', curriculumData);
         
+        // Set course data (format and attempt enrichment)
+        let formattedCourse = formatCourseData(curriculumData.course);
+
+        // If instructor is unknown but an instructor_id/user_id exists, try to enrich from admin instructors
+        const instructorId = curriculumData?.course?.instructor_id || curriculumData?.course?.user_id || null;
+        if ((formattedCourse.instructor_name === 'Unknown Instructor' || !formattedCourse.instructor_name) && instructorId) {
+          try {
+            const instructors = await getAllInstructors();
+            const match = instructors.find(i => i.id === instructorId || String(i.id) === String(instructorId));
+            if (match) {
+              formattedCourse = {
+                ...formattedCourse,
+                instructor_name: match.name || match.username || formattedCourse.instructor_name,
+                instructor: { id: match.id, name: match.name || match.username, email: match.email }
+              };
+            }
+          } catch (e) {
+            console.warn('❌ Failed to enrich instructor for course detail:', e?.message || e);
+          }
+        }
+
         // Set course data
-        setCourse(formatCourseData(curriculumData.course));
+        setCourse(formattedCourse);
         
         // Set lessons data
         setLessons(curriculumData.curriculum || []);
@@ -355,30 +377,20 @@ export default function CourseDetail() {
                   {lessons && lessons.length > 0 ? (
                     <div className="list-group">
                       {lessons.map((lesson, index) => (
-                        <div key={lesson.id || index} className="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
-                          <img 
-                            src={lesson.thumbnail || lesson.image || `https://placehold.co/80x60?text=Lesson+${lesson.order_sequence || index + 1}`} 
-                            alt={lesson.title} 
-                            className="rounded shadow-sm" 
-                            style={{ width: '80px', height: '60px', objectFit: 'cover' }} 
-                          />
-                          <div className="flex-grow-1">
-                            <div className="d-flex align-items-center gap-2 mb-1">
+                        <div key={lesson.id || index} className="list-group-item list-group-item-action py-3">
+                          <div className="d-flex align-items-start">
+                            <div className="me-3">
                               <span className="badge bg-primary">{lesson.order_sequence || index + 1}</span>
-                              <h5 className="mb-0">{lesson.title}</h5>
                             </div>
-                            <p className="mb-1 text-muted">{lesson.description || `Lesson ${lesson.order_sequence || index + 1} content`}</p>
-                            <small className="text-secondary">
-                              <i className="bi bi-clock me-1"></i>
-                              {lesson.duration || '10 min'}
-                            </small>
+                            <div className="flex-grow-1">
+                              <h5 className="mb-1">{lesson.title}</h5>
+                              <p className="mb-1 text-muted">{lesson.description || `Lesson ${lesson.order_sequence || index + 1} content`}</p>
+                              <small className="text-secondary">
+                                <i className="bi bi-clock me-1"></i>
+                                {lesson.duration || '10 min'}
+                              </small>
+                            </div>
                           </div>
-                          <Button variant="outline-primary" size="sm" onClick={() => {
-                            // Allow preview for everyone, no auth required
-                            navigate(`/courses/${courseId}/lessons/${lesson.id || index + 1}/preview`);
-                          }}>
-                            <i className="bi bi-play-circle me-1"></i>Preview
-                          </Button>
                         </div>
                       ))}
                     </div>
@@ -435,8 +447,8 @@ export default function CourseDetail() {
                   <h5 className="fw-bold mb-3">This course includes:</h5>
                   <ul className="list-unstyled">
                     <li className="mb-2">
-                      <i className="bi bi-play-circle me-2 text-primary"></i>
-                      {course.duration} of on-demand video
+                      <i className="bi bi-clock me-2 text-primary"></i>
+                      Course length: {course.duration}
                     </li>
                     <li className="mb-2">
                       <i className="bi bi-file-earmark-arrow-down me-2 text-info"></i>

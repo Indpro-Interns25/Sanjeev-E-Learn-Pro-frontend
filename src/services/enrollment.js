@@ -7,8 +7,24 @@ import apiClient from './apiClient';
 export async function getAllEnrollments() {
   try {
     console.warn('📚 Fetching all enrollments from API...');
-    const response = await apiClient.get('/api/enrollments');
-    console.warn('📊 Enrollments response:', response.data);
+    
+    // Try different possible endpoints for enrollments
+    let response;
+    let endpoint = '/api/enrollments';
+    
+    try {
+      response = await apiClient.get(endpoint);
+    } catch (error) {
+      if (error.response?.status === 404) {
+        console.warn('❌ /api/enrollments not found, trying /api/admin/enrollments...');
+        endpoint = '/api/admin/enrollments';
+        response = await apiClient.get(endpoint);
+      } else {
+        throw error;
+      }
+    }
+    
+    console.warn(`📊 Enrollments response from ${endpoint}:`, response.data);
     
     // Handle the API response structure: { success: true, data: [...] }
     if (response.data.success && response.data.data) {
@@ -22,7 +38,7 @@ export async function getAllEnrollments() {
     
     return response.data.data || [];
   } catch (error) {
-    console.error('🚨 Failed to fetch enrollments:', error);
+    console.error('🚨 Failed to fetch enrollments from all endpoints:', error);
     // Return empty array when backend is not available
     return [];
   }

@@ -51,7 +51,20 @@ export function getCourseProgress(userId, courseId, lessons) {
     let totalWatched = 0;
     
     lessons.forEach(lesson => {
-      const duration = parseInt(lesson.duration) || 0;
+      // Prefer numeric duration from backend if available
+      let duration = 0;
+      if (lesson.duration_number !== undefined && lesson.duration_number !== null) {
+        duration = parseInt(lesson.duration_number, 10) || 0;
+      } else if (lesson.duration) {
+        const dstr = String(lesson.duration).trim();
+        // Try numeric parse (e.g., '45' or '45 minutes')
+        const numMatch = dstr.match(/(\d+)/);
+        if (numMatch) {
+          duration = parseInt(numMatch[1], 10) || 0;
+        } else {
+          duration = 0;
+        }
+      }
       const watched = watchTimes[lesson.id] || 0;
       
       totalDuration += duration;

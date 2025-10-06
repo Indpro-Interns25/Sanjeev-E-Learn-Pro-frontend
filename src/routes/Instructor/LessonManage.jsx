@@ -27,6 +27,14 @@ export default function LessonManage() {
     setLessons(lessonData);
   }, [courseId, navigate]);
 
+  const formatDuration = (lesson) => {
+    if (!lesson) return '';
+    if (lesson.duration_display) return lesson.duration_display;
+    if (typeof lesson.duration_number === 'number') return `${lesson.duration_number} minutes`;
+    if (lesson.duration) return lesson.duration;
+    return '';
+  };
+
   const handleAddLesson = () => {
     setSelectedLesson(null);
     setIsEditing(true);
@@ -155,7 +163,7 @@ export default function LessonManage() {
                             <div className="flex-grow-1">
                               <h3 className="h6 mb-1">{lesson.title}</h3>
                               <small className="text-muted">
-                                Duration: {lesson.duration}
+                                Duration: {formatDuration(lesson)}
                               </small>
                             </div>
                             <div className="d-flex gap-2">

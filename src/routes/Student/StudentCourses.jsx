@@ -218,7 +218,7 @@ export default function StudentCourses() {
                   <div className="mb-3">
                     <div className="d-flex justify-content-between text-sm">
                       <span><i className="bi bi-person me-1"></i>{course.instructor}</span>
-                      <span><i className="bi bi-clock me-1"></i>{course.duration}</span>
+                      <span><i className="bi bi-clock me-1"></i>{course.duration_display || (course.duration_number || course.duration_number === 0 ? `${course.duration_number} minutes` : course.duration)}</span>
                     </div>
                     <div className="d-flex justify-content-between text-sm mt-1">
                       <span><i className="bi bi-play-circle me-1"></i>{course.lesson_count} lessons</span>
@@ -356,7 +356,7 @@ export default function StudentCourses() {
                           </h6>
                           <p className="mb-1 text-muted">{lesson.description}</p>
                           <small className="text-muted">
-                            <i className="bi bi-clock me-1"></i>{lesson.duration}
+                            <i className="bi bi-clock me-1"></i>{lesson.duration_display || (lesson.duration_number || lesson.duration_number === 0 ? `${lesson.duration_number} minutes` : lesson.duration)}
                           </small>
                         </div>
                         <div>

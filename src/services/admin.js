@@ -131,17 +131,55 @@ export async function getAllInstructors() {
     const response = await apiClient.get('/api/admin/instructors');
     console.warn('👨‍🏫 Instructors response:', response.data);
     
+    let instructors = [];
+    
     // Handle the API response structure: { success: true, data: [...] }
     if (response.data.success && response.data.data) {
-      return response.data.data;
+      instructors = response.data.data;
+    } else if (Array.isArray(response.data)) {
+      instructors = response.data;
+    } else {
+      instructors = response.data.data || [];
     }
     
-    // Fallback for different response structures
-    if (Array.isArray(response.data)) {
-      return response.data;
+    // Calculate course counts for each instructor
+    if (instructors.length > 0) {
+      try {
+        console.warn('📊 Calculating course counts for instructors...');
+  // Add a cache-busting timestamp param to avoid 304 cached responses
+  const coursesResponse = await apiClient.get('/api/admin/courses', { params: { t: Date.now() } });
+        
+        let courses = [];
+        if (coursesResponse.data.success && coursesResponse.data.data) {
+          courses = coursesResponse.data.data;
+        } else if (Array.isArray(coursesResponse.data)) {
+          courses = coursesResponse.data;
+        }
+        
+        // Count courses per instructor
+        instructors = instructors.map(instructor => {
+          const instructorCourses = courses.filter(course => 
+            (course.instructor_id || course.user_id) === instructor.id
+          );
+          
+          return {
+            ...instructor,
+            total_courses: instructorCourses.length
+          };
+        });
+        
+        console.warn('✅ Successfully calculated course counts for instructors');
+      } catch (courseError) {
+        console.warn('❌ Failed to fetch courses for instructor count calculation:', courseError.message);
+        // Set default course count to 0
+        instructors = instructors.map(instructor => ({
+          ...instructor,
+          total_courses: instructor.total_courses || 0
+        }));
+      }
     }
     
-    return response.data.data || [];
+    return instructors;
   } catch (error) {
     console.error('🚨 Failed to fetch instructors:', error);
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||
@@ -198,26 +236,120 @@ export async function createInstructor(instructorData) {
 }
 
 /**
+ * Create a new course (admin)
+ * @param {Object} courseData - Course data
+ * @returns {Promise<Object>} Created course object
+ */
+export async function createCourseAdmin(courseData) {
+  try {
+    console.warn('📝 Creating admin course via API...', courseData);
+    const response = await apiClient.post('/api/admin/courses', courseData);
+    console.warn('✅ Admin course created successfully:', response.data);
+
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('🚨 Failed to create admin course:', error);
+
+    // Specific helpful messages for common failure modes
+    if (error.response?.status === 404) {
+      throw new Error('⚠️ API Endpoint Missing: POST /api/admin/courses is not implemented on the backend.');
+    }
+
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
+      throw new Error('🔌 Cannot connect to backend. Please ensure the backend server is running on http://localhost:3002');
+    }
+
+    if (error.response?.status === 401) {
+      throw new Error('Unauthorized. Please login as admin and try again.');
+    }
+
+    if (error.response?.status === 403) {
+      throw new Error('Forbidden. You do not have permission to create courses.');
+    }
+
+    const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to create course';
+    throw new Error(message);
+  }
+}
+
+/**
  * Get all courses (admin view)
  * @returns {Promise<Array>} Promise that resolves to courses array
  */
 export async function getAllCoursesAdmin() {
   try {
     console.warn('📚 Fetching admin courses from API...');
-    const response = await apiClient.get('/api/admin/courses');
+  // Add a cache-busting timestamp param to ensure we get fresh course data
+  const response = await apiClient.get('/api/admin/courses', { params: { t: Date.now() } });
     console.warn('📊 Admin courses received:', response.data);
+    
+    let courses = [];
     
     // Handle the API response structure: { success: true, data: [...] }
     if (response.data.success && response.data.data) {
-      return response.data.data;
+      courses = response.data.data;
+    } else if (Array.isArray(response.data)) {
+      courses = response.data;
+    } else {
+      courses = response.data.data || [];
     }
     
-    // Fallback for different response structures
-    if (Array.isArray(response.data)) {
-      return response.data;
+    // Enrich courses with instructor names if missing
+    if (courses.length > 0 && !courses[0].instructor_name && !courses[0].instructor?.name) {
+      console.warn('📚 Admin courses missing instructor names, attempting to fetch instructor data...');
+      
+      try {
+        // Try to fetch instructors to match with courses
+        const instructorsResponse = await apiClient.get('/api/admin/instructors');
+        
+        if (instructorsResponse.data.success && instructorsResponse.data.data) {
+          const instructors = instructorsResponse.data.data;
+          
+          // Create a map of instructor ID to instructor data
+          const instructorMap = {};
+          instructors.forEach(instructor => {
+            instructorMap[instructor.id] = instructor;
+          });
+          
+          // Enrich courses with instructor names and calculate course counts
+          courses = courses.map(course => {
+            const instructor = instructorMap[course.instructor_id || course.user_id];
+            return {
+              ...course,
+              instructor_name: instructor ? instructor.name : 'Unknown Instructor',
+              instructor: instructor ? {
+                id: instructor.id,
+                name: instructor.name,
+                email: instructor.email
+              } : null
+            };
+          });
+          
+          // Update instructor course counts
+          instructors.forEach(instructor => {
+            const instructorCourses = courses.filter(course => 
+              (course.instructor_id || course.user_id) === instructor.id
+            );
+            instructor.total_courses = instructorCourses.length;
+          });
+          
+          console.warn('✅ Successfully enriched admin courses with instructor data');
+        }
+      } catch (instructorError) {
+        console.warn('❌ Failed to fetch instructor data for admin course enrichment:', instructorError.message);
+        // Set default instructor names for all courses
+        courses = courses.map(course => ({
+          ...course,
+          instructor_name: course.instructor_name || 'Unknown Instructor'
+        }));
+      }
     }
     
-    return response.data.data || [];
+    return courses;
   } catch (error) {
     console.error('🚨 Failed to fetch admin courses:', error);
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' ||

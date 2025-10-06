@@ -132,7 +132,15 @@ export default function LessonPlayer() {
                   const progressRounded = Math.floor(progress / 5) * 5;
                   
                   if (progressRounded > lastSavedProgress) {
-                    const lessonDurationMinutes = parseInt(lesson.duration) || 0;
+                    // Determine lesson duration in minutes (prefer duration_number)
+                    let lessonDurationMinutes = 0;
+                    if (lesson.duration_number !== undefined && lesson.duration_number !== null) {
+                      lessonDurationMinutes = parseInt(lesson.duration_number, 10) || 0;
+                    } else if (lesson.duration) {
+                      const m = String(lesson.duration).match(/(\d+)/);
+                      lessonDurationMinutes = m ? parseInt(m[1], 10) || 0 : 0;
+                    }
+
                     const watchedMinutes = videoProgressToMinutes(progress, lessonDurationMinutes);
                     
                     console.warn(`💾 Saving watch time: ${watchedMinutes} minutes for lesson ${lessonId}`);

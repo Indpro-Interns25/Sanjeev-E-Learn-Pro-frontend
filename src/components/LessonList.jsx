@@ -5,6 +5,13 @@ export default function LessonList({ lessons, currentLessonId, onLessonSelect, u
   return (
     <ListGroup variant="flush">
       {lessons.map((lesson) => {
+        const getDisplayDuration = (l) => {
+          if (!l) return '';
+          if (l.duration_display) return l.duration_display;
+          if (l.duration_number || l.duration_number === 0) return `${l.duration_number} minutes`;
+          if (l.duration) return String(l.duration).trim();
+          return '';
+        };
         const isComplete = userProgress[lesson.id];
         const isCurrent = lesson.id === currentLessonId;
         
@@ -26,7 +33,7 @@ export default function LessonList({ lessons, currentLessonId, onLessonSelect, u
                 <div className="fw-medium">{lesson.title}</div>
                 <small className="text-muted d-block">
                   <i className="bi bi-clock me-1"></i>
-                  {lesson.duration}
+                  {getDisplayDuration(lesson)}
                 </small>
               </div>
             </div>

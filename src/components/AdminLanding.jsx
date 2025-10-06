@@ -165,6 +165,20 @@ export default function AdminLanding() {
     }
   };
 
+  // Helper to get a display string for lesson duration using backend fields
+  const getLessonDisplayDuration = (lesson) => {
+    if (!lesson) return '';
+    if (lesson.duration_display) return lesson.duration_display;
+    if (lesson.duration_number || lesson.duration_number === 0) return `${lesson.duration_number} minutes`;
+    if (lesson.duration) {
+      // If duration is a numeric string or already a human readable string
+      const d = String(lesson.duration).trim();
+      if (/^\d+$/.test(d)) return `${d} minutes`;
+      return d;
+    }
+    return '';
+  };
+
   const showAlert = (message, type = 'success') => {
     setAlert({ message, type });
     const timeout = type === 'danger' ? 8000 : 3000; // Show error messages longer
@@ -177,11 +191,21 @@ export default function AdminLanding() {
     
     // Pre-populate forms if editing
     if (action === 'editLesson' && item) {
+      // Pre-populate duration as a numeric value for the number input.
+      // Prefer duration_number (backend numeric), then try parsing duration string.
+      let durationValue = '';
+      if (item.duration_number !== undefined && item.duration_number !== null) {
+        durationValue = item.duration_number;
+      } else if (item.duration) {
+        const parsed = parseInt(String(item.duration), 10);
+        durationValue = Number.isNaN(parsed) ? '' : parsed;
+      }
+
       setLessonForm({
         title: item.title,
         description: item.description,
         courseId: item.course_id,
-        duration: item.duration,
+        duration: durationValue,
         orderSequence: item.order_sequence,
         videoUrl: item.video_url || '',
         status: item.status || 'published'
@@ -536,7 +560,7 @@ export default function AdminLanding() {
                         <td>
                           <Badge bg="info">{lesson.course_title || 'Unknown Course'}</Badge>
                         </td>
-                        <td>{lesson.duration}</td>
+                        <td>{getLessonDisplayDuration(lesson)}</td>
                         <td>#{lesson.order_sequence}</td>
                         <td>
                           <Badge bg={lesson.status === 'published' ? 'success' : 'warning'}>

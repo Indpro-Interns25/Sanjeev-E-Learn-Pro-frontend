@@ -19,7 +19,35 @@ export default function LessonForm({ lesson, onSubmit, isEdit = false }) {
 
   useEffect(() => {
     if (lesson && isEdit) {
-      setFormData(lesson);
+      // Normalize duration so the form shows minutes when lesson.duration is a number
+      const normalized = { ...lesson };
+      // Prefer explicit display fields if provided by backend
+      if (normalized.duration !== undefined && normalized.duration !== null) {
+        const dur = normalized.duration;
+        if (typeof dur === 'number' && !Number.isNaN(dur)) {
+          normalized.duration = `${dur} minutes`;
+        } else if (typeof dur === 'string') {
+          const trimmed = dur.trim();
+          if (/^\d+$/.test(trimmed)) {
+            normalized.duration = `${trimmed} minutes`;
+          } else {
+            normalized.duration = dur;
+          }
+        }
+      } else if (normalized.duration_display) {
+        // backend may send a ready-to-show display string
+        normalized.duration = normalized.duration_display;
+      } else if (normalized.duration_number !== undefined && normalized.duration_number !== null) {
+        // backend may send numeric minutes in duration_number
+        const dn = normalized.duration_number;
+        if (typeof dn === 'number' && !Number.isNaN(dn)) {
+          normalized.duration = `${dn} minutes`;
+        } else if (typeof dn === 'string' && /^\d+$/.test(dn.trim())) {
+          normalized.duration = `${dn.trim()} minutes`;
+        }
+      }
+
+      setFormData(normalized);
     }
   }, [lesson, isEdit]);
 
@@ -58,7 +86,31 @@ export default function LessonForm({ lesson, onSubmit, isEdit = false }) {
     setLoading(true);
 
     try {
-      await onSubmit(formData);
+      // Prepare a copy to avoid mutating state directly
+      const payload = { ...formData };
+
+      // If duration is a human readable string like '45 minutes' or just '45', parse and set numeric and display fields
+      if (payload.duration !== undefined && payload.duration !== null) {
+        const durVal = String(payload.duration).trim();
+
+        // If it's purely numeric, use that as minutes
+        if (/^\d+$/.test(durVal)) {
+          payload.duration_number = parseInt(durVal, 10);
+          payload.duration_display = `${durVal} minutes`;
+        } else {
+          // Try to extract leading number (e.g., '45 minutes' -> 45)
+          const m = durVal.match(/(\d+)\s*/);
+          if (m) {
+            payload.duration_number = parseInt(m[1], 10);
+            payload.duration_display = `${m[1]} minutes`;
+          } else {
+            // fallback: don't set duration_number, but preserve display
+            payload.duration_display = durVal;
+          }
+        }
+      }
+
+      await onSubmit(payload);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -220,7 +272,8 @@ LessonForm.propTypes = {
   lesson: PropTypes.shape({
     title: PropTypes.string,
     description: PropTypes.string,
-    duration: PropTypes.string,
+    // Duration can be a human readable string (e.g. '45 minutes') or an integer number of minutes
+    duration: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     content: PropTypes.string,
     videoUrl: PropTypes.string,
     order: PropTypes.number,
