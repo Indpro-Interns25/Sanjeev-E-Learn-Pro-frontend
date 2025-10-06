@@ -26,20 +26,31 @@ apiClient.interceptors.request.use(
     
     // Check if this is an admin endpoint
     const isAdminEndpoint = config.url?.includes('/admin/');
-    
-    // Use appropriate token based on endpoint
-    const token = isAdminEndpoint 
-      ? localStorage.getItem('adminToken')
-      : localStorage.getItem('token');
-      
+
+    // Development-only bypass: if localStorage.bypassAdminAuth === 'true', do not attach admin token
+    // This is useful for quickly checking whether endpoints exist or are mounted without auth blocking.
+    const bypassAdminAuth = typeof window !== 'undefined' && localStorage.getItem('bypassAdminAuth') === 'true';
+
+    // Use appropriate token based on endpoint unless bypass is enabled
+    let token;
+    if (isAdminEndpoint && !bypassAdminAuth) {
+      token = localStorage.getItem('adminToken');
+    } else if (!isAdminEndpoint) {
+      token = localStorage.getItem('token');
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else if (isAdminEndpoint && bypassAdminAuth) {
+      // Informative log only in development
+      console.warn('🛠️ Bypassing admin Authorization header for this request (development only).');
     }
-    
+
     // Debug logging for admin endpoints
     if (isAdminEndpoint) {
       console.warn('🔐 Admin API call:', config.method?.toUpperCase(), config.url);
-      console.warn('🎫 Using admin token:', token ? 'Present' : 'Missing');
+      if (bypassAdminAuth) console.warn('🎫 Admin auth bypass active');
+      else console.warn('🎫 Using admin token:', token ? 'Present' : 'Missing');
     }
     
     return config;
