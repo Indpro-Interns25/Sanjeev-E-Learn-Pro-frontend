@@ -1,12 +1,37 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import CourseForm from '../../components/forms/CourseForm';
-import { createCourseAdmin } from '../../services/admin';
+import { createCourseAdmin, updateCourseAdmin } from '../../services/admin';
+import { getCourseById } from '../../services/courses';
 
 export default function AddCourse() {
   const navigate = useNavigate();
   const [alert, setAlert] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null);
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // If navigated here with state or query param ?id=..., enable edit
+  useEffect(() => {
+    const idFromQuery = searchParams.get('id');
+    const stateId = location.state && location.state.courseId;
+    const courseId = stateId || idFromQuery;
+    if (courseId) {
+      setIsEditMode(true);
+      // Fetch course data to prefill form
+      (async () => {
+        try {
+          const data = await getCourseById(courseId);
+          setEditingCourse(data);
+        } catch (err) {
+          console.error('Failed to load course for editing:', err);
+          setAlert({ message: 'Failed to load course for editing: ' + (err.message || err), type: 'danger' });
+        }
+      })();
+    }
+  }, [location.state, searchParams]);
 
   const showAlert = (message, type = 'success') => {
     setAlert({ message, type });
@@ -14,21 +39,27 @@ export default function AddCourse() {
   };
 
   const handleCourseSubmit = async (courseData) => {
-    console.warn('🚀 AddCourse: submit handler called with:', courseData);
+    console.warn('🚀 AddCourse: submit handler called with:', courseData, 'isEditMode=', isEditMode);
     try {
-      const result = await createCourseAdmin(courseData);
-      console.warn('🚀 AddCourse: createCourseAdmin result:', result);
-      showAlert('Course created successfully!', 'success');
+      if (isEditMode && editingCourse && editingCourse.id) {
+        const result = await updateCourseAdmin(editingCourse.id, courseData);
+        console.warn('🚀 AddCourse: updateCourseAdmin result:', result);
+        showAlert('Course updated successfully!', 'success');
+      } else {
+        const result = await createCourseAdmin(courseData);
+        console.warn('🚀 AddCourse: createCourseAdmin result:', result);
+        showAlert('Course created successfully!', 'success');
+      }
 
       // Navigate back to admin dashboard courses section after 2 seconds
       setTimeout(() => {
         navigate('/admin-dashboard');
       }, 2000);
     } catch (error) {
-      console.error('🚨 AddCourse: createCourseAdmin error:', error);
+      console.error('🚨 AddCourse: course save error:', error);
       // Show detailed message when available
       const detailed = error.response?.data || error.message || String(error);
-      showAlert(`Error creating course: ${detailed}`, 'danger');
+      showAlert(`Error saving course: ${detailed}`, 'danger');
     }
   };
 
@@ -82,7 +113,8 @@ export default function AddCourse() {
               <Card.Body className="p-4">
                 <CourseForm 
                   onSubmit={handleCourseSubmit}
-                  isEdit={false}
+                  isEdit={isEditMode}
+                  course={editingCourse}
                 />
                 
                 <div className="mt-4 pt-3 border-top">

@@ -236,6 +236,63 @@ export async function createInstructor(instructorData) {
 }
 
 /**
+ * Update an existing instructor (admin)
+ * @param {number} instructorId - Instructor ID
+ * @param {Object} instructorData - Updated instructor data
+ * @returns {Promise<Object>} Updated instructor object
+ */
+export async function updateInstructor(instructorId, instructorData) {
+  try {
+    console.warn(`✏️ Updating instructor ${instructorId} via API...`, instructorData);
+    const response = await apiClient.put(`/api/admin/instructors/${instructorId}`, instructorData);
+    console.warn('✅ Instructor updated successfully:', response.data);
+
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    return response.data;
+  } catch (error) {
+    console.error('🚨 Failed to update instructor:', error);
+    if (error.response?.status === 404) {
+      throw new Error('⚠️ API Endpoint Missing: PUT /api/admin/instructors/:id is not implemented on the backend.');
+    }
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
+      throw new Error('🔌 Cannot connect to backend. Please ensure the backend server is running on http://localhost:3002');
+    }
+    const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to update instructor';
+    throw new Error(message);
+  }
+}
+
+/**
+ * Delete an instructor (admin)
+ * @param {number} instructorId - Instructor ID
+ * @returns {Promise<Object>} Delete response
+ */
+export async function deleteInstructor(instructorId) {
+  try {
+    console.warn(`🗑️ Deleting instructor ${instructorId} via API...`);
+    const response = await apiClient.delete(`/api/admin/instructors/${instructorId}`);
+    console.warn('✅ Instructor deletion response:', response.data);
+
+    if (response.data && response.data.success) {
+      return response.data;
+    }
+    return response.data || { success: true, message: 'Instructor deleted' };
+  } catch (error) {
+    console.error('🚨 Failed to delete instructor:', error);
+    if (error.response?.status === 404) {
+      throw new Error('Delete instructor API endpoint not found. Please contact the backend developer to implement the DELETE /api/admin/instructors/:id route.');
+    }
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
+      throw new Error('Cannot connect to the server. Please check if the backend is running on http://localhost:3002');
+    }
+    const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to delete instructor';
+    throw new Error(message);
+  }
+}
+
+/**
  * Create a new course (admin)
  * @param {Object} courseData - Course data
  * @returns {Promise<Object>} Created course object
@@ -272,6 +329,47 @@ export async function createCourseAdmin(courseData) {
     }
 
     const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to create course';
+    throw new Error(message);
+  }
+}
+
+/**
+ * Update an existing course (admin)
+ * @param {number} courseId - Course ID
+ * @param {Object} courseData - Updated course data
+ * @returns {Promise<Object>} Updated course object
+ */
+export async function updateCourseAdmin(courseId, courseData) {
+  try {
+    console.warn(`✏️ Updating admin course ${courseId} via API...`, courseData);
+    const response = await apiClient.put(`/api/admin/courses/${courseId}`, courseData);
+    console.warn('✅ Admin course updated successfully:', response.data);
+
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('🚨 Failed to update admin course:', error);
+
+    if (error.response?.status === 404) {
+      throw new Error('⚠️ API Endpoint Missing: PUT /api/admin/courses/:id is not implemented on the backend.');
+    }
+
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
+      throw new Error('🔌 Cannot connect to backend. Please ensure the backend server is running on http://localhost:3002');
+    }
+
+    if (error.response?.status === 401) {
+      throw new Error('Unauthorized. Please login as admin and try again.');
+    }
+
+    if (error.response?.status === 403) {
+      throw new Error('Forbidden. You do not have permission to update courses.');
+    }
+
+    const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to update course';
     throw new Error(message);
   }
 }
@@ -402,6 +500,199 @@ export async function getAllLessonsAdmin() {
                    error.message || 
                    'Failed to fetch lessons';
     throw new Error(message);
+  }
+}
+
+/**
+ * Get a single student by ID (admin)
+ * @param {number|string} studentId
+ * @returns {Promise<Object>} Student object
+ */
+export async function getStudentById(studentId) {
+  try {
+    console.warn(`👤 Fetching student ${studentId} from API...`);
+    const response = await apiClient.get(`/api/admin/students/${studentId}`);
+    console.warn('👤 Student response:', response.data);
+
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data;
+    }
+
+    // Fallback for raw object
+    return response.data || null;
+  } catch (error) {
+    console.error('🚨 Failed to fetch student:', error);
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
+      throw new Error('Cannot connect to the server. Please check if the backend is running on http://localhost:3002');
+    }
+
+    if (error.response?.status === 404) {
+      throw new Error('Student not found');
+    }
+
+    const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to fetch student';
+    throw new Error(message);
+  }
+}
+
+/**
+ * Create a student (admin)
+ * @param {Object} studentData
+ * @returns {Promise<Object>} created student
+ */
+export async function createStudent(studentData) {
+  try {
+    console.warn('➕ Creating student via API...', studentData);
+
+    // Try common endpoint variants in order to be resilient to backend route naming
+    const endpoints = ['/api/admin/students', '/api/students', '/api/admin/student', '/api/student'];
+    let lastError;
+    for (const ep of endpoints) {
+      try {
+        const response = await apiClient.post(ep, studentData);
+        console.warn(`✅ Student created via ${ep}:`, response.data);
+        if (response.data && response.data.success && response.data.data) return response.data.data;
+        return response.data;
+      } catch (err) {
+        lastError = err;
+        // If endpoint returned 404 because route not implemented, try next
+        if (err.response?.status === 404) {
+          console.warn(`Endpoint ${ep} returned 404, trying next variant...`);
+          continue;
+        }
+        // For auth/network/server errors, break and report immediately
+        if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') {
+          throw new Error('🔌 Cannot connect to backend. Please ensure the backend server is running on http://localhost:3002');
+        }
+        if (err.response?.status === 401) {
+          throw new Error('Unauthorized. Please login as admin and try again.');
+        }
+        if (err.response?.status === 403) {
+          throw new Error('Forbidden. You do not have permission to create students.');
+        }
+        // otherwise capture and rethrow after trying other endpoints
+        console.warn(`Attempt to POST ${ep} failed:`, err.message || err);
+      }
+    }
+
+    // If we've tried all endpoints and none worked, throw a helpful error
+    const message = lastError?.response?.data?.message || lastError?.response?.data?.error || lastError?.message || 'Failed to create student (all endpoint variants failed)';
+    if (lastError?.response?.status === 404) {
+      throw new Error('⚠️ API Endpoint Missing: POST /api/admin/students (or equivalent) is not implemented on the backend. Tried several common variants.');
+    }
+    throw new Error(message);
+  } catch (error) {
+    console.error('🚨 Failed to create student:', error);
+    // Re-throw any Errors so callers can show user-friendly messages
+    throw error instanceof Error ? error : new Error('Failed to create student');
+  }
+}
+
+/**
+ * Update a student (admin)
+ * @param {number|string} studentId
+ * @param {Object} studentData
+ * @returns {Promise<Object>} updated student
+ */
+export async function updateStudent(studentId, studentData) {
+  try {
+    console.warn(`✏️ Updating student ${studentId} via API...`, studentData);
+
+    const id = String(studentId).trim();
+    const endpoints = [`/api/admin/students/${id}`, `/api/admin/student/${id}`, `/api/students/${id}`, `/api/student/${id}`];
+    let lastError;
+    for (const ep of endpoints) {
+      try {
+        const response = await apiClient.put(ep, studentData);
+        console.warn(`✅ Student updated via ${ep}:`, response.data);
+        if (response.data && response.data.success && response.data.data) return response.data.data;
+        return response.data;
+      } catch (err) {
+        lastError = err;
+        if (err.response?.status === 404) {
+          console.warn(`PUT ${ep} returned 404, trying next variant...`);
+          continue;
+        }
+        if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') {
+          throw new Error('🔌 Cannot connect to backend. Please ensure the backend server is running on http://localhost:3002');
+        }
+        if (err.response?.status === 401) {
+          throw new Error('Unauthorized. Please login as admin and try again.');
+        }
+        if (err.response?.status === 403) {
+          throw new Error('Forbidden. You do not have permission to update this student.');
+        }
+        console.warn(`Attempt to PUT ${ep} failed:`, err.message || err);
+      }
+    }
+
+    const message = lastError?.response?.data?.message || lastError?.response?.data?.error || lastError?.message || 'Failed to update student (all endpoint variants failed)';
+    if (lastError?.response?.status === 404) {
+      throw new Error('⚠️ API Endpoint Missing: PUT /api/admin/students/:id is not implemented on the backend. Tried multiple common variants.');
+    }
+    throw new Error(message);
+  } catch (error) {
+    console.error('🚨 Failed to update student:', error);
+    throw error instanceof Error ? error : new Error('Failed to update student');
+  }
+}
+
+/**
+ * Delete a student (admin)
+ * @param {number|string} studentId
+ * @returns {Promise<Object>} delete response
+ */
+export async function deleteStudent(studentId) {
+  try {
+    console.warn(`🗑️ Deleting student ${studentId} via API...`);
+
+    const id = String(studentId).trim();
+    // Try several common delete endpoints to be resilient to backend route naming
+    const endpoints = [`/api/admin/students/${id}`, `/api/admin/student/${id}`, `/api/students/${id}`, `/api/student/${id}`];
+    let lastError;
+    for (const ep of endpoints) {
+      try {
+        const response = await apiClient.delete(ep);
+        console.warn(`✅ Student deleted via ${ep}:`, response.data);
+        if (response.data && response.data.success) return response.data;
+        return response.data || { success: true, message: 'Student deleted' };
+      } catch (err) {
+        lastError = err;
+        if (err.response?.status === 404) {
+          // If 404 message indicates 'not found' this means endpoint exists but id is missing
+          const bodyMessage = String(err.response?.data?.message || err.response?.data?.error || '').toLowerCase();
+          if (bodyMessage.includes('not found') || bodyMessage.includes('no student') || bodyMessage.includes('student')) {
+            // Endpoint exists but student not found
+            console.warn(`${ep} responded 404 and indicates student not found.`);
+            throw new Error('Student not found');
+          }
+          // Route may not exist; try next variant
+          console.warn(`${ep} returned 404 (route may not exist), trying next variant...`);
+          continue;
+        }
+        if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') {
+          throw new Error('Cannot connect to the server. Please check if the backend is running on http://localhost:3002');
+        }
+        if (err.response?.status === 401) {
+          throw new Error('Unauthorized. Please login as admin again.');
+        }
+        if (err.response?.status === 403) {
+          throw new Error('Forbidden. You do not have permission to delete this student.');
+        }
+        console.warn(`Attempt to DELETE ${ep} failed:`, err.message || err);
+      }
+    }
+
+    const message = lastError?.response?.data?.message || lastError?.response?.data?.error || lastError?.message || 'Failed to delete student (all endpoint variants failed)';
+    if (lastError?.response?.status === 404) {
+      throw new Error('Delete student API endpoint not found. Please contact the backend developer to implement DELETE /api/admin/students/:id (or similar).');
+    }
+    throw new Error(message);
+  } catch (error) {
+    console.error('🚨 Failed to delete student:', error);
+    // If we threw a friendly Error earlier (like 'Student not found'), propagate that
+    if (error instanceof Error) throw error;
+    throw new Error('Failed to delete student');
   }
 }
 

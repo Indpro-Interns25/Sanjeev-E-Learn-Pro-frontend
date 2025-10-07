@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Card, Button, Form, Badge } from 'react-bootstrap';
 import { 
-  getCourseComments, 
-  getLessonComments, 
-  addComment, 
-  addReply, 
-  likeComment 
-} from '../data/mockComments';
+  getCourseComments as getCourseCommentsSvc, 
+  getLessonComments as getLessonCommentsSvc, 
+  addComment as addCommentSvc, 
+  addReply as addReplySvc, 
+  likeComment as likeCommentSvc 
+} from '../services/comments';
 import { useAuth } from '../hooks/useAuth';
 import '../styles/comments.css';
 
@@ -42,19 +42,39 @@ const Comments = ({ courseId, lessonId = null }) => {
   const [comments, setComments] = useState([]);
 
   useEffect(() => {
-    const fetchedComments = lessonId 
-      ? getLessonComments(courseId, lessonId) 
-      : getCourseComments(courseId);
-    setComments(fetchedComments);
+    let mounted = true;
+    const load = async () => {
+      try {
+        const fetchedComments = lessonId 
+          ? await getLessonCommentsSvc(courseId, lessonId) 
+          : await getCourseCommentsSvc(courseId);
+        if (mounted) setComments(fetchedComments || []);
+      } catch (err) {
+        console.error('Failed to load comments', err);
+      }
+    };
+    load();
+
+    // Listen for storage changes so comments added in another tab/session update live
+    const onStorage = (e) => {
+      if (e.key === 'mockComments_v1') {
+        (async () => {
+          const refreshed = lessonId ? await getLessonCommentsSvc(courseId, lessonId) : await getCourseCommentsSvc(courseId);
+          if (mounted) setComments(refreshed || []);
+        })();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => { mounted = false; window.removeEventListener('storage', onStorage); };
   }, [courseId, lessonId]);
 
-  const handleSubmitComment = (e) => {
+  const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!user || !newComment.trim()) return;
 
     const comment = {
-      courseId: parseInt(courseId),
-      lessonId: lessonId ? parseInt(lessonId) : null,
+      courseId: parseInt(courseId, 10),
+      lessonId: lessonId ? parseInt(lessonId, 10) : null,
       userId: user.id,
       userName: user.name,
       userAvatar: user.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&h=150&q=80',
@@ -62,13 +82,22 @@ const Comments = ({ courseId, lessonId = null }) => {
       rating: lessonId ? null : newRating
     };
 
-    const addedComment = addComment(comment);
-    setComments([addedComment, ...comments]);
+    // Optimistic UI: show the comment immediately
+    const optimistic = { id: Date.now(), ...comment, timestamp: new Date(), likes: 0, replies: [] };
+    setComments([optimistic, ...comments]);
     setNewComment('');
     setNewRating(5);
+
+    try {
+      const added = await addCommentSvc(comment);
+      // Replace optimistic item with server (or saved) version if IDs differ
+      setComments(prev => [added, ...prev.filter(c => c.id !== optimistic.id)]);
+    } catch (err) {
+      console.error('Failed to save comment to server, leaving optimistic copy.', err);
+    }
   };
 
-  const handleSubmitReply = (commentId) => {
+  const handleSubmitReply = async (commentId) => {
     if (!user || !replyText[commentId]?.trim()) return;
 
     const reply = {
@@ -78,15 +107,35 @@ const Comments = ({ courseId, lessonId = null }) => {
       comment: replyText[commentId]
     };
 
-    addReply(commentId, reply);
-    setComments([...comments]);
+    // Optimistic: append reply locally
+    setComments(prev => prev.map(c => c.id === commentId ? { ...c, replies: [...(c.replies||[]), { id: Date.now(), ...reply, timestamp: new Date(), likes: 0 }] } : c));
     setReplyText({ ...replyText, [commentId]: '' });
     setShowReplyForm({ ...showReplyForm, [commentId]: false });
+
+    try {
+      const added = await addReplySvc(commentId, reply);
+      // Replace last optimistic reply with server reply if needed
+      setComments(prev => prev.map(c => {
+        if (c.id !== commentId) return c;
+        const replies = c.replies || [];
+        // Replace optimistic (by same user & text) with server reply when IDs differ
+        const idx = replies.findIndex(r => r.userId === reply.userId && r.comment === reply.comment && !(r.id === added.id));
+        if (idx >= 0) replies[idx] = added;
+        return { ...c, replies };
+      }));
+    } catch (err) {
+      console.error('Failed to save reply to server, leaving optimistic copy.', err);
+    }
   };
 
-  const handleLike = (commentId) => {
-    likeComment(commentId);
-    setComments([...comments]);
+  const handleLike = async (commentId) => {
+    // Optimistic update
+    setComments(prev => prev.map(c => c.id === commentId ? { ...c, likes: (c.likes||0) + 1 } : c));
+    try {
+      await likeCommentSvc(commentId);
+    } catch (err) {
+      console.error('Failed to like comment on server, leaving optimistic count.', err);
+    }
   };
 
   const formatDate = (date) => {

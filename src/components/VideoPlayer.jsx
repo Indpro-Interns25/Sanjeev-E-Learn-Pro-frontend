@@ -271,19 +271,6 @@ export default function VideoPlayer({
         {title && (
           <Card.Header className="bg-dark text-light d-flex justify-content-between align-items-center">
             <h6 className="mb-0">{title}</h6>
-            {onProgress && (
-              <Button
-                variant="success"
-                size="sm"
-                onClick={() => {
-                  onProgress(100);
-                  console.warn('📺 YouTube video marked as 100% watched manually');
-                }}
-              >
-                <i className="bi bi-check-circle me-1"></i>
-                Mark as Watched
-              </Button>
-            )}
           </Card.Header>
         )}
         <div 

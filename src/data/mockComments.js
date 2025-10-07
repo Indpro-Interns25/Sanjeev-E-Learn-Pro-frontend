@@ -1,4 +1,7 @@
-export const mockComments = [
+const STORAGE_KEY = 'mockComments_v1';
+
+// Default seed data
+const initialComments = [
   // Course 1: Introduction to Web Development
   {
     id: 1,
@@ -351,28 +354,81 @@ export const mockComments = [
   }
 ];
 
+// Load comments from localStorage when available, otherwise use seed data
+let mockComments = [];
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // revive Date objects if necessary
+      parsed.forEach(c => {
+        if (c.timestamp) c.timestamp = new Date(c.timestamp);
+        if (c.replies && Array.isArray(c.replies)) {
+          c.replies.forEach(r => { if (r.timestamp) r.timestamp = new Date(r.timestamp); });
+        }
+      });
+      mockComments = parsed;
+      return;
+    }
+  } catch (e) {
+    // ignore parse errors and fall back to initial data
+    console.warn('Failed to load comments from localStorage, using seed data', e);
+  }
+
+  mockComments = initialComments.map(c => ({
+    ...c,
+    // ensure timestamp serializable to Date
+    timestamp: c.timestamp instanceof Date ? c.timestamp : new Date(c.timestamp),
+    replies: (c.replies || []).map(r => ({ ...r, timestamp: r.timestamp instanceof Date ? r.timestamp : new Date(r.timestamp) }))
+  }));
+  saveToStorage();
+}
+
+function saveToStorage() {
+  try {
+    const copy = mockComments.map(c => ({
+      ...c,
+      // Dates to ISO strings for storage
+      timestamp: c.timestamp instanceof Date ? c.timestamp.toISOString() : c.timestamp,
+      replies: (c.replies || []).map(r => ({ ...r, timestamp: r.timestamp instanceof Date ? r.timestamp.toISOString() : r.timestamp }))
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
+  } catch (e) {
+    console.warn('Failed to save comments to localStorage', e);
+  }
+}
+
+// Initialize storage-backed comments
+if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+  loadFromStorage();
+} else {
+  mockComments = initialComments;
+}
+
 // Helper functions
 export function getCommentsByCourse(courseId) {
-  return mockComments.filter(comment => comment.courseId === courseId);
+  return mockComments.filter(comment => comment.courseId === courseId).map(c => ({ ...c }));
 }
 
 export function getCourseComments(courseId) {
-  return mockComments.filter(comment => comment.courseId === courseId && comment.lessonId === null);
+  return mockComments.filter(comment => comment.courseId === courseId && comment.lessonId === null).map(c => ({ ...c }));
 }
 
 export function getLessonComments(courseId, lessonId) {
-  return mockComments.filter(comment => comment.courseId === courseId && comment.lessonId === lessonId);
+  return mockComments.filter(comment => comment.courseId === courseId && comment.lessonId === lessonId).map(c => ({ ...c }));
 }
 
 export function addComment(comment) {
   const newComment = {
-    id: mockComments.length + 1,
+    id: Date.now(),
     ...comment,
     timestamp: new Date(),
     likes: 0,
     replies: []
   };
   mockComments.push(newComment);
+  try { saveToStorage(); } catch { /* ignore */ }
   return newComment;
 }
 
@@ -386,6 +442,7 @@ export function addReply(commentId, reply) {
       likes: 0
     };
     comment.replies.push(newReply);
+  try { saveToStorage(); } catch { /* ignore */ }
     return newReply;
   }
   return null;
@@ -395,6 +452,7 @@ export function likeComment(commentId) {
   const comment = mockComments.find(c => c.id === commentId);
   if (comment) {
     comment.likes += 1;
+  try { saveToStorage(); } catch { /* ignore */ }
     return comment.likes;
   }
   return 0;
