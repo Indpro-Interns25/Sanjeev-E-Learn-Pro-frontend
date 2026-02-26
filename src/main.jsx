@@ -7,6 +7,7 @@ import App from './App'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles/globals.css'
 import './styles/bootstrap-overrides.css'
+import './styles/dark-mode.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

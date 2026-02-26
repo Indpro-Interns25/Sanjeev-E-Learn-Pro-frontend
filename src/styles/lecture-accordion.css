@@ -1,0 +1,148 @@
+/* ========================================
+   Lecture Accordion Styles
+   ======================================== */
+
+.lecture-accordion-container {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lecture-accordion-item {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.125));
+}
+
+.lecture-accordion-item:last-child {
+  border-bottom: none;
+}
+
+.lecture-accordion-item.active-lecture {
+  background: linear-gradient(90deg, rgba(13, 110, 253, 0.05) 0%, transparent 100%);
+  border-left: 3px solid var(--primary-color, #0d6efd);
+}
+
+.lecture-accordion-item .accordion-button {
+  padding: 1rem 1.25rem;
+  font-size: 0.95rem;
+  background-color: transparent;
+  transition: all 0.2s ease;
+}
+
+.lecture-accordion-item .accordion-button:not(.collapsed) {
+  background-color: rgba(13, 110, 253, 0.03);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+.lecture-accordion-item .accordion-button:hover {
+  background-color: var(--hover-overlay, rgba(0, 0, 0, 0.04));
+}
+
+.lecture-accordion-item .accordion-button.locked {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.lecture-accordion-item .accordion-button:focus {
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.lecture-accordion-item .accordion-button::after {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-left: auto;
+  background-size: 1.25rem;
+}
+
+.lecture-number {
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lecture-title {
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+.lecture-description {
+  padding: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.accordion-body {
+  padding: 1rem 1.25rem;
+  background-color: var(--bg-secondary, #f8f9fa);
+}
+
+/* Dark mode support */
+[data-theme="dark"] .lecture-accordion-item {
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .lecture-accordion-item.active-lecture {
+  background: linear-gradient(90deg, rgba(77, 148, 255, 0.1) 0%, transparent 100%);
+  border-left-color: var(--primary-color);
+}
+
+[data-theme="dark"] .accordion-body {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .lecture-accordion-item .accordion-button {
+  color: var(--text-primary);
+  background-color: transparent;
+}
+
+[data-theme="dark"] .lecture-accordion-item .accordion-button:not(.collapsed) {
+  background-color: rgba(77, 148, 255, 0.1);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .lecture-number .badge {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Hover animations */
+.lecture-accordion-item .accordion-button:hover .lecture-title {
+  color: var(--primary-color, #0d6efd);
+  transition: color 0.2s ease;
+}
+
+/* Progress bar animation */
+.progress-bar {
+  transition: width 0.6s ease;
+  background: linear-gradient(90deg, #0d6efd 0%, #0056b3 100%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .lecture-accordion-item .accordion-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .lecture-number {
+    min-width: 35px;
+  }
+  
+  .accordion-body {
+    padding: 0.75rem 1rem;
+  }
+}

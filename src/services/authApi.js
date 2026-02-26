@@ -67,8 +67,8 @@ export async function validateToken(token) {
     return response.data.user;
   } catch (error) {
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      // If backend is not running, remove invalid token and continue
-      localStorage.removeItem('token');
+      // Backend is temporarily unavailable — do NOT wipe the token.
+      // The caller (initAuth) will fall back to the saved user from localStorage.
       throw new Error('Backend API server is not running');
     }
     

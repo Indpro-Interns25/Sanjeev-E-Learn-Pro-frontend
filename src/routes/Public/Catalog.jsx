@@ -1,112 +1,58 @@
 import { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Card, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Form, Card, Spinner, Alert, Pagination, Button, ButtonGroup } from 'react-bootstrap';
 import { getAllCourses, getCourseCategories, formatCoursesData } from '../../services/courses';
 import { getUserEnrollments } from '../../services/enrollment';
 import { useAuth } from '../../hooks/useAuth';
 import CourseCard from '../../components/CourseCard';
 
 const LEVELS = ['All', 'Beginner', 'Intermediate', 'Advanced'];
+const COURSES_PER_PAGE = 8;
+const VIEW_MODES = { GRID: 'grid', LIST: 'list' };
 
 export default function Catalog() {
-  const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedLevel, setSelectedLevel] = useState('All');
-  const [courses, setCourses] = useState([]);
-  const [allCourses, setAllCourses] = useState([]); // Store all courses before filtering
-  const [enrolledCourseIds, setEnrolledCourseIds] = useState([]);
-  const [categories, setCategories] = useState(['All']);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searching, setSearching] = useState(false);
-
-  // Listen for enrollment changes (localStorage updates)
+  // Filter courses based on search and filters, then paginate
   useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === 'enrollments') {
-        console.warn('🔄 Enrollment storage changed, refreshing enrolled courses...');
-        // Re-fetch enrolled courses when enrollments change
-        if (user?.id) {
-          getUserEnrollments(user.id).then(enrollments => {
-            const enrolledIds = enrollments.map(enrollment => enrollment.course_id);
-            console.warn('🔄 Updated enrolled course IDs:', enrolledIds);
-            setEnrolledCourseIds(enrolledIds);
-          }).catch(error => {
-            console.warn('❌ Failed to refresh enrollments:', error);
-          });
-        }
-      }
-    };
+    const filterCourses = async () => {
+      let filteredCourses = allCourses.filter(course => !enrolledCourseIds.includes(course.id));
 
-    // Listen for storage events (from other tabs/windows)
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Listen for custom enrollment events (from same tab)
-    const handleEnrollmentChange = () => {
-      console.warn('🔄 Custom enrollment event detected, refreshing...');
-      if (user?.id) {
-        getUserEnrollments(user.id).then(enrollments => {
-          const enrolledIds = enrollments.map(enrollment => enrollment.course_id);
-          console.warn('🔄 Updated enrolled course IDs:', enrolledIds);
-          setEnrolledCourseIds(enrolledIds);
-        }).catch(error => {
-          console.warn('❌ Failed to refresh enrollments:', error);
-        });
-      }
-    };
-    
-    window.addEventListener('enrollmentChanged', handleEnrollmentChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('enrollmentChanged', handleEnrollmentChange);
-    };
-  }, [user?.id]);
-
-  // Fetch enrolled courses for current user
-  useEffect(() => {
-    const fetchEnrolledCourses = async () => {
-      if (!user?.id) {
-        console.warn('🚫 No user found for enrollment check');
-        setEnrolledCourseIds([]);
-        return;
+      // Search
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const searchWords = searchLower.split(' ').filter(word => word.length > 0);
+        filteredCourses = filteredCourses.filter(course =>
+          searchWords.some(word =>
+            course.title?.toLowerCase().includes(word) ||
+            course.description?.toLowerCase().includes(word) ||
+            course.category?.toLowerCase().includes(word) ||
+            course.instructor_name?.toLowerCase().includes(word)
+          ) ||
+          course.title?.toLowerCase().includes(searchLower) ||
+          course.description?.toLowerCase().includes(searchLower) ||
+          course.category?.toLowerCase().includes(searchLower) ||
+          course.instructor_name?.toLowerCase().includes(searchLower)
+        );
       }
 
-      try {
-        console.warn('📚 Fetching enrolled courses for user:', user.id);
-        const enrollments = await getUserEnrollments(user.id);
-        const enrolledIds = enrollments.map(enrollment => enrollment.course_id);
-        console.warn('✅ Enrolled course IDs:', enrolledIds);
-        setEnrolledCourseIds(enrolledIds);
-      } catch (error) {
-        console.warn('❌ Failed to fetch enrollments:', error);
-        setEnrolledCourseIds([]);
+      // Category filter
+      if (selectedCategory !== 'All') {
+        filteredCourses = filteredCourses.filter(course => course.category === selectedCategory);
       }
+
+      // Level filter
+      if (selectedLevel !== 'All') {
+        filteredCourses = filteredCourses.filter(course =>
+          (course.difficulty_level || course.level || 'beginner').toLowerCase() === selectedLevel.toLowerCase()
+        );
+      }
+
+      setCourses(filteredCourses);
+      setCurrentPage(1); // Reset to first page on filter/search change
     };
 
-    fetchEnrolledCourses();
-  }, [user?.id]);
-
-  // Fetch initial data
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Fetch courses and categories simultaneously
-        const [coursesResponse, categoriesResponse] = await Promise.allSettled([
-          getAllCourses({ sortBy: 'rating', sortOrder: 'desc' }),
-          getCourseCategories()
-        ]);
-        
-        // Handle courses
-        if (coursesResponse.status === 'fulfilled') {
-          const formattedCourses = formatCoursesData(coursesResponse.value);
-          setAllCourses(formattedCourses);
-          
-          // Filter out enrolled courses for the current user
-          const availableCourses = formattedCourses.filter(course => 
+    // Debounce search/filter
+    const timeoutId = setTimeout(filterCourses, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, selectedCategory, selectedLevel, allCourses, enrolledCourseIds]);
             !enrolledCourseIds.includes(course.id)
           );
           console.warn('📋 Total courses:', formattedCourses.length);
@@ -254,6 +200,10 @@ export default function Catalog() {
     );
   }
 
+  // Pagination logic
+  const totalPages = Math.ceil(courses.length / COURSES_PER_PAGE);
+  const paginatedCourses = courses.slice((currentPage - 1) * COURSES_PER_PAGE, currentPage * COURSES_PER_PAGE);
+
   return (
     <Container className="py-5">
       <h1 className="mb-4">Course Catalog</h1>
@@ -265,8 +215,8 @@ export default function Catalog() {
         </Alert>
       )}
 
-      <Row className="mb-4">
-        <Col md={4}>
+      <Row className="mb-4 align-items-end">
+        <Col md={4} className="mb-2 mb-md-0">
           <Form.Control
             type="search"
             placeholder="Search courses..."
@@ -275,7 +225,7 @@ export default function Catalog() {
             disabled={loading}
           />
         </Col>
-        <Col md={4}>
+        <Col md={3} className="mb-2 mb-md-0">
           <Form.Select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -286,7 +236,7 @@ export default function Catalog() {
             ))}
           </Form.Select>
         </Col>
-        <Col md={4}>
+        <Col md={3} className="mb-2 mb-md-0">
           <Form.Select
             value={selectedLevel}
             onChange={(e) => setSelectedLevel(e.target.value)}
@@ -297,6 +247,24 @@ export default function Catalog() {
             ))}
           </Form.Select>
         </Col>
+        <Col md={2} className="text-end">
+          <ButtonGroup>
+            <Button
+              variant={viewMode === VIEW_MODES.GRID ? 'primary' : 'outline-primary'}
+              onClick={() => setViewMode(VIEW_MODES.GRID)}
+              aria-label="Grid view"
+            >
+              <i className="bi bi-grid-3x3-gap-fill"></i>
+            </Button>
+            <Button
+              variant={viewMode === VIEW_MODES.LIST ? 'primary' : 'outline-primary'}
+              onClick={() => setViewMode(VIEW_MODES.LIST)}
+              aria-label="List view"
+            >
+              <i className="bi bi-list-ul"></i>
+            </Button>
+          </ButtonGroup>
+        </Col>
       </Row>
 
       {searching && (
@@ -306,15 +274,25 @@ export default function Catalog() {
         </div>
       )}
 
-      {!loading && !error && courses.length > 0 ? (
-        <Row xs={1} md={2} lg={3} className="g-4">
-          {courses.map(course => (
-            <Col key={course.id}>
-              <CourseCard course={course} />
-            </Col>
-          ))}
-        </Row>
-      ) : !loading && !error && courses.length === 0 ? (
+      {!loading && !error && paginatedCourses.length > 0 ? (
+        viewMode === VIEW_MODES.GRID ? (
+          <Row xs={1} md={2} lg={3} xl={4} className="g-4">
+            {paginatedCourses.map(course => (
+              <Col key={course.id}>
+                <CourseCard course={course} />
+              </Col>
+            ))}
+          </Row>
+        ) : (
+          <div className="course-list-view">
+            {paginatedCourses.map(course => (
+              <div key={course.id} className="mb-4">
+                <CourseCard course={course} />
+              </div>
+            ))}
+          </div>
+        )
+      ) : !loading && !error && paginatedCourses.length === 0 ? (
         <Card body className="text-center py-5">
           <div className="text-muted">
             <i className="bi bi-search display-4"></i>
@@ -323,6 +301,27 @@ export default function Catalog() {
           </div>
         </Card>
       ) : null}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="d-flex justify-content-center mt-4">
+          <Pagination>
+            <Pagination.First onClick={() => setCurrentPage(1)} disabled={currentPage === 1} />
+            <Pagination.Prev onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} />
+            {Array.from({ length: totalPages }, (_, i) => (
+              <Pagination.Item
+                key={i + 1}
+                active={currentPage === i + 1}
+                onClick={() => setCurrentPage(i + 1)}
+              >
+                {i + 1}
+              </Pagination.Item>
+            ))}
+            <Pagination.Next onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} />
+            <Pagination.Last onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} />
+          </Pagination>
+        </div>
+      )}
     </Container>
   );
 }

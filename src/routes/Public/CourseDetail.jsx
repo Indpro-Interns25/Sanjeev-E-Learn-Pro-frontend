@@ -24,6 +24,13 @@ export default function CourseDetail() {
   const [realEnrollmentCount, setRealEnrollmentCount] = useState(0);
   const [loadingEnrollmentCount, setLoadingEnrollmentCount] = useState(true);
 
+  // Review/Rating state
+  const [reviews, setReviews] = useState([]);
+  const [newRating, setNewRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [newComment, setNewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
@@ -155,6 +162,41 @@ export default function CourseDetail() {
       window.removeEventListener('enrollmentChanged', handleEnrollmentChange);
     };
   }, [courseId, user]);
+
+  // Load reviews from localStorage
+  useEffect(() => {
+    if (!courseId) return;
+    try {
+      const stored = localStorage.getItem(`reviews_${courseId}`);
+      if (stored) setReviews(JSON.parse(stored));
+    } catch { /* ignore */ }
+  }, [courseId]);
+
+  const handleSubmitReview = (e) => {
+    e.preventDefault();
+    if (!newRating || !newComment.trim()) return;
+    setSubmittingReview(true);
+    const review = {
+      id: Date.now(),
+      userId: user?.id || user?.user_id,
+      userName: user?.name || user?.username || 'Anonymous',
+      rating: newRating,
+      comment: newComment.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [review, ...reviews];
+    setReviews(updated);
+    localStorage.setItem(`reviews_${courseId}`, JSON.stringify(updated));
+    setNewRating(0);
+    setNewComment('');
+    setSubmittingReview(false);
+  };
+
+  const deleteReview = (id) => {
+    const updated = reviews.filter(r => r.id !== id);
+    setReviews(updated);
+    localStorage.setItem(`reviews_${courseId}`, JSON.stringify(updated));
+  };
 
   const showAlert = (message, type = 'success') => {
     setAlert({ message, type });
@@ -406,7 +448,161 @@ export default function CourseDetail() {
 
               <Tab.Pane eventKey="reviews">
                 <div className="py-3">
-                  <Comments courseId={courseId} />
+                  {/* Aggregate Rating Summary */}
+                  {(() => {
+                    const avg = reviews.length
+                      ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+                      : null;
+                    const dist = [5, 4, 3, 2, 1].map(star => ({
+                      star,
+                      count: reviews.filter(r => r.rating === star).length,
+                    }));
+                    return (
+                      <div className="mb-4 p-4 rounded-4 border">
+                        <h5 className="fw-bold mb-3"><i className="bi bi-star-half me-2 text-warning"></i>Course Ratings</h5>
+                        {reviews.length === 0 ? (
+                          <p className="text-muted mb-0">No ratings yet. Be the first to review!</p>
+                        ) : (
+                          <div className="d-flex align-items-center gap-4 flex-wrap">
+                            <div className="text-center">
+                              <div style={{ fontSize: '3.5rem', fontWeight: 800, lineHeight: 1, color: '#f5a623' }}>{avg}</div>
+                              <div className="text-warning fs-5">
+                                {[1,2,3,4,5].map(s => (
+                                  <i key={s} className={`bi ${parseFloat(avg) >= s ? 'bi-star-fill' : parseFloat(avg) >= s - 0.5 ? 'bi-star-half' : 'bi-star'}`}></i>
+                                ))}
+                              </div>
+                              <small className="text-muted">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</small>
+                            </div>
+                            <div className="flex-grow-1" style={{ minWidth: 200 }}>
+                              {dist.map(({ star, count }) => (
+                                <div key={star} className="d-flex align-items-center gap-2 mb-1">
+                                  <span className="text-muted" style={{ width: 16, textAlign: 'right' }}>{star}</span>
+                                  <i className="bi bi-star-fill text-warning" style={{ fontSize: '0.75rem' }}></i>
+                                  <div className="progress flex-grow-1" style={{ height: 8, borderRadius: 4 }}>
+                                    <div
+                                      className="progress-bar bg-warning"
+                                      style={{ width: reviews.length ? `${(count / reviews.length) * 100}%` : '0%' }}
+                                    />
+                                  </div>
+                                  <span className="text-muted" style={{ width: 20, fontSize: '0.8rem' }}>{count}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* Submit Review Form */}
+                  {isAuthenticated ? (
+                    <Card className="border-0 shadow-sm rounded-4 mb-4">
+                      <Card.Body className="p-4">
+                        <h6 className="fw-bold mb-3"><i className="bi bi-pencil-square me-2"></i>Write a Review</h6>
+                        <form onSubmit={handleSubmitReview}>
+                          <div className="mb-3">
+                            <label className="form-label fw-semibold">Your Rating <span className="text-danger">*</span></label>
+                            <div className="d-flex gap-1" style={{ fontSize: '2rem' }}>
+                              {[1,2,3,4,5].map(star => (
+                                <i
+                                  key={star}
+                                  className={`bi ${
+                                    (hoverRating || newRating) >= star ? 'bi-star-fill text-warning' : 'bi-star text-secondary'
+                                  }`}
+                                  style={{ cursor: 'pointer', transition: 'color 0.15s' }}
+                                  onMouseEnter={() => setHoverRating(star)}
+                                  onMouseLeave={() => setHoverRating(0)}
+                                  onClick={() => setNewRating(star)}
+                                />
+                              ))}
+                              {newRating > 0 && (
+                                <span className="ms-2 align-self-center fs-6 text-muted">
+                                  {['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][newRating]}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="mb-3">
+                            <label className="form-label fw-semibold">Your Review <span className="text-danger">*</span></label>
+                            <textarea
+                              className="form-control"
+                              rows={4}
+                              placeholder="Share your experience with this course..."
+                              value={newComment}
+                              onChange={e => setNewComment(e.target.value)}
+                              maxLength={1000}
+                            />
+                            <div className="text-end text-muted" style={{ fontSize: '0.78rem' }}>{newComment.length}/1000</div>
+                          </div>
+                          <Button
+                            type="submit"
+                            variant="primary"
+                            disabled={!newRating || !newComment.trim() || submittingReview}
+                          >
+                            {submittingReview ? <><Spinner animation="border" size="sm" className="me-2" />Submitting...</> : <><i className="bi bi-send me-2"></i>Submit Review</>}
+                          </Button>
+                        </form>
+                      </Card.Body>
+                    </Card>
+                  ) : (
+                    <Alert variant="info" className="rounded-4">
+                      <i className="bi bi-info-circle me-2"></i>
+                      <strong>Sign in</strong> to leave a review.{' '}
+                      <a href="/login" className="alert-link">Login here</a>
+                    </Alert>
+                  )}
+
+                  {/* Reviews List */}
+                  <h6 className="fw-bold mb-3">
+                    <i className="bi bi-chat-quote me-2"></i>
+                    {reviews.length} Review{reviews.length !== 1 ? 's' : ''}
+                  </h6>
+                  {reviews.length === 0 ? (
+                    <div className="text-center py-5 text-muted">
+                      <i className="bi bi-chat-dots" style={{ fontSize: '3rem', opacity: 0.3 }}></i>
+                      <p className="mt-3">No reviews yet. Be the first!</p>
+                    </div>
+                  ) : (
+                    reviews.map(review => (
+                      <Card key={review.id} className="border-0 shadow-sm rounded-4 mb-3">
+                        <Card.Body className="p-3">
+                          <div className="d-flex align-items-start gap-3">
+                            <div
+                              className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+                              style={{ width: 42, height: 42, background: '#6366f1', fontSize: '1rem' }}
+                            >
+                              {review.userName.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-grow-1">
+                              <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                                <span className="fw-semibold">{review.userName}</span>
+                                <div className="d-flex align-items-center gap-2">
+                                  <span className="text-warning">
+                                    {[1,2,3,4,5].map(s => (
+                                      <i key={s} className={`bi ${review.rating >= s ? 'bi-star-fill' : 'bi-star'}`} style={{ fontSize: '0.8rem' }}></i>
+                                    ))}
+                                  </span>
+                                  <small className="text-muted">
+                                    {new Date(review.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                  </small>
+                                  {(user?.id === review.userId || user?.user_id === review.userId) && (
+                                    <button
+                                      className="btn btn-sm btn-outline-danger py-0 px-1"
+                                      style={{ fontSize: '0.75rem' }}
+                                      onClick={() => deleteReview(review.id)}
+                                    >
+                                      <i className="bi bi-trash"></i>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="mb-0 text-secondary" style={{ lineHeight: 1.6 }}>{review.comment}</p>
+                            </div>
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    ))
+                  )}
                 </div>
               </Tab.Pane>
             </Tab.Content>

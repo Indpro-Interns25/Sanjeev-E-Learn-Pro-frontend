@@ -3,6 +3,7 @@ import { Container, Card, Button, Alert } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import CourseForm from '../../components/forms/CourseForm';
 import { getCourseById } from '../../data/mockCourses';
+import DashboardLayout from '../../components/DashboardLayout';
 
 export default function CourseManage() {
   const { courseId } = useParams();
@@ -42,6 +43,7 @@ export default function CourseManage() {
   };
 
   return (
+    <DashboardLayout title={isEdit ? 'Edit Course' : 'New Course'}>
     <Container className="py-4">
       <div className="row justify-content-center">
         <div className="col-lg-8">
@@ -77,5 +79,6 @@ export default function CourseManage() {
         </div>
       </div>
     </Container>
+    </DashboardLayout>
   );
 }

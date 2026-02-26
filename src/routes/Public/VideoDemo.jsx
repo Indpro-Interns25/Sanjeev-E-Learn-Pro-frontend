@@ -1,8 +1,8 @@
 import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap';
 import { useState } from 'react';
-import VideoPlayer from '../components/VideoPlayer';
-import VideoPreviewModal from '../components/VideoPreviewModal';
-import { mockCourses } from '../data/mockCourses';
+import VideoPlayer from '../../components/VideoPlayer';
+import VideoPreviewModal from '../../components/VideoPreviewModal';
+import { mockCourses } from '../../data/mockCourses';
 
 export default function VideoDemo() {
   const [selectedCourse, setSelectedCourse] = useState(null);

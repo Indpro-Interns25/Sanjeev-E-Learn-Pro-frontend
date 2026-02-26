@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { Card, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
-// Corrected relative path to hooks (routes/Public is two levels below src)
 import { useAuth } from '../../hooks/useAuth';
 
 export default function Login() {
@@ -16,6 +15,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const from = location.state?.from?.pathname || '/catalog';
+  const sessionExpired = new URLSearchParams(location.search).get('expired') === '1';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,7 +38,13 @@ export default function Login() {
           <h3 className="text-center fw-bold mb-2">Sign In</h3>
           <p className="text-center text-muted mb-4">Access your account</p>
           
-          {location.state?.message && !error && (
+          {sessionExpired && !error && (
+            <Alert variant="warning" className="py-2 mb-3">
+              <i className="bi bi-clock-history me-2"></i>
+              Your session has expired. Please sign in again.
+            </Alert>
+          )}
+          {location.state?.message && !error && !sessionExpired && (
             <Alert variant="success" className="py-2 mb-3" dismissible onClose={() => navigate('.', { replace: true, state: {} })}>
               {location.state.message}
             </Alert>

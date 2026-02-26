@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, ProgressBar, Table, Container, Row, Col, Button, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import DashboardLayout from '../../components/DashboardLayout';
 import { getUserEnrollments } from '../../services/enrollment';
 import { getCourseById } from '../../services/courses';
 import { getLessonsByCourse } from '../../data/mockLessons';
@@ -175,25 +176,30 @@ export default function MyLearning() {
 
   if (!user) {
     return (
+      <DashboardLayout title="My Learning">
       <Container className="py-5 text-center">
         <p>Please log in to view your learning progress.</p>
       </Container>
+      </DashboardLayout>
     );
   }
 
   if (loading) {
     return (
+      <DashboardLayout title="My Learning">
       <Container className="py-5 text-center">
         <Spinner animation="border" role="status" className="mb-3">
           <span className="visually-hidden">Loading...</span>
         </Spinner>
         <p>Loading your enrolled courses...</p>
       </Container>
+      </DashboardLayout>
     );
   }
 
   if (error) {
     return (
+      <DashboardLayout title="My Learning">
       <Container className="py-5">
         <div className="alert alert-warning">
           <h4>Unable to load enrolled courses</h4>
@@ -203,11 +209,13 @@ export default function MyLearning() {
           </Button>
         </div>
       </Container>
+      </DashboardLayout>
     );
   }
 
   if (enrolledCourses.length === 0) {
     return (
+      <DashboardLayout title="My Learning">
       <Container className="py-5">
         <Row className="justify-content-center">
           <Col lg={8} className="text-center">
@@ -224,10 +232,12 @@ export default function MyLearning() {
           </Col>
         </Row>
       </Container>
+      </DashboardLayout>
     );
   }
 
   return (
+    <DashboardLayout title="My Learning">
     <Container className="py-5">
       <h1 className="mb-4">My Learning Progress</h1>
       {enrolledCourses.map(course => {
@@ -361,5 +371,6 @@ export default function MyLearning() {
         );
       })}
     </Container>
+    </DashboardLayout>
   );
 }

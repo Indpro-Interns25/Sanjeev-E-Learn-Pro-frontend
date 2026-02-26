@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Form, Button, Alert } from 'react-bootstrap';
+import { useState, useEffect, useRef } from 'react';
+import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import { getCourseCategories } from '../../services/courses';
 
@@ -9,15 +9,26 @@ const COURSE_STATUS = [
   { value: 'archived', label: 'Archived' }
 ];
 
+const COURSE_LEVELS = [
+  { value: 'beginner', label: 'Beginner' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'advanced', label: 'Advanced' }
+];
+
 export default function CourseForm({ course, onSubmit, isEdit = false }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: '',
+    level: 'beginner',
+    price: 0,
     thumbnail: '',
     duration: '',
     status: 'draft'
   });
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const fileInputRef = useRef(null);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -70,10 +81,16 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
         title: course.title || '',
         description: course.description || '',
         category: course.category || '',
+        level: course.level || 'beginner',
+        price: course.price || 0,
         thumbnail: course.thumbnail || '',
         duration: course.duration || '',
         status: course.status || 'draft'
       });
+      // Set preview if editing with existing thumbnail
+      if (course.thumbnail) {
+        setThumbnailPreview(course.thumbnail);
+      }
     }
   }, [course, isEdit]);
 
@@ -82,7 +99,7 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
     let finalValue = value;
 
     if (type === 'number') {
-      finalValue = parseFloat(value) || value;
+      finalValue = parseFloat(value) || 0;
     }
 
     setFormData(prev => ({
@@ -91,13 +108,40 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
     }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size should not exceed 5MB');
+        return;
+      }
+
+      setThumbnailFile(file);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setThumbnailPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+      setError(null);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      await onSubmit(formData);
+      // Pass both formData and thumbnailFile to parent
+      await onSubmit(formData, thumbnailFile);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -138,66 +182,146 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
         />
       </Form.Group>
 
-      <Form.Group className="mb-3" controlId="category">
-        <Form.Label>Category <span className="text-danger">*</span></Form.Label>
-        <Form.Select
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          required
-          disabled={loadingCategories}
-        >
-          {loadingCategories ? (
-            <option>Loading categories...</option>
-          ) : (
-            categories.map(category => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))
-          )}
-        </Form.Select>
-      </Form.Group>
+      <Row>
+        <Col md={6}>
+          <Form.Group className="mb-3" controlId="category">
+            <Form.Label>Category <span className="text-danger">*</span></Form.Label>
+            <Form.Select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              required
+              disabled={loadingCategories}
+            >
+              {loadingCategories ? (
+                <option>Loading categories...</option>
+              ) : (
+                categories.map(category => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))
+              )}
+            </Form.Select>
+          </Form.Group>
+        </Col>
+
+        <Col md={6}>
+          <Form.Group className="mb-3" controlId="level">
+            <Form.Label>Level <span className="text-danger">*</span></Form.Label>
+            <Form.Select
+              name="level"
+              value={formData.level}
+              onChange={handleChange}
+              required
+            >
+              {COURSE_LEVELS.map(level => (
+                <option key={level.value} value={level.value}>
+                  {level.label}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+        </Col>
+      </Row>
+
+      <Row>
+        <Col md={6}>
+          <Form.Group className="mb-3" controlId="price">
+            <Form.Label>Price (₹) <span className="text-danger">*</span></Form.Label>
+            <Form.Control
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              placeholder="Enter course price"
+              min="0"
+              step="1"
+              required
+            />
+            <Form.Text className="text-muted">Set to 0 for free courses</Form.Text>
+          </Form.Group>
+        </Col>
+
+        <Col md={6}>
+          <Form.Group className="mb-3" controlId="duration">
+            <Form.Label>Duration <span className="text-danger">*</span></Form.Label>
+            <Form.Control
+              type="text"
+              name="duration"
+              value={formData.duration}
+              onChange={handleChange}
+              placeholder="e.g., 6 hours, 3 weeks, etc."
+              required
+            />
+          </Form.Group>
+        </Col>
+      </Row>
 
       <Form.Group className="mb-3" controlId="thumbnail">
-        <Form.Label>Thumbnail URL <span className="text-danger">*</span></Form.Label>
+        <Form.Label>Course Thumbnail <span className="text-danger">*</span></Form.Label>
         <Form.Control
-          type="url"
-          name="thumbnail"
-          value={formData.thumbnail}
-          onChange={handleChange}
-          placeholder="Enter thumbnail image URL"
-          required
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          required={!isEdit && !thumbnailPreview}
         />
+        <Form.Text className="text-muted">
+          Upload an image (JPG, PNG, etc.) Max size: 5MB
+        </Form.Text>
+        
+        {thumbnailPreview && (
+          <div className="mt-3">
+            <p className="mb-2 text-muted small">Preview:</p>
+            <div 
+              className="position-relative d-inline-block"
+              style={{ maxWidth: '100%' }}
+            >
+              <img 
+                src={thumbnailPreview} 
+                alt="Thumbnail preview" 
+                className="img-thumbnail"
+                style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'cover' }}
+              />
+              <Button
+                variant="danger"
+                size="sm"
+                className="position-absolute top-0 end-0 m-2"
+                onClick={() => {
+                  setThumbnailFile(null);
+                  setThumbnailPreview(null);
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                  }
+                }}
+              >
+                <i className="bi bi-trash" />
+              </Button>
+            </div>
+          </div>
+        )}
       </Form.Group>
 
-      <Form.Group className="mb-3" controlId="duration">
-        <Form.Label>Duration <span className="text-danger">*</span></Form.Label>
-        <Form.Control
-          type="text"
-          name="duration"
-          value={formData.duration}
-          onChange={handleChange}
-          placeholder="e.g., 6 hours, 3 weeks, etc."
-          required
-        />
-      </Form.Group>
-
-      <Form.Group className="mb-3" controlId="status">
-        <Form.Label>Status <span className="text-danger">*</span></Form.Label>
-        <Form.Select
-          name="status"
-          value={formData.status}
-          onChange={handleChange}
-          required
-        >
-          {COURSE_STATUS.map(status => (
-            <option key={status.value} value={status.value}>
-              {status.label}
-            </option>
-          ))}
-        </Form.Select>
-      </Form.Group>
+      <Row>
+        <Col md={6}>
+          <Form.Group className="mb-3" controlId="status">
+            <Form.Label>Status <span className="text-danger">*</span></Form.Label>
+            <Form.Select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              required
+            >
+              {COURSE_STATUS.map(status => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+        </Col>
+      </Row>
 
       <Button
         variant="primary"
@@ -222,6 +346,8 @@ CourseForm.propTypes = {
     title: PropTypes.string,
     description: PropTypes.string,
     category: PropTypes.string,
+    level: PropTypes.string,
+    price: PropTypes.number,
     thumbnail: PropTypes.string,
     duration: PropTypes.string,
     status: PropTypes.string

@@ -2,6 +2,7 @@ import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { mockCourses } from '../../data/mockCourses';
+import DashboardLayout from '../../components/DashboardLayout';
 
 export default function InstructorDashboard() {
   const { user } = useAuth();
@@ -17,6 +18,7 @@ export default function InstructorDashboard() {
   };
 
   return (
+    <DashboardLayout title="Instructor Dashboard">
     <Container className="py-4">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
         <div className="d-flex align-items-center gap-3">
@@ -96,15 +98,33 @@ export default function InstructorDashboard() {
                       {course.rating}
                     </small>
                   </div>
-                  <div className="d-flex gap-2">
+                  <div className="d-flex gap-2 flex-wrap">
+                    <Button
+                      as={Link}
+                      to={`/instructor/courses/${course.id}/lectures`}
+                      variant="primary"
+                      size="sm"
+                      className="flex-grow-1"
+                    >
+                      <i className="bi bi-camera-video me-1"></i>Lectures
+                    </Button>
                     <Button
                       as={Link}
                       to={`/instructor/courses/${course.id}/lessons`}
                       variant="outline-secondary"
                       size="sm"
-                      className="w-100"
+                      className="flex-grow-1"
                     >
-                      Manage Lessons
+                      <i className="bi bi-list-ul me-1"></i>Lessons
+                    </Button>
+                    <Button
+                      as={Link}
+                      to={`/instructor/courses/${course.id}/edit`}
+                      variant="outline-primary"
+                      size="sm"
+                      className="flex-grow-1"
+                    >
+                      <i className="bi bi-pencil me-1"></i>Edit
                     </Button>
                   </div>
                 </Card.Body>
@@ -125,5 +145,6 @@ export default function InstructorDashboard() {
         </Card>
       )}
     </Container>
+    </DashboardLayout>
   );
 }

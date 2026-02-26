@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, ListGroup } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { mockCourses } from '../../data/mockCourses';
+import DashboardLayout from '../../components/DashboardLayout';
 
 export default function Progress() {
   const { user } = useAuth();
@@ -42,6 +43,7 @@ export default function Progress() {
   ];
 
   return (
+    <DashboardLayout title="My Progress">
     <Container className="py-4">
       <h1 className="mb-4">My Learning</h1>
 
@@ -148,5 +150,6 @@ export default function Progress() {
         </Col>
       </Row>
     </Container>
+    </DashboardLayout>
   );
 }

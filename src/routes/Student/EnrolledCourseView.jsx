@@ -206,10 +206,15 @@ export default function EnrolledCourseView() {
                           style={{ width: `${course.progress || 0}%` }}
                         ></div>
                       </div>
-                      <Button variant="primary" onClick={() => navigate(`/student/courses/${course.id}/lessons/${lessons[0]?.id}`)}>
-                        <i className="bi bi-play-circle me-2"></i>
-                        Continue Learning
-                      </Button>
+                      <div className="d-flex gap-2 flex-wrap">
+                        <Button variant="primary" onClick={() => navigate(`/student/courses/${course.id}/learn`)}>
+                          <i className="bi bi-play-circle me-2"></i>
+                          Watch Lectures
+                        </Button>
+                        <Button variant="outline-secondary" size="sm" onClick={() => navigate(`/student/courses/${course.id}/lessons/${lessons[0]?.id}`)}>
+                          <i className="bi bi-book me-1"></i>Lessons
+                        </Button>
+                      </div>
                     </div>
                   </Col>
                 </Row>

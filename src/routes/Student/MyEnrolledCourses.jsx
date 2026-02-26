@@ -211,10 +211,15 @@ export default function MyEnrolledCourses() {
                                     style={{ width: `${course.progress || 0}%` }}
                                   ></div>
                                 </div>
-                                <Button variant="primary" onClick={() => navigate(`/courses/${course.id}`)}>
-                                  <i className="bi bi-play-circle me-2"></i>
-                                  Continue Learning
-                                </Button>
+                                <div className="d-flex gap-2 flex-wrap">
+                                  <Button variant="primary" onClick={() => navigate(`/student/courses/${course.id}/learn`)}>
+                                    <i className="bi bi-play-circle me-2"></i>
+                                    Watch Lectures
+                                  </Button>
+                                  <Button variant="outline-secondary" size="sm" onClick={() => navigate(`/student/course/${course.id}`)}>
+                                    <i className="bi bi-info-circle me-1"></i>Details
+                                  </Button>
+                                </div>
                               </div>
                             </Col>
                           </Row>

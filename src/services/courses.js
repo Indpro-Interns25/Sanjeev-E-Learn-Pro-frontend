@@ -164,6 +164,55 @@ export async function createCourse(courseData) {
 }
 
 /**
+ * Create a new course with thumbnail file upload (instructor only)
+ * @param {Object} courseData - Course data (title, description, category, level, price, duration, status)
+ * @param {File} thumbnailFile - Thumbnail image file
+ * @param {Function} onProgress - Optional progress callback (receives percentage)
+ * @returns {Promise<Object>} Created course object
+ */
+export async function createCourseWithFile(courseData, thumbnailFile, onProgress) {
+  try {
+    const formData = new FormData();
+    
+    // Append course data fields
+    Object.keys(courseData).forEach(key => {
+      if (courseData[key] !== null && courseData[key] !== undefined) {
+        formData.append(key, courseData[key]);
+      }
+    });
+    
+    // Append thumbnail file if provided
+    if (thumbnailFile) {
+      formData.append('thumbnail', thumbnailFile);
+    }
+    
+    const response = await apiClient.post('/api/courses', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(percentCompleted);
+        }
+      },
+    });
+    
+    return response.data;
+  } catch (error) {
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
+      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
+    }
+    
+    const message = error.response?.data?.message || 
+                   error.response?.data?.error || 
+                   error.message || 
+                   'Failed to create course';
+    throw new Error(message);
+  }
+}
+
+/**
  * Update an existing course (instructor only)
  * @param {number} courseId - Course ID
  * @param {Object} courseData - Updated course data

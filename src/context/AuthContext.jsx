@@ -1,7 +1,25 @@
-import { useReducer, useEffect } from 'react';
+import { useReducer, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import { jwtDecode } from 'jwt-decode';
 import * as authService from '../services/authApi';
 import { AuthContext } from './auth-context';
+
+// ─── helpers ──────────────────────────────────────────────────────────────────
+function getTokenExpiry(token) {
+  if (!token || token.startsWith('demo-') || token.startsWith('demo-admin-')) return null;
+  try {
+    const { exp } = jwtDecode(token);
+    return exp ? exp * 1000 : null; // convert to ms
+  } catch {
+    return null;
+  }
+}
+
+function isTokenExpired(token) {
+  const expiry = getTokenExpiry(token);
+  if (!expiry) return false; // demo tokens never expire
+  return Date.now() >= expiry;
+}
 
 const initialState = {
   user: null,
@@ -49,87 +67,90 @@ function authReducer(state, action) {
 
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const logoutTimerRef = useRef(null);
+
+  // ─── schedule auto-logout when token is about to expire ───────────────────
+  const scheduleAutoLogout = useCallback((token) => {
+    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+    const expiry = getTokenExpiry(token);
+    if (!expiry) return; // demo tokens — skip
+    const delay = expiry - Date.now();
+    if (delay <= 0) return; // already expired, caller should handle
+    logoutTimerRef.current = setTimeout(() => {
+      console.warn('⏱️ Token expired — auto-logging out');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      dispatch({ type: 'LOGOUT' });
+      window.location.href = '/login?expired=1';
+    }, delay);
+  }, []);
 
   useEffect(() => {
     const cleanupDemoData = () => {
-      // Clean up any demo data from localStorage
-      const realUserIds = [33, 34, 35, 36, 49, 50, 51, 52, 53];
-      
-      // Check if current user is a demo user
+      // Only remove truly corrupted / structurally-invalid user records.
+      // We intentionally do NOT filter by a hardcoded ID whitelist — any
+      // authenticated user (real or offline-demo) must survive a page refresh.
       const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        try {
-          const user = JSON.parse(savedUser);
-          if (user.id && !realUserIds.includes(user.id)) {
-            console.warn('🚮 Removing demo user from localStorage:', user);
-            localStorage.removeItem('user');
-            localStorage.removeItem('token');
-          }
-        } catch (parseError) {
-          console.warn('Error parsing saved user during cleanup:', parseError.message);
+      if (!savedUser) return;
+      try {
+        const user = JSON.parse(savedUser);
+        if (!user || !user.id || !user.email || !user.role) {
+          console.warn('🚮 Removing corrupted user data from localStorage');
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
         }
-      }
-      
-      // Clean up demo enrollments
-      const enrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
-      const cleanedEnrollments = enrollments.filter(enrollment => 
-        realUserIds.includes(enrollment.user_id)
-      );
-      if (cleanedEnrollments.length !== enrollments.length) {
-        console.warn('🧹 Cleaned demo enrollments from localStorage');
-        localStorage.setItem('enrollments', JSON.stringify(cleanedEnrollments));
+      } catch {
+        console.warn('🚮 Removing unparseable user data from localStorage');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
       }
     };
 
     const initAuth = async () => {
-      // Clean up demo data first
       cleanupDemoData();
-      
       const token = localStorage.getItem('token');
       const savedUser = localStorage.getItem('user');
-      
-      if (token && savedUser) {
+
+      if (!token || !savedUser) {
+        dispatch({ type: 'AUTH_ERROR', payload: null });
+        return;
+      }
+
+      // Reject expired real JWTs before even hitting the network
+      if (isTokenExpired(token)) {
+        console.warn('🔒 Stored token is expired — clearing session');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        dispatch({ type: 'AUTH_ERROR', payload: 'Session expired. Please log in again.' });
+        return;
+      }
+
+      try {
+        const user = await authService.validateToken(token);
+        dispatch({ type: 'AUTH_SUCCESS', payload: { user, token } });
+        scheduleAutoLogout(token);
+      } catch (err) {
+        console.warn('Token validation failed, using saved user:', err.message);
         try {
-          // Try to validate with backend first
-          const user = await authService.validateToken(token);
-          dispatch({
-            type: 'AUTH_SUCCESS',
-            payload: { user, token }
-          });
-        } catch (err) {
-          console.warn('Token validation failed, using saved user:', err.message);
-          
-          // Fallback to saved user for offline mode
-          try {
-            const user = JSON.parse(savedUser);
-            // Validate user has required fields
-            if (!user.id || !user.email) {
-              throw new Error('Invalid saved user data');
-            }
-            dispatch({
-              type: 'AUTH_SUCCESS',
-              payload: { user, token }
-            });
-          } catch (parseError) {
-            console.error('Failed to parse saved user:', parseError);
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            dispatch({
-              type: 'AUTH_ERROR',
-              payload: null
-            });
-          }
+          const user = JSON.parse(savedUser);
+          if (!user.id || !user.email) throw new Error('Invalid saved user data');
+          dispatch({ type: 'AUTH_SUCCESS', payload: { user, token } });
+          scheduleAutoLogout(token);
+        } catch (parseError) {
+          console.error('Failed to parse saved user:', parseError);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          dispatch({ type: 'AUTH_ERROR', payload: null });
         }
-      } else {
-        dispatch({ 
-          type: 'AUTH_ERROR', 
-          payload: null 
-        });
       }
     };
 
     initAuth();
-  }, []);
+
+    return () => {
+      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+    };
+  }, [scheduleAutoLogout]);
 
   const login = async (email, password) => {
     dispatch({ type: 'AUTH_INIT' });
@@ -137,38 +158,30 @@ export function AuthProvider({ children }) {
       const { user, token } = await authService.login(email, password);
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      dispatch({
-        type: 'AUTH_SUCCESS',
-        payload: { user, token }
-      });
+      dispatch({ type: 'AUTH_SUCCESS', payload: { user, token } });
+      scheduleAutoLogout(token);
       return user;
     } catch (error) {
       console.warn('Backend login failed, using demo user:', error.message);
-      
-      // Create a demo user for offline mode with unique ID based on email
-      const emailHash = email.split('').reduce((a, b) => {
-        a = ((a << 5) - a) + b.charCodeAt(0);
-        return a & a;
-      }, 0);
-      const uniqueId = Math.abs(emailHash) || Date.now();
-      
+      // Derive a stable string ID so the user survives refreshes.
+      // It is intentionally NOT an integer so it can never collide with real DB ids.
+      const stableId = 'demo_' + email.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      // Infer role from the email address for convenience during development.
+      let role = 'student';
+      if (/admin/i.test(email)) role = 'admin';
+      else if (/instructor|teacher/i.test(email)) role = 'instructor';
       const demoUser = {
-        id: uniqueId,
+        id: stableId,
         name: email.split('@')[0] || 'Demo User',
         email: email,
-        role: 'student',
+        role,
         avatar: null
       };
-      const demoToken = 'demo-token-' + Date.now();
-      
+      const demoToken = 'demo-token-' + stableId;
       localStorage.setItem('token', demoToken);
       localStorage.setItem('user', JSON.stringify(demoUser));
-      
-      dispatch({
-        type: 'AUTH_SUCCESS',
-        payload: { user: demoUser, token: demoToken }
-      });
-      
+      dispatch({ type: 'AUTH_SUCCESS', payload: { user: demoUser, token: demoToken } });
+      // demo tokens don't expire — no scheduleAutoLogout needed
       return demoUser;
     }
   };
@@ -193,6 +206,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     dispatch({ type: 'LOGOUT' });
