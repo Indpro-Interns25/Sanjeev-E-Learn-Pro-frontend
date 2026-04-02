@@ -19,33 +19,28 @@ export default function AppNavbar() {
     user?.role === 'admin'      ? '/admin-dashboard' : '/';
 
   return (
-    <Navbar bg="white" expand="lg" sticky="top" className="border-bottom shadow-sm">
+    <Navbar expand="lg" sticky="top" className="navbar">
       <Container>
         {/* Brand */}
-        <Navbar.Brand as={Link} to="/" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span className="logo-animate d-flex align-items-center justify-content-center" style={{ height: 36 }}>
-            <svg width="36" height="36" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"
-              style={{ display: 'block', verticalAlign: 'middle', transition: 'transform 0.3s cubic-bezier(.4,2,.6,1)', willChange: 'transform' }}
-              className="edu-logo-svg"
-            >
+        <Navbar.Brand as={Link} to="/">
+          <span className="d-flex align-items-center gap-2">
+            <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
               <g>
-                <polygon points="32,10 60,22 32,34 4,22 32,10" fill="#4F8EF7" stroke="#222" strokeWidth="2"/>
-                <rect x="26" y="34" width="12" height="12" rx="3" fill="#fff" stroke="#4F8EF7" strokeWidth="2"/>
-                <rect x="28" y="36" width="8" height="8" rx="2" fill="#4F8EF7" opacity="0.2"/>
-                <line x1="32" y1="34" x2="32" y2="54" stroke="#222" strokeWidth="2"/>
-                <circle cx="32" cy="56" r="2.5" fill="#FFD700" stroke="#222" strokeWidth="1.5"/>
+                <polygon points="32,10 60,22 32,34 4,22 32,10" fill="#4f46e5" stroke="#1f2937" strokeWidth="2"/>
+                <rect x="26" y="34" width="12" height="12" rx="3" fill="#fff" stroke="#4f46e5" strokeWidth="2"/>
+                <rect x="28" y="36" width="8" height="8" rx="2" fill="#4f46e5" opacity="0.2"/>
+                <line x1="32" y1="34" x2="32" y2="54" stroke="#1f2937" strokeWidth="2"/>
+                <circle cx="32" cy="56" r="2.5" fill="#4f46e5" stroke="#1f2937" strokeWidth="1.5"/>
               </g>
             </svg>
-          </span>
-          <span className="fw-bold" style={{ fontSize: 22, lineHeight: 1, display: 'flex', alignItems: 'center', height: 36 }}>
-            EduLearn Pro
+            <span>EduLearn Pro</span>
           </span>
         </Navbar.Brand>
 
         <Navbar.Toggle aria-controls="navbar-nav" />
         <Navbar.Collapse id="navbar-nav">
-          {/* Left nav */}
-          <Nav className="me-auto">
+          {/* Center nav */}
+          <Nav className="mx-auto">
             {isAuthenticated ? (
               <>
                 <Nav.Link as={Link} to="/home">Home</Nav.Link>
@@ -72,10 +67,10 @@ export default function AppNavbar() {
           <Nav className="align-items-lg-center gap-1">
             {!isAuthenticated ? (
               <div className="d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-center">
-                <Button as={Link} to="/login" variant="outline-primary" size="sm" className="flex-fill flex-lg-grow-0">
+                <Button as={Link} to="/login" variant="outline-primary" size="sm">
                   Login
                 </Button>
-                <Button as={Link} to="/register" variant="primary" size="sm" className="flex-fill flex-lg-grow-0">
+                <Button as={Link} to="/register" variant="primary" size="sm">
                   Sign Up
                 </Button>
                 <Button
@@ -83,8 +78,6 @@ export default function AppNavbar() {
                   to="/admin-login"
                   variant="outline-dark"
                   size="sm"
-                  className="border-2 fw-semibold flex-fill flex-lg-grow-0"
-                  style={{ borderRadius: '8px', fontSize: '13px', letterSpacing: '0.5px', textTransform: 'uppercase' }}
                 >
                   🔒 Admin
                 </Button>
@@ -104,8 +97,15 @@ export default function AppNavbar() {
                       />
                     ) : (
                       <div
-                        className="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white flex-shrink-0"
-                        style={{ width: 28, height: 28, fontSize: 12, fontWeight: 700 }}
+                        className="rounded-circle d-flex align-items-center justify-content-center"
+                        style={{
+                          width: 28,
+                          height: 28,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          background: '#4f46e5',
+                          color: '#ffffff'
+                        }}
                       >
                         {(user?.name?.[0] || 'U').toUpperCase()}
                       </div>

@@ -194,7 +194,7 @@ export default function MyEnrolledCourses() {
                             <Col md={8}>
                               <p className="mb-2">{course.description}</p>
                               <div className="d-flex gap-4 text-muted small">
-                                <span><i className="bi bi-person me-1"></i>{course.instructor || course.instructor_name}</span>
+                                <span><i className="bi bi-person me-1"></i>{course.instructor?.name || course.instructor_name}</span>
                                 <span><i className="bi bi-clock me-1"></i>{formatDuration(course)}</span>
                                 <span><i className="bi bi-calendar-check me-1"></i>Enrolled: {course.enrolled_date ? new Date(course.enrolled_date).toLocaleDateString() : 'Recently'}</span>
                               </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Container, Row, Col, Button, Badge, Tab, Nav, Card, Alert, Spinner, Modal } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { formatCourseData } from '../../services/courses';
+import { formatCourseData, getAllCourses } from '../../services/courses';
 import { getAllInstructors } from '../../services/admin';
 import { getCourseCurriculum } from '../../services/lessons';
 import { enrollUserInCourse, getUserEnrollments, getCourseEnrollmentCount } from '../../services/enrollment';
@@ -40,9 +40,42 @@ export default function CourseDetail() {
         console.warn('🔍 Fetching curriculum for course ID:', courseId);
         
         // Fetch course curriculum (includes course details + lessons)
-        const curriculumData = await getCourseCurriculum(parseInt(courseId));
+        let curriculumData = null;
+        let fallbackUsed = false;
         
-        console.warn('📚 Curriculum data received:', curriculumData);
+        try {
+          curriculumData = await getCourseCurriculum(parseInt(courseId));
+          console.warn('📚 Curriculum data received:', curriculumData);
+        } catch (err) {
+          console.warn('⚠️ Curriculum fetch failed, attempting fallback:', err.message);
+          
+          // Fallback: fetch from getAllCourses if curriculum endpoint fails
+          if (err.message === 'Course curriculum not found' || err.response?.status === 404) {
+            try {
+              const allCourses = await getAllCourses({ limit: 1000 });
+              const foundCourse = allCourses.find(c => parseInt(c.id) === parseInt(courseId));
+              
+              if (foundCourse) {
+                curriculumData = {
+                  course: foundCourse,
+                  curriculum: [],
+                  totalLessons: 0
+                };
+                fallbackUsed = true;
+                console.warn('✅ Course found using fallback, curriculum data may be  unavailable');
+              } else {
+                throw new Error('Course not found in catalog');
+              }
+            } catch (fallbackError) {
+              console.error('❌ Fallback also failed:', fallbackError);
+              setError('Course not found');
+              navigate('/not-found');
+              return;
+            }
+          } else {
+            throw err;
+          }
+        }
         
         // Set course data (format and attempt enrichment)
         let formattedCourse = formatCourseData(curriculumData.course);
@@ -107,12 +140,8 @@ export default function CourseDetail() {
         console.warn('✅ Data loaded successfully - Lessons:', curriculumData.curriculum?.length || 0);
         
       } catch (err) {
-        console.error('❌ Error fetching course curriculum:', err);
+        console.error('❌ Error fetching course data:', err);
         setError(err.message);
-        
-        if (err.message === 'Course curriculum not found') {
-          navigate('/not-found');
-        }
       } finally {
         setLoading(false);
       }

@@ -12,6 +12,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getCourseQuiz, submitQuiz } from '../../services/quiz';
+import { generateCertificate, saveCertificateLocally } from '../../services/certificates';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -51,6 +52,7 @@ export default function Quiz() {
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState(null); // { score, total, percent, details }
   const [submitting, setSubmitting] = useState(false);
+  const [certificate, setCertificate] = useState(null); // Certificate after passing
 
   // timer
   const [timeLeft, setTimeLeft] = useState(0);
@@ -125,6 +127,27 @@ export default function Quiz() {
     setSubmitting(false);
     if (auto) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+  // ── Generate certificate on pass ─────────────────────────────────────────
+  useEffect(() => {
+    if (result && result.percent >= 60 && user && quiz) {
+      const cert = generateCertificate({
+        userId: user.id,
+        courseId: parseInt(courseId),
+        courseTitle: quiz.title || `Course ${courseId}`,
+        quizId: quiz.id,
+        score: result.score,
+        totalScore: result.total,
+        percentage: result.percent,
+        instructorName: 'EduLearn Pro Team',
+        completionDate: new Date().toISOString()
+      });
+
+      saveCertificateLocally(user.id, cert);
+      setCertificate(cert);
+      console.warn('✅ Certificate generated:', cert);
+    }
+  }, [result, user, quiz, courseId]);
 
   // ─── render helpers ───────────────────────────────────────────────────────
   if (loading) return (
@@ -313,6 +336,25 @@ export default function Quiz() {
           </Card>
         ))}
 
+        {/* Certificate section for passing users */}
+        {passed && certificate && (
+          <Card className="border-0 shadow-sm bg-success bg-opacity-10 mb-4">
+            <Card.Body className="text-center">
+              <i className="bi bi-award-fill" style={{ fontSize: '2rem', color: '#10b981' }}></i>
+              <h4 className="mt-2 mb-2 text-success">🎓 Certificate Awarded!</h4>
+              <p className="text-muted mb-3">
+                Congratulations! You have earned a certificate of completion.
+              </p>
+              <Button
+                variant="success"
+                onClick={() => navigate(`/student/certificate/${certificate.id}`)}
+              >
+                <i className="bi bi-download me-2"></i>View & Download Certificate
+              </Button>
+            </Card.Body>
+          </Card>
+        )}
+
         <div className="d-flex gap-3 mt-4 flex-wrap">
           <Button
             variant="primary"
@@ -322,6 +364,7 @@ export default function Quiz() {
               setAnswers({});
               setCurrentQ(0);
               setTimeLeft(quiz.timeLimit ?? 600);
+              setCertificate(null);
             }}
           >
             <i className="bi bi-arrow-repeat me-2" />Retake Quiz

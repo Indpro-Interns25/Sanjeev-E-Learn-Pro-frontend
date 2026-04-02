@@ -66,9 +66,9 @@ export default function StudentDashboard() {
   const handleContinueLearning = (enrollment) => {
     const resume = resumePoints[enrollment.course_id];
     if (resume?.lecture_id) {
-      navigate(`/student/lesson-player/${enrollment.course_id}/${resume.lecture_id}`);
+      navigate(`/student/courses/${enrollment.course_id}/learn/${resume.lecture_id}`);
     } else {
-      navigate(`/student/enrolled-course/${enrollment.course_id}`);
+      navigate(`/student/course/${enrollment.course_id}`);
     }
   };
 
@@ -218,7 +218,7 @@ export default function StudentDashboard() {
                             <Button
                               variant="outline-secondary"
                               size="sm"
-                              onClick={() => navigate(`/student/enrolled-course/${enrollment.course_id}`)}
+                              onClick={() => navigate(`/student/course/${enrollment.course_id}`)}
                             >
                               <i className="bi bi-info-circle me-1"></i> Course Details
                             </Button>
@@ -290,7 +290,7 @@ export default function StudentDashboard() {
                                   variant="outline-primary"
                                   size="sm"
                                   onClick={() =>
-                                    navigate(`/student/enrolled-course/${enrollment.course_id}`)
+                                    navigate(`/student/course/${enrollment.course_id}`)
                                   }
                                 >
                                   Review Course
@@ -309,7 +309,7 @@ export default function StudentDashboard() {
                                   variant="outline-secondary"
                                   size="sm"
                                   onClick={() =>
-                                    navigate(`/student/enrolled-course/${enrollment.course_id}`)
+                                    navigate(`/student/course/${enrollment.course_id}`)
                                   }
                                 >
                                   View Details
@@ -343,7 +343,7 @@ export default function StudentDashboard() {
                               variant="primary"
                               size="sm"
                               onClick={() =>
-                                navigate(`/student/enrolled-course/${enrollment.course_id}`)
+                                navigate(`/student/courses/${enrollment.course_id}/learn`)
                               }
                             >
                               <i className="bi bi-play-circle me-1"></i> Start Learning
@@ -389,7 +389,7 @@ export default function StudentDashboard() {
                               variant="outline-primary"
                               size="sm"
                               onClick={() =>
-                                navigate(`/student/enrolled-course/${enrollment.course_id}`)
+                                navigate(`/student/course/${enrollment.course_id}`)
                               }
                             >
                               Review

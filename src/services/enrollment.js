@@ -171,6 +171,9 @@ export async function getUserEnrollments(userId) {
     // Convert to number to ensure consistency
     const userIdNum = parseInt(userId);
     
+    let apiEnrollments = [];
+    let localEnrollments = [];
+    
     try {
       // First try the real API endpoint
       const response = await apiClient.get(`/api/enrollments/users/${userIdNum}`);
@@ -184,47 +187,69 @@ export async function getUserEnrollments(userId) {
       
       // Handle wrapped response structure (like {success: true, data: [...]})
       if (response.data?.success && Array.isArray(response.data?.data)) {
-        console.warn('✅ Wrapped array response format detected, returning data:', response.data.data);
-        return response.data.data;
+        console.warn('✅ Wrapped array response format detected, using data:', response.data.data);
+        apiEnrollments = response.data.data;
       }
-      
       // Handle wrapped response with single object
-      if (response.data?.success && response.data?.data && !Array.isArray(response.data.data)) {
-        console.warn('✅ Wrapped single object response format detected, converting to array:', [response.data.data]);
-        return [response.data.data];
+      else if (response.data?.success && response.data?.data && !Array.isArray(response.data.data)) {
+        console.warn('✅ Wrapped single object response format detected');
+        apiEnrollments = [response.data.data];
       }
-      
       // Handle direct array response
-      if (Array.isArray(response.data)) {
-        console.warn('✅ Direct array format detected, returning:', response.data);
-        return response.data;
+      else if (Array.isArray(response.data)) {
+        console.warn('✅ Direct array format detected');
+        apiEnrollments = response.data;
       }
-      
       // Handle single object response (convert to array)
-      if (response.data && typeof response.data === 'object' && response.data.id && response.data.course_id) {
-        console.warn('✅ Single enrollment object detected, converting to array:', [response.data]);
-        return [response.data];
+      else if (response.data && typeof response.data === 'object' && response.data.id && response.data.course_id) {
+        console.warn('✅ Single enrollment object detected');
+        apiEnrollments = [response.data];
       }
-      
       // Handle empty response or null
-      if (!response.data || (Array.isArray(response.data) && response.data.length === 0)) {
-        console.warn('📭 Empty response detected, returning empty array');
-        return [];
+      else if (!response.data || (Array.isArray(response.data) && response.data.length === 0)) {
+        console.warn('📭 Empty response detected from API');
+        apiEnrollments = [];
       }
-      
-      console.warn('⚠️ Unexpected response format, returning empty array. Response:', response.data);
-      return [];
-    } catch {
-      console.warn('API not available, falling back to localStorage');
-      
-      // Fallback to localStorage for enrollments
-      const localEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
-      const userEnrollments = localEnrollments.filter(e => e.user_id === userIdNum);
-      
-      console.warn('📱 Local enrollments found:', userEnrollments);
-      return userEnrollments;
+      else {
+        console.warn('⚠️ Unexpected response format. Response:', response.data);
+        apiEnrollments = [];
+      }
+    } catch (apiErr) {
+      console.warn('⚠️ API call failed:', apiErr.message);
+      apiEnrollments = [];
     }
     
+    // Always also check localStorage (in case laptop enrollments weren't synced to backend)
+    try {
+      localEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+      const userLocalEnrollments = localEnrollments.filter(e => e.user_id === userIdNum);
+      console.warn('📱 Local enrollments found:', userLocalEnrollments.length);
+      if (userLocalEnrollments.length > 0) {
+        console.warn('📱 Local enrollments:', userLocalEnrollments);
+      }
+    } catch (storageErr) {
+      console.warn('⚠️ Failed to read localStorage:', storageErr.message);
+      localEnrollments = [];
+    }
+    
+    // Merge API and local enrollments, avoiding duplicates
+    const allEnrollments = [...apiEnrollments];
+    const courseIdsFromAPI = new Set(apiEnrollments.map(e => e.course_id));
+    
+    // Add local enrollments that aren't already in API results
+    for (const localEnrollment of localEnrollments) {
+      if (localEnrollment.user_id === userIdNum && !courseIdsFromAPI.has(localEnrollment.course_id)) {
+        console.warn(`📌 Adding local enrollment for course ${localEnrollment.course_id} (not found in API)`);
+        allEnrollments.push(localEnrollment);
+      }
+    }
+    
+    console.warn(`✅ Total enrollments (API + local): ${allEnrollments.length}`);
+    if (allEnrollments.length > 0) {
+      console.warn('📋 All enrollments:', allEnrollments.map(e => ({ id: e.id, course_id: e.course_id })));
+    }
+    
+    return allEnrollments;
   } catch (error) {
     console.error('🚨 Failed to fetch user enrollments:', error);
     return [];

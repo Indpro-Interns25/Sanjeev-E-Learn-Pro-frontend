@@ -102,6 +102,7 @@ export default function MyLearning() {
           } catch (error) {
             console.error(`❌ Failed to fetch course ${enrollment.course_id}:`, error);
             console.error(`❌ Error details:`, error.message);
+            console.error(`❌ Enrollment object:`, enrollment);
             return null;
           }
         });

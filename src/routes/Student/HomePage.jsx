@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { getAllCourses } from '../../services/courses';
+import { getCourseVideoProgress } from '../../services/videoProgress';
 import '../../styles/home-page.css';
 
 export default function HomePage() {
   const { user, isAuthenticated } = useAuth();
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [recommendedCourses, setRecommendedCourses] = useState([]);
+  const [courseProgress, setCourseProgress] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,9 +18,29 @@ export default function HomePage() {
       try {
         const courses = await getAllCourses({ limit: 12 });
         
-        // Simulate enrolled and recommended courses (in real app, fetch from user profile)
         setEnrolledCourses(courses.slice(0, 3));
         setRecommendedCourses(courses.slice(3, 6));
+
+        // Fetch actual progress for each course
+        if (user?.id) {
+          const progressData = {};
+          for (const course of courses.slice(0, 3)) {
+            try {
+              const videoProgress = await getCourseVideoProgress(course.id, user.id);
+              if (Array.isArray(videoProgress) && videoProgress.length > 0) {
+                const totalLessons = videoProgress.length;
+                const completedCount = videoProgress.filter(v => v.progress_percentage >= 90).length;
+                progressData[course.id] = Math.round((completedCount / totalLessons) * 100);
+              } else {
+                progressData[course.id] = 0;
+              }
+            } catch (error) {
+              console.warn(`Failed to fetch progress for course ${course.id}:`, error);
+              progressData[course.id] = 0;
+            }
+          }
+          setCourseProgress(progressData);
+        }
       } catch (error) {
         console.error('Error fetching courses:', error);
       } finally {
@@ -27,7 +49,7 @@ export default function HomePage() {
     };
 
     fetchCourses();
-  }, []);
+  }, [user]);
 
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -48,14 +70,9 @@ export default function HomePage() {
   }
 
   return (
-    <div className="home-page">
+    <div className="home-page student-home-clean">
       {/* ============ WELCOME SECTION ============ */}
-      <section className="welcome-section" style={{
-        backgroundImage: 'linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%), url("https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=1200&q=80")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}>
+      <section className="welcome-section">
         <div className="welcome-background"></div>
         <Container>
           <Row className="align-items-center justify-content-between position-relative z-1 py-5">
@@ -127,11 +144,7 @@ export default function HomePage() {
       </section>
 
       {/* ============ ENROLLED COURSES SECTION ============ */}
-      <section className="enrolled-courses-section" style={{
-        backgroundImage: 'linear-gradient(135deg, rgba(248,250,252,0.97) 0%, rgba(240,248,255,0.97) 100%), url("https://images.unsplash.com/photo-1453928582063-b884fc1776b7?auto=format&fit=crop&w=1200&q=80")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}>
+      <section className="enrolled-courses-section">
         <Container>
           <div className="section-header mb-5">
             <h2 className="section-title">My Learning Journey</h2>
@@ -147,8 +160,8 @@ export default function HomePage() {
             </Row>
           ) : enrolledCourses.length > 0 ? (
             <Row className="g-4 mb-5">
-              {enrolledCourses.map((course, idx) => {
-                const progress = Math.floor(Math.random() * 100);
+              {enrolledCourses.map((course) => {
+                const progress = courseProgress[course.id] || 0;
                 return (
                   <Col md={6} lg={4} key={course.id}>
                     <div className="course-card-wrapper">
@@ -232,11 +245,7 @@ export default function HomePage() {
 
       {/* ============ LEARNING PROGRESS SECTION ============ */}
       {enrolledCourses.length > 0 && (
-        <section className="learning-progress-section" style={{
-          backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(240,245,255,0.98) 100%), url("https://images.unsplash.com/photo-1516321318423-f06f70a504f9?auto=format&fit=crop&w=1200&q=80")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}>
+        <section className="learning-progress-section">
           <Container>
             <div className="section-header mb-5">
               <h2 className="section-title">Your Learning Progress</h2>
@@ -244,9 +253,13 @@ export default function HomePage() {
             </div>
             <Row className="g-4">
               {enrolledCourses.map((course) => {
-                const completedLessons = course.completed_lessons || 2;
-                const totalLessons = course.total_lessons || 20;
-                const progressPercent = Math.round((completedLessons / totalLessons) * 100);
+                const progress = courseProgress[course.id] || 0;
+                // Calculate completed lessons based on progress percentage
+                const videoData = Array.isArray(courseProgress[`${course.id}_details`]) 
+                  ? courseProgress[`${course.id}_details`] 
+                  : [];
+                const totalLessons = videoData.length || 20;
+                const completedLessons = Math.round((progress / 100) * totalLessons);
                 
                 return (
                   <Col lg={6} key={course.id}>
@@ -262,18 +275,18 @@ export default function HomePage() {
                           </div>
                           <div className="progress-badge-group">
                             <Badge bg="primary" className="progress-percentage-badge">
-                              {progressPercent}%
+                              {progress}%
                             </Badge>
                           </div>
                         </div>
 
                         <div className="progress-bar-wrapper mt-4">
                           <ProgressBar
-                            now={progressPercent}
-                            label={`${progressPercent}%`}
+                            now={progress}
+                            label={`${progress}%`}
                             className="progress-bar-custom"
-                            striped={progressPercent < 100}
-                            animated={progressPercent < 100}
+                            striped={progress < 100 && progress > 0}
+                            animated={progress < 100 && progress > 0}
                           />
                         </div>
 
@@ -300,11 +313,7 @@ export default function HomePage() {
       )}
 
       {/* ============ RECOMMENDED COURSES SECTION ============ */}
-      <section className="recommended-section" style={{
-        backgroundImage: 'linear-gradient(135deg, rgba(253,244,255,0.98) 0%, rgba(240,253,250,0.98) 100%), url("https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}>
+      <section className="recommended-section">
         <Container>
           <div className="section-header mb-5">
             <h2 className="section-title">Recommended For You</h2>
@@ -374,11 +383,7 @@ export default function HomePage() {
       </section>
 
       {/* ============ RECENT ACTIVITY SECTION ============ */}
-      <section className="activity-section" style={{
-        backgroundImage: 'linear-gradient(135deg, rgba(248,250,252,0.98) 0%, rgba(240,248,255,0.98) 100%), url("https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}>
+      <section className="activity-section">
         <Container>
           <div className="section-header mb-5">
             <h2 className="section-title">Recent Activity</h2>

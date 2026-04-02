@@ -120,32 +120,56 @@ export async function getAllCourses(filters = {}) {
  */
 export async function getCourseById(courseId) {
   try {
-    const response = await apiClient.get(`/api/courses/${courseId}`);
+    console.warn(`🔍 Attempting to fetch course ${courseId} from API...`);
+    
+    try {
+      const response = await apiClient.get(`/api/courses/${courseId}`);
 
-    // Support responses like { success: true, data: { ... } } or raw course object
-    const courseRaw = response.data && response.data.data ? response.data.data : response.data;
+      // Support responses like { success: true, data: { ... } } or raw course object
+      const courseRaw = response.data && response.data.data ? response.data.data : response.data;
 
-    // Ensure the course is formatted consistently for the UI
-    let formatted = formatCourseData(courseRaw || {});
+      // Ensure the course is formatted consistently for the UI
+      let formatted = formatCourseData(courseRaw || {});
 
-    // If instructor is unknown but we have an instructor_id / user_id, try to enrich from admin instructors
-    const instructorId = courseRaw?.instructor_id || courseRaw?.user_id || null;
-    const hasAdminSession = typeof window !== 'undefined' && !!localStorage.getItem('adminToken');
-    if (hasAdminSession && (formatted.instructor_name === 'Unknown Instructor' || !formatted.instructor_name) && instructorId) {
-      try {
-        const instructorsResp = await apiClient.get('/api/admin/instructors');
-        const instructors = instructorsResp.data && instructorsResp.data.data ? instructorsResp.data.data : instructorsResp.data || [];
-        const match = instructors.find(i => i.id === instructorId || String(i.id) === String(instructorId));
-        if (match) {
-          formatted.instructor_name = match.name || match.username || formatted.instructor_name;
-          formatted.instructor = { id: match.id, name: match.name || match.username, email: match.email };
+      // If instructor is unknown but we have an instructor_id / user_id, try to enrich from admin instructors
+      const instructorId = courseRaw?.instructor_id || courseRaw?.user_id || null;
+      const hasAdminSession = typeof window !== 'undefined' && !!localStorage.getItem('adminToken');
+      if (hasAdminSession && (formatted.instructor_name === 'Unknown Instructor' || !formatted.instructor_name) && instructorId) {
+        try {
+          const instructorsResp = await apiClient.get('/api/admin/instructors');
+          const instructors = instructorsResp.data && instructorsResp.data.data ? instructorsResp.data.data : instructorsResp.data || [];
+          const match = instructors.find(i => i.id === instructorId || String(i.id) === String(instructorId));
+          if (match) {
+            formatted.instructor_name = match.name || match.username || formatted.instructor_name;
+            formatted.instructor = { id: match.id, name: match.name || match.username, email: match.email };
+          }
+        } catch (e) {
+          console.warn('❌ Failed to enrich course instructor via admin API:', e?.message || e);
         }
-      } catch (e) {
-        console.warn('❌ Failed to enrich course instructor via admin API:', e?.message || e);
+      }
+
+      console.warn(`✅ Course ${courseId} fetched successfully from API`);
+      return formatted;
+    } catch (apiError) {
+      console.warn(`⚠️ API fetch failed for course ${courseId}, attempting fallback...`, apiError.message);
+      
+      // Fallback: Search in getAllCourses
+      try {
+        const allCourses = await getAllCourses({ limit: 1000 });
+        const foundCourse = allCourses.find(c => parseInt(c.id) === parseInt(courseId));
+        
+        if (foundCourse) {
+          console.warn(`✅ Course ${courseId} found in fallback (getAllCourses)`);
+          return formatCourseData(foundCourse);
+        } else {
+          console.warn(`❌ Course ${courseId} not found in fallback either`);
+          throw new Error('Course not found');
+        }
+      } catch (fallbackError) {
+        console.warn(`❌ Fallback also failed:`, fallbackError.message);
+        throw new Error(`Course ${courseId} not found`);
       }
     }
-
-    return formatted;
   } catch (error) {
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
       throw new Error('Backend API server is not running. Please start the backend server on port 3002.');

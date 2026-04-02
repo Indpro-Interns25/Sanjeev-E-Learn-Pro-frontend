@@ -1,7 +1,7 @@
 import { Container, Row, Col, Button, Form, InputGroup, Dropdown, Carousel, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { searchCourses, getCourseCategories, getFeaturedCourses, formatCoursesData } from '../../services/courses';
+import { searchCourses, getCourseCategories, getFeaturedCourses, formatCoursesData, getAllCourses } from '../../services/courses';
 
 const features = [
   {
@@ -32,18 +32,21 @@ export default function Explore() {
   const [category, setCategory] = useState('');
   const [categories, setCategories] = useState([]);
   const [results, setResults] = useState([]);
+  const [allCourses, setAllCourses] = useState([]);
   const [searched, setSearched] = useState(false);
   const [searching, setSearching] = useState(false);
   const [featuredCourses, setFeaturedCourses] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [loadingCourses, setLoadingCourses] = useState(true);
 
-  // Fetch categories and featured courses on component mount
+  // Fetch categories, featured courses, and ALL courses on component mount
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [categoriesResponse, featuredResponse] = await Promise.allSettled([
+        const [categoriesResponse, featuredResponse, allCoursesResponse] = await Promise.allSettled([
           getCourseCategories(),
-          getFeaturedCourses(3)
+          getFeaturedCourses(3),
+          getAllCourses({ limit: 1000 }) // Fetch up to 1000 courses to show all
         ]);
 
         if (categoriesResponse.status === 'fulfilled') {
@@ -51,7 +54,6 @@ export default function Explore() {
           setCategories(categoryNames);
         } else {
           console.warn('Failed to fetch categories:', categoriesResponse.reason);
-          // Fallback categories based on API response examples
           setCategories(['Web Development', 'Data Science', 'Mobile Development', 'Database Management']);
         }
 
@@ -59,10 +61,21 @@ export default function Explore() {
           setFeaturedCourses(formatCoursesData(featuredResponse.value));
         }
 
+        // Load ALL courses by default
+        if (allCoursesResponse.status === 'fulfilled') {
+          const formattedAllCourses = formatCoursesData(allCoursesResponse.value);
+          setAllCourses(formattedAllCourses);
+          setResults(formattedAllCourses); // Display all courses by default
+          setSearched(true); // Mark as "searched" so they display
+        } else {
+          console.warn('Failed to fetch all courses:', allCoursesResponse.reason);
+        }
+
       } catch (error) {
         console.error('Error fetching initial data:', error);
       } finally {
         setLoadingCategories(false);
+        setLoadingCourses(false);
       }
     };
 
@@ -74,13 +87,26 @@ export default function Explore() {
       setSearching(true);
       setSearched(true);
       
-      const filters = {};
-      if (category) {
-        filters.category = category;
+      // Filter from allCourses based on search term
+      let filteredCourses = allCourses;
+      
+      if (search.trim()) {
+        const searchLower = search.toLowerCase();
+        filteredCourses = allCourses.filter(course => 
+          course.title.toLowerCase().includes(searchLower) ||
+          course.description.toLowerCase().includes(searchLower)
+        );
       }
       
-      const searchResults = await searchCourses(search, filters);
-      setResults(formatCoursesData(searchResults));
+      // Apply category filter if selected
+      if (category) {
+        filteredCourses = filteredCourses.filter(course => 
+          course.category === category
+        );
+      }
+      
+      setResults(filteredCourses);
+      setCategory(''); // Clear category after search
     } catch (error) {
       console.error('Search failed:', error);
       setResults([]);
@@ -91,12 +117,17 @@ export default function Explore() {
 
   const handleCategorySelect = async (selectedCategory) => {
     try {
-      setCategory(selectedCategory);
       setSearching(true);
       setSearched(true);
+      setSearch(''); // Clear search
+      setCategory(selectedCategory);
       
-      const categoryResults = await searchCourses('', { category: selectedCategory });
-      setResults(formatCoursesData(categoryResults));
+      // Filter from allCourses by category
+      const categoryResults = allCourses.filter(course => 
+        course.category === selectedCategory
+      );
+      
+      setResults(categoryResults);
     } catch (error) {
       console.error('Category search failed:', error);
       setResults([]);
@@ -253,7 +284,10 @@ export default function Explore() {
       {searched && (
         <section className="py-5">
           <Container>
-            <h2 className="mb-4">Search Results</h2>
+            <h2 className="mb-4">
+              {search ? 'Search Results' : category ? `Courses in ${category}` : 'All Available Courses'}
+              {results.length > 0 && <span className="text-muted ms-2">({results.length})</span>}
+            </h2>
             {results.length > 0 ? (
               <Row xs={1} md={2} lg={3} className="g-4">
                 {results.map(course => (
@@ -269,6 +303,11 @@ export default function Explore() {
                   </Col>
                 ))}
               </Row>
+            ) : loadingCourses ? (
+              <div className="text-center py-5">
+                <Spinner animation="border" className="text-primary" />
+                <p className="mt-3">Loading courses...</p>
+              </div>
             ) : (
               <div className="text-center py-5">
                 <i className="bi bi-search display-4 text-muted"></i>

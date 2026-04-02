@@ -42,7 +42,6 @@ export default function CourseLearning() {
   const [loadingLectures,setLoadingLect]   = useState(true);
   const [sidebarOpen,    setSidebar]       = useState(false); // mobile drawer
   const [startTime,      setStartTime]     = useState(0);
-  const [markingManual,  setMarkingManual] = useState(false);
   const [completedAlert, setCompletedAlert] = useState(null);
 
   const markingRef = useRef(false); // avoid duplicate mark-complete calls
@@ -136,29 +135,6 @@ export default function CourseLearning() {
       }
     } finally {
       markingRef.current = false;
-    }
-  }
-
-  // ── Manual mark complete ────────────────────────────────────────────────────
-  async function handleMarkComplete() {
-    if (!user || !activeLecture || markingManual) return;
-    if (completedIds.includes(activeLecture.id)) {
-      setCompletedAlert({ type: 'info', msg: 'This lecture is already marked as completed.' });
-      setTimeout(() => setCompletedAlert(null), 3000);
-      return;
-    }
-    setMarkingManual(true);
-    try {
-      await markLectureCompleteApi(user.id, courseId, activeLecture.id);
-      setCompleted((prev) => [...prev, activeLecture.id]);
-      setCompletedAlert({ type: 'success', msg: `"${activeLecture.title}" marked as completed! 🎉` });
-      showToast('Lecture marked as completed! 🎉', 'success');
-      setTimeout(() => setCompletedAlert(null), 4000);
-    } catch {
-      setCompletedAlert({ type: 'danger', msg: 'Failed to mark lecture as completed. Please try again.' });
-      setTimeout(() => setCompletedAlert(null), 4000);
-    } finally {
-      setMarkingManual(false);
     }
   }
 
@@ -323,7 +299,7 @@ export default function CourseLearning() {
                     </p>
                   )}
 
-                  {/* Prev / Next / Mark Complete */}
+                  {/* Prev / Next */}
                   <div className="d-flex gap-2 justify-content-between align-items-center mt-3 flex-wrap">
                     <Button
                       variant="outline-secondary"
@@ -333,22 +309,6 @@ export default function CourseLearning() {
                       onClick={() => navigateLesson(-1)}
                     >
                       <i className="bi bi-arrow-left me-1" />Previous
-                    </Button>
-
-                    <Button
-                      variant={completedIds.includes(activeLecture.id) ? 'success' : 'outline-success'}
-                      size="sm"
-                      className="rounded-pill px-3"
-                      onClick={handleMarkComplete}
-                      disabled={markingManual}
-                    >
-                      {markingManual ? (
-                        <><Spinner animation="border" size="sm" className="me-1" />Saving...</>
-                      ) : completedIds.includes(activeLecture.id) ? (
-                        <><i className="bi bi-check-circle-fill me-1" />Completed</>
-                      ) : (
-                        <><i className="bi bi-check-circle me-1" />Mark as Completed</>
-                      )}
                     </Button>
 
                     <Button

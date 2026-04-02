@@ -4,7 +4,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getCourseById } from '../../data/mockCourses';
 import { getLessonById, getLessonsByCourse } from '../../data/mockLessons';
-import { saveWatchTime, videoProgressToMinutes } from '../../services/watchTime';
+import {
+  saveVideoProgress,
+  getVideoProgress,
+  markLectureCompleted,
+  getCourseVideoProgress
+} from '../../services/videoProgress';
 import {
   getCourseProgress,
   markLessonComplete as apiMarkComplete,
@@ -27,16 +32,34 @@ export default function LessonPlayer() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [lastSavedProgress, setLastSavedProgress] = useState(0);
   const [markingComplete, setMarkingComplete] = useState(false);
+  const [resumeTime, setResumeTime] = useState(0);
 
   const isPreviewMode = window.location.pathname.includes('/preview');
   const isStudentMode = window.location.pathname.includes('/student/');
 
-  // Fetch course progress from backend (or localStorage fallback)
+  // Fetch saved video progress for resume
+  const loadVideoProgress = useCallback(async () => {
+    if (!user || !lessonId) return;
+    try {
+      const progress = await getVideoProgress(parseInt(lessonId), user.id);
+      if (progress && progress.current_time > 0) {
+        setResumeTime(progress.current_time);
+      }
+    } catch (error) {
+      console.warn('Failed to load video progress:', error);
+    }
+  }, [user, lessonId]);
+
+  // Fetch course progress from backend
   const loadProgress = useCallback(async () => {
     if (!user || !isStudentMode) return;
-    const ids = await getCourseProgress(user.id, parseInt(courseId));
-    setCompletedIds(ids);
-    setIsCompleted(ids.includes(parseInt(lessonId)));
+    try {
+      const ids = await getCourseProgress(user.id, parseInt(courseId));
+      setCompletedIds(ids);
+      setIsCompleted(ids.includes(parseInt(lessonId)));
+    } catch (error) {
+      console.warn('Failed to load course progress:', error);
+    }
   }, [user, courseId, lessonId, isStudentMode]);
 
   useEffect(() => {
@@ -52,14 +75,15 @@ export default function LessonPlayer() {
     setLessons(allLessons);
     setCurrentIndex(allLessons.findIndex((l) => l.id === parseInt(lessonId)));
 
-    // Fast local check first, then async backend fetch
+    // Fast local check first, then async backend fetches
     if (user && isStudentMode) {
       setIsCompleted(isLessonCompleteLocal(user.id, parseInt(courseId), parseInt(lessonId)));
+      loadVideoProgress();
       loadProgress();
     }
 
     setLastSavedProgress(0);
-  }, [courseId, lessonId, navigate, user, isStudentMode, loadProgress]);
+  }, [courseId, lessonId, navigate, user, isStudentMode, loadProgress, loadVideoProgress]);
 
   // Re-check completion state when lesson changes
   useEffect(() => {
@@ -70,11 +94,16 @@ export default function LessonPlayer() {
     if (!user || markingComplete) return;
     setMarkingComplete(true);
     try {
+      // Mark via videoProgress service (for actual video completion)
+      await markLectureCompleted(parseInt(lessonId), user.id);
+      // Also mark via progress service (for backward compatibility)
       await apiMarkComplete(user.id, parseInt(courseId), parseInt(lessonId));
       setIsCompleted(true);
       setCompletedIds((prev) =>
         prev.includes(parseInt(lessonId)) ? prev : [...prev, parseInt(lessonId)]
       );
+    } catch (error) {
+      console.error('Error marking lecture as completed:', error);
     } finally {
       setMarkingComplete(false);
     }
@@ -132,20 +161,31 @@ export default function LessonPlayer() {
               title={lesson.title}
               onProgress={(progress) => {
                 if (user && isStudentMode && progress > 0) {
+                  // Save progress every 5 seconds
                   const progressRounded = Math.floor(progress / 5) * 5;
                   if (progressRounded > lastSavedProgress) {
-                    let dur = 0;
-                    if (lesson.duration_number != null) dur = parseInt(lesson.duration_number, 10) || 0;
-                    else if (lesson.duration) { const m = String(lesson.duration).match(/(\d+)/); dur = m ? parseInt(m[1], 10) : 0; }
-                    saveWatchTime(user.id, parseInt(lessonId), videoProgressToMinutes(progress, dur));
+                    // Calculate duration in seconds
+                    let duration = 0;
+                    if (lesson.duration_number != null) {
+                      duration = parseInt(lesson.duration_number, 10) || 0;
+                    } else if (lesson.duration) {
+                      const m = String(lesson.duration).match(/(\d+)/);
+                      duration = m ? parseInt(m[1], 10) * 60 : 0; // convert minutes to seconds
+                    }
+                    
+                    // Save video progress to backend
+                    saveVideoProgress(parseInt(lessonId), user.id, progress, duration)
+                      .catch(error => console.warn('Failed to save video progress:', error));
+                    
                     setLastSavedProgress(progressRounded);
                   }
                 }
-                // Auto-complete at 90 %
+                // Auto-complete at 90%
                 if (user && isStudentMode && progress >= 90 && !isCompleted) {
                   handleComplete();
                 }
               }}
+              startTime={resumeTime}
             />
           </div>
 
@@ -160,23 +200,10 @@ export default function LessonPlayer() {
                     {lesson.type && <span className="ms-3 text-capitalize"><i className="bi bi-play-circle me-1"></i>{lesson.type}</span>}
                   </small>
                 </div>
-                {isStudentMode && user && (
-                  isCompleted ? (
-                    <Badge bg="success" className="fs-6 px-3 py-2">
-                      <i className="bi bi-check-circle-fill me-2"></i>Completed
-                    </Badge>
-                  ) : (
-                    <Button
-                      variant="success"
-                      onClick={handleComplete}
-                      disabled={markingComplete}
-                    >
-                      {markingComplete
-                        ? <><span className="spinner-border spinner-border-sm me-2" />Saving…</>
-                        : <><i className="bi bi-check-circle me-2"></i>Mark as Complete</>
-                      }
-                    </Button>
-                  )
+                {isStudentMode && user && isCompleted && (
+                  <Badge bg="success" className="fs-6 px-3 py-2">
+                    <i className="bi bi-check-circle-fill me-2"></i>Completed
+                  </Badge>
                 )}
               </div>
 
@@ -301,4 +328,4 @@ export default function LessonPlayer() {
     </Container>
   );
 }
-
+
