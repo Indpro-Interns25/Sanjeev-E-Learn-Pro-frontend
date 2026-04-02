@@ -7,6 +7,7 @@ export const mockCourses = [
       id: 2,
       name: 'Jane Instructor'
     },
+    instructor_name: 'Jane Instructor',
     category: 'Web Development',
     level: 'Beginner',
     thumbnail: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=600&q=80',
@@ -32,6 +33,7 @@ export const mockCourses = [
       id: 2,
       name: 'Jane Instructor'
     },
+    instructor_name: 'Jane Instructor',
     category: 'JavaScript',
     level: 'Advanced',
     thumbnail: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=600&q=80',
@@ -56,6 +58,7 @@ export const mockCourses = [
       id: 2,
       name: 'Jane Instructor'
     },
+    instructor_name: 'Jane Instructor',
     category: 'Data Science',
     level: 'Intermediate',
     thumbnail: 'https://images.unsplash.com/photo-1503676382389-4809596d5290?auto=format&fit=crop&w=600&q=80',
@@ -81,6 +84,7 @@ export const mockCourses = [
       id: 3,
       name: 'Dr. Alex Smith'
     },
+    instructor_name: 'Dr. Alex Smith',
     category: 'Data Science',
     level: 'Intermediate',
     thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80',
@@ -107,6 +111,7 @@ export const mockCourses = [
       id: 4,
       name: 'Mike Johnson'
     },
+    instructor_name: 'Mike Johnson',
     category: 'Web Development',
     level: 'Intermediate',
     thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80',
@@ -132,6 +137,7 @@ export const mockCourses = [
       id: 5,
       name: 'Sarah Wilson'
     },
+    instructor_name: 'Sarah Wilson',
     category: 'Mobile Development',
     level: 'Advanced',
     thumbnail: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=600&q=80',
@@ -158,6 +164,7 @@ export const mockCourses = [
       id: 6,
       name: 'Emma Davis'
     },
+    instructor_name: 'Emma Davis',
     category: 'Marketing',
     level: 'Beginner',
     thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80',
@@ -183,6 +190,7 @@ export const mockCourses = [
       id: 7,
       name: 'David Lee'
     },
+    instructor_name: 'David Lee',
     category: 'Design',
     level: 'Beginner',
     thumbnail: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=600&q=80',
@@ -208,6 +216,7 @@ export const mockCourses = [
       id: 2,
       name: 'Jane Instructor'
     },
+    instructor_name: 'Jane Instructor',
     category: 'JavaScript',
     level: 'Advanced',
     thumbnail: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?auto=format&fit=crop&w=600&q=80',
@@ -233,6 +242,7 @@ export const mockCourses = [
       id: 8,
       name: 'Robert Chen'
     },
+    instructor_name: 'Robert Chen',
     category: 'Security',
     level: 'Intermediate',
     thumbnail: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80',

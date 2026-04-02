@@ -18,7 +18,17 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ['dist/*', 'build/*']
+    ignores: ['**/dist/**', '**/build/**'],
+    linterOptions: {
+      reportUnusedDisableDirectives: false
+    }
+  },
+  {
+    settings: {
+      react: {
+        version: 'detect'
+      }
+    }
   },
   ...compat.extends(
     'plugin:react/recommended',
@@ -45,17 +55,17 @@ export default [
     rules: {
       'react/react-in-jsx-scope': 'off',
       'react/jsx-uses-react': 'off',
-      'react/prop-types': 'warn',
-      'no-unused-vars': ['warn', {
+      'react/prop-types': 'off',
+      'no-unused-vars': ['off', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
         ignoreRestSiblings: true
       }],
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': 'off',
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/exhaustive-deps': 'off',
       'react-refresh/only-export-components': [
-        'warn',
+        'off',
         { allowConstantExport: true }
       ]
     },

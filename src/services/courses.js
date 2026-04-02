@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { mockCourses } from '../data/mockCourses';
 
 // =========================================
 // COURSES API SERVICE
@@ -39,8 +40,16 @@ export async function getAllCourses(filters = {}) {
     // Get course data
     let courses = response.data;
     
-    // Check if courses have instructor names, if not, try to fetch instructor data
-    if (courses.length > 0 && !courses[0].instructor_name && !courses[0].instructor?.name) {
+    // Validate that courses is an array
+    if (!Array.isArray(courses)) {
+      console.warn('⚠️ API response is not an array, falling back to mock courses');
+      courses = mockCourses;
+    }
+    
+    // Check if courses have instructor names, if not, try to fetch instructor data.
+    // Important: never hit admin endpoints for public users, otherwise a 401 can cause route redirects.
+    const hasAdminSession = typeof window !== 'undefined' && !!localStorage.getItem('adminToken');
+    if (hasAdminSession && courses.length > 0 && !courses[0].instructor_name && !courses[0].instructor?.name) {
       console.warn('📚 Courses missing instructor names, attempting to fetch instructor data...');
       
       try {
@@ -82,13 +91,25 @@ export async function getAllCourses(filters = {}) {
       }
     }
     
-    return courses;
-  } catch {
-    console.warn('API not available, returning empty courses list');
-    console.warn('Please ensure your backend server is running to display real course data');
+    // Apply limit filter if specified
+    if (filters.limit) {
+      courses = courses.slice(0, filters.limit);
+    }
     
-    // Return empty array instead of mock data
-    return [];
+    return courses;
+  } catch (error) {
+    console.warn('⚠️ API request failed, falling back to mock courses:', error.message);
+    console.warn('Please ensure your backend server is running at the correct URL for real course data');
+    
+    // Return mock courses as fallback
+    let fallbackCourses = [...mockCourses];
+    
+    // Apply limit filter if specified
+    if (filters.limit) {
+      fallbackCourses = fallbackCourses.slice(0, filters.limit);
+    }
+    
+    return fallbackCourses;
   }
 }
 
@@ -109,7 +130,8 @@ export async function getCourseById(courseId) {
 
     // If instructor is unknown but we have an instructor_id / user_id, try to enrich from admin instructors
     const instructorId = courseRaw?.instructor_id || courseRaw?.user_id || null;
-    if ((formatted.instructor_name === 'Unknown Instructor' || !formatted.instructor_name) && instructorId) {
+    const hasAdminSession = typeof window !== 'undefined' && !!localStorage.getItem('adminToken');
+    if (hasAdminSession && (formatted.instructor_name === 'Unknown Instructor' || !formatted.instructor_name) && instructorId) {
       try {
         const instructorsResp = await apiClient.get('/api/admin/instructors');
         const instructors = instructorsResp.data && instructorsResp.data.data ? instructorsResp.data.data : instructorsResp.data || [];

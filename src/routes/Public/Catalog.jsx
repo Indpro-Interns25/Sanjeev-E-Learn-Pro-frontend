@@ -10,182 +10,111 @@ const COURSES_PER_PAGE = 8;
 const VIEW_MODES = { GRID: 'grid', LIST: 'list' };
 
 export default function Catalog() {
-  // Filter courses based on search and filters, then paginate
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
+  const [error, setError] = useState('');
+
+  const [allCourses, setAllCourses] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState(['All']);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState([]);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedLevel, setSelectedLevel] = useState('All');
+  const [viewMode, setViewMode] = useState(VIEW_MODES.GRID);
+  const [currentPage, setCurrentPage] = useState(1);
+
   useEffect(() => {
-    const filterCourses = async () => {
-      let filteredCourses = allCourses.filter(course => !enrolledCourseIds.includes(course.id));
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+        setError('');
 
-      // Search
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const searchWords = searchLower.split(' ').filter(word => word.length > 0);
-        filteredCourses = filteredCourses.filter(course =>
-          searchWords.some(word =>
-            course.title?.toLowerCase().includes(word) ||
-            course.description?.toLowerCase().includes(word) ||
-            course.category?.toLowerCase().includes(word) ||
-            course.instructor_name?.toLowerCase().includes(word)
-          ) ||
-          course.title?.toLowerCase().includes(searchLower) ||
-          course.description?.toLowerCase().includes(searchLower) ||
-          course.category?.toLowerCase().includes(searchLower) ||
-          course.instructor_name?.toLowerCase().includes(searchLower)
-        );
-      }
+        const requests = [
+          getAllCourses({ sortBy: 'rating', sortOrder: 'desc' }),
+          getCourseCategories(),
+          user?.id ? getUserEnrollments(user.id) : Promise.resolve([])
+        ];
 
-      // Category filter
-      if (selectedCategory !== 'All') {
-        filteredCourses = filteredCourses.filter(course => course.category === selectedCategory);
-      }
+        const [coursesResponse, categoriesResponse, enrollmentsResponse] = await Promise.allSettled(requests);
 
-      // Level filter
-      if (selectedLevel !== 'All') {
-        filteredCourses = filteredCourses.filter(course =>
-          (course.difficulty_level || course.level || 'beginner').toLowerCase() === selectedLevel.toLowerCase()
-        );
-      }
+        const enrolledIds =
+          enrollmentsResponse.status === 'fulfilled'
+            ? enrollmentsResponse.value
+                .map((enrollment) => enrollment?.course_id)
+                .filter((id) => id !== null && id !== undefined)
+            : [];
 
-      setCourses(filteredCourses);
-      setCurrentPage(1); // Reset to first page on filter/search change
-    };
+        setEnrolledCourseIds(enrolledIds);
 
-    // Debounce search/filter
-    const timeoutId = setTimeout(filterCourses, 300);
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm, selectedCategory, selectedLevel, allCourses, enrolledCourseIds]);
-            !enrolledCourseIds.includes(course.id)
-          );
-          console.warn('📋 Total courses:', formattedCourses.length);
-          console.warn('📋 User enrolled courses:', enrolledCourseIds);
-          console.warn('📋 Available courses (not enrolled):', availableCourses.length);
-          
-          setCourses(availableCourses);
+        if (coursesResponse.status === 'fulfilled') {
+          const formattedCourses = formatCoursesData(coursesResponse.value || []);
+          setAllCourses(formattedCourses);
+          setCourses(formattedCourses.filter((course) => !enrolledIds.includes(course.id)));
         } else {
-          console.error('Failed to fetch courses:', coursesResponse.reason);
+          setAllCourses([]);
+          setCourses([]);
+          setError(coursesResponse.reason?.message || 'Failed to fetch courses');
         }
-        
-        // Handle categories
+
         if (categoriesResponse.status === 'fulfilled') {
-          const categoryNames = categoriesResponse.value.map(cat => cat.name);
+          const categoryNames = (categoriesResponse.value || []).map((cat) => cat.name);
           setCategories(['All', ...categoryNames]);
         } else {
-          console.warn('Failed to fetch categories, using fallback categories');
-          // Fallback categories based on the API response examples
           setCategories(['All', 'Web Development', 'Mobile Development', 'Data Science', 'Database Management']);
         }
-        
       } catch (err) {
-        setError(err.message);
-        console.error('Error fetching initial data:', err);
+        setError(err.message || 'Failed to load catalog data');
       } finally {
         setLoading(false);
       }
     };
 
     fetchInitialData();
-  }, [enrolledCourseIds]); // Re-fetch when enrolled courses change
+  }, [user?.id]);
 
-  // Filter courses based on search and filters
   useEffect(() => {
-    const filterCourses = async () => {
-      if (!searchTerm && selectedCategory === 'All' && selectedLevel === 'All') {
-        // No search filters, show all courses except enrolled ones
-        const availableCourses = allCourses.filter(course => 
-          !enrolledCourseIds.includes(course.id)
-        );
-        setCourses(availableCourses);
-        return;
+    const applyFilters = () => {
+      setSearching(true);
+
+      let filteredCourses = allCourses.filter((course) => !enrolledCourseIds.includes(course.id));
+
+      if (searchTerm.trim()) {
+        const searchLower = searchTerm.toLowerCase();
+        const searchWords = searchLower.split(' ').filter((word) => word.length > 0);
+        filteredCourses = filteredCourses.filter((course) => {
+          const haystack = [
+            course.title,
+            course.description,
+            course.category,
+            course.instructor_name
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+          return haystack.includes(searchLower) || searchWords.some((word) => haystack.includes(word));
+        });
       }
 
-      try {
-        setSearching(true);
-        
-        // If we have search term, filter locally first for immediate results
-        if (searchTerm) {
-          let filteredCourses = allCourses.filter(course => {
-            const searchLower = searchTerm.toLowerCase();
-            const searchWords = searchLower.split(' ').filter(word => word.length > 0);
-            
-            // Check if any search word matches in title, description, category, or instructor
-            return searchWords.some(word => 
-              course.title?.toLowerCase().includes(word) ||
-              course.description?.toLowerCase().includes(word) ||
-              course.category?.toLowerCase().includes(word) ||
-              course.instructor_name?.toLowerCase().includes(word)
-            ) || 
-            // Also check for exact phrase match
-            course.title?.toLowerCase().includes(searchLower) ||
-            course.description?.toLowerCase().includes(searchLower) ||
-            course.category?.toLowerCase().includes(searchLower) ||
-            course.instructor_name?.toLowerCase().includes(searchLower);
-          });
-          
-          // Apply category filter
-          if (selectedCategory !== 'All') {
-            filteredCourses = filteredCourses.filter(course => 
-              course.category === selectedCategory
-            );
-          }
-          
-          // Apply level filter
-          if (selectedLevel !== 'All') {
-            filteredCourses = filteredCourses.filter(course => 
-              (course.difficulty_level || course.level || 'beginner').toLowerCase() === selectedLevel.toLowerCase()
-            );
-          }
-          
-          // Filter out enrolled courses
-          const availableCourses = filteredCourses.filter(course => 
-            !enrolledCourseIds.includes(course.id)
-          );
-          
-          console.warn('🔍 Local search results:', filteredCourses.length);
-          console.warn('🔍 Available courses (not enrolled):', availableCourses.length);
-          console.warn('🔍 Search term:', searchTerm);
-          
-          setCourses(availableCourses);
-          setSearching(false);
-          return;
-        }
-        
-        // If no search term, use category/level filters only
-        const filters = {};
-        
-        if (selectedCategory !== 'All') {
-          filters.category = selectedCategory;
-        }
-        
-        if (selectedLevel !== 'All') {
-          filters.level = selectedLevel.toLowerCase();
-        }
-        
-        // Add sorting
-        filters.sortBy = 'rating';
-        filters.sortOrder = 'desc';
-        
-        const filteredCourses = await getAllCourses(filters);
-        const formattedCourses = formatCoursesData(filteredCourses);
-        
-        // Filter out enrolled courses from search results
-        const availableCourses = formattedCourses.filter(course => 
-          !enrolledCourseIds.includes(course.id)
-        );
-        console.warn('🔍 API filter results:', formattedCourses.length);
-        console.warn('🔍 Available courses (not enrolled):', availableCourses.length);
-        
-        setCourses(availableCourses);
-        
-      } catch (err) {
-        console.error('Error filtering courses:', err);
-        setError(err.message);
-      } finally {
-        setSearching(false);
+      if (selectedCategory !== 'All') {
+        filteredCourses = filteredCourses.filter((course) => course.category === selectedCategory);
       }
+
+      if (selectedLevel !== 'All') {
+        filteredCourses = filteredCourses.filter(
+          (course) => (course.difficulty_level || course.level || 'beginner').toLowerCase() === selectedLevel.toLowerCase()
+        );
+      }
+
+      setCourses(filteredCourses);
+      setCurrentPage(1);
+      setSearching(false);
     };
 
-    // Debounce search
-    const timeoutId = setTimeout(filterCourses, 300);
-    
+    const timeoutId = setTimeout(applyFilters, 250);
     return () => clearTimeout(timeoutId);
   }, [searchTerm, selectedCategory, selectedLevel, allCourses, enrolledCourseIds]);
 

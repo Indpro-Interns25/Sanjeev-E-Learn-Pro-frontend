@@ -1,0 +1,308 @@
+/* ============ IMAGE EFFECTS LIBRARY ============ */
+
+/* Zoom effect on hover */
+.img-zoom:hover {
+  transform: scale(1.08);
+}
+
+.img-zoom {
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  overflow: hidden;
+}
+
+/* Grayscale to color effect */
+.img-grayscale-to-color {
+  transition: filter 0.4s ease;
+  filter: grayscale(100%);
+}
+
+.img-grayscale-to-color:hover {
+  filter: grayscale(0%);
+}
+
+/* Brightness effect */
+.img-brightness:hover {
+  filter: brightness(1.1) saturate(1.15);
+}
+
+.img-brightness {
+  transition: filter 0.4s ease;
+  filter: brightness(0.95) saturate(1.05);
+}
+
+/* Blur on hover */
+.img-blur-on-hover:hover {
+  filter: blur(3px);
+}
+
+.img-blur-on-hover {
+  transition: filter 0.4s ease;
+}
+
+/* Sepia effect */
+.img-sepia:hover {
+  filter: sepia(0%);
+}
+
+.img-sepia {
+  transition: filter 0.4s ease;
+  filter: sepia(30%);
+}
+
+/* Invert effect (creative) */
+.img-invert:hover {
+  filter: invert(1);
+}
+
+.img-invert {
+  transition: filter 0.4s ease;
+  filter: invert(0);
+}
+
+/* Saturate effect */
+.img-saturate:hover {
+  filter: saturate(1.5);
+}
+
+.img-saturate {
+  transition: filter 0.4s ease;
+  filter: saturate(1);
+}
+
+/* Hue rotate effect */
+.img-hue-rotate:hover {
+  filter: hue-rotate(90deg);
+}
+
+.img-hue-rotate {
+  transition: filter 0.4s ease;
+  filter: hue-rotate(0deg);
+}
+
+/* Multiple effects combined */
+.img-enhanced:hover {
+  filter: brightness(1.1) contrast(1.1) saturate(1.2);
+  transform: scale(1.05);
+}
+
+.img-enhanced {
+  transition: filter 0.4s ease, transform 0.4s ease;
+  filter: brightness(0.95) contrast(1) saturate(1);
+}
+
+/* Shadow effect */
+.img-shadow:hover {
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
+}
+
+.img-shadow {
+  transition: filter 0.4s ease;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+/* Glow effect */
+.img-glow:hover {
+  filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.5));
+}
+
+.img-glow {
+  transition: filter 0.4s ease;
+  filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.3));
+}
+
+/* 3D perspective flip */
+.img-flip-3d {
+  transition: transform 0.6s ease;
+  transform-style: preserve-3d;
+}
+
+.img-flip-3d:hover {
+  transform: rotateY(10deg) rotateX(-5deg);
+}
+
+/* Skew effect */
+.img-skew:hover {
+  transform: skewX(-5deg);
+}
+
+.img-skew {
+  transition: transform 0.4s ease;
+}
+
+/* Rotate effect */
+.img-rotate:hover {
+  transform: rotate(5deg) scale(1.05);
+}
+
+.img-rotate {
+  transition: transform 0.4s ease;
+  transform: rotate(0deg);
+}
+
+/* Slide right effect */
+.img-slide-right:hover {
+  transform: translateX(20px);
+}
+
+.img-slide-right {
+  transition: transform 0.4s ease;
+  transform: translateX(0);
+}
+
+/* Slide left effect */
+.img-slide-left:hover {
+  transform: translateX(-20px);
+}
+
+.img-slide-left {
+  transition: transform 0.4s ease;
+  transform: translateX(0);
+}
+
+/* Slide up effect */
+.img-slide-up:hover {
+  transform: translateY(-20px);
+}
+
+.img-slide-up {
+  transition: transform 0.4s ease;
+  transform: translateY(0);
+}
+
+/* Slide down effect */
+.img-slide-down:hover {
+  transform: translateY(20px);
+}
+
+.img-slide-down {
+  transition: transform 0.4s ease;
+  transform: translateY(0);
+}
+
+/* Radial gradient overlay on hover */
+.img-radial-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.img-radial-overlay::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  pointer-events: none;
+}
+
+.img-radial-overlay:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Linear gradient overlay left to right */
+.img-gradient-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.img-gradient-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(102, 126, 234, 0.3) 50%, transparent 100%);
+  transition: left 0.6s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.img-gradient-overlay:hover::before {
+  left: 100%;
+}
+
+/* Pixelate effect (using box-shadow simulation) */
+.img-pixelate {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Opacity fade effect */
+.img-opacity:hover {
+  opacity: 0.7;
+}
+
+.img-opacity {
+  transition: opacity 0.4s ease;
+  opacity: 1;
+}
+
+/* Border glow effect */
+.img-border-glow {
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  transition: box-shadow 0.4s ease;
+}
+
+.img-border-glow:hover {
+  box-shadow: 0 0 15px rgba(102, 126, 234, 0.6);
+}
+
+/* Combination: Zoom + Brightness + Shadow */
+.img-premium-effect:hover {
+  transform: scale(1.08);
+  filter: brightness(1.1) drop-shadow(0 8px 16px rgba(102, 126, 234, 0.3));
+}
+
+.img-premium-effect {
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), filter 0.4s ease;
+  filter: brightness(0.95);
+}
+
+/* Combination: Grayscale + Zoom + Glow */
+.img-vibrant-effect:hover {
+  transform: scale(1.05);
+  filter: grayscale(0%) drop-shadow(0 0 15px rgba(102, 126, 234, 0.4));
+}
+
+.img-vibrant-effect {
+  transition: transform 0.4s ease, filter 0.4s ease;
+  filter: grayscale(40%) drop-shadow(0 0 5px rgba(102, 126, 234, 0.2));
+}
+
+/* Image container with border radius and overflow */
+.img-container {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.img-container-lg {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.img-container-xl {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* Responsive image adjustments */
+@media (max-width: 768px) {
+  .img-zoom:hover {
+    transform: scale(1.05);
+  }
+
+  .img-flip-3d:hover {
+    transform: none;
+  }
+
+  .img-slide-right:hover,
+  .img-slide-left:hover {
+    transform: none;
+  }
+}

@@ -46,10 +46,19 @@ export default function AppNavbar() {
         <Navbar.Collapse id="navbar-nav">
           {/* Left nav */}
           <Nav className="me-auto">
-            <Nav.Link as={Link} to="/">Home</Nav.Link>
-            <Nav.Link as={Link} to="/catalog">Courses</Nav.Link>
-            <Nav.Link as={Link} to="/about">About</Nav.Link>
-            <Nav.Link as={Link} to="/contact">Contact</Nav.Link>
+            {isAuthenticated ? (
+              <>
+                <Nav.Link as={Link} to="/home">Home</Nav.Link>
+                <Nav.Link as={Link} to="/explore">Courses</Nav.Link>
+              </>
+            ) : (
+              <>
+                <Nav.Link as={Link} to="/">Home</Nav.Link>
+                <Nav.Link as={Link} to="/explore">Courses</Nav.Link>
+                <Nav.Link as={Link} to="/about">About</Nav.Link>
+                <Nav.Link as={Link} to="/contact">Contact</Nav.Link>
+              </>
+            )}
             {isAuthenticated && user?.role === 'student' && (
               <Nav.Link as={Link} to="/student/my-learning">My Learning</Nav.Link>
             )}

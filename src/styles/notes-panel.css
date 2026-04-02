@@ -1,0 +1,331 @@
+/* Notes Panel Styles */
+
+.notes-panel {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.notes-panel:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.notes-panel .card-header {
+  padding: 1rem;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+}
+
+.notes-panel .card-header h5 {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notes-body {
+  padding: 1.5rem;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.notes-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notes-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notes-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.notes-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Note Item */
+.note-item {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+}
+
+.note-item:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: #dee2e6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.note-header {
+  margin-bottom: 0.75rem;
+}
+
+.note-date {
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.note-content {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #333;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.note-content.truncated {
+  max-height: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+}
+
+.note-actions {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.note-item:hover .note-actions {
+  opacity: 1;
+}
+
+.note-actions .btn-link {
+  padding: 0.25rem 0.5rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.note-actions .btn-link:hover {
+  opacity: 0.7;
+}
+
+/* Form Controls */
+.notes-panel .form-control,
+.notes-panel .form-select {
+  border-radius: 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.notes-panel .form-control:focus,
+.notes-panel .form-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.notes-panel textarea {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Button Styles */
+.notes-panel .btn-primary {
+  background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+  border: none;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.notes-panel .btn-primary:hover {
+  background: linear-gradient(135deg, #0b5ed7, #0a58ca);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+.notes-panel .btn-primary:disabled {
+  background: rgba(0, 0, 0, 0.1);
+  cursor: not-allowed;
+}
+
+.notes-panel .btn-success {
+  background: linear-gradient(135deg, #198754, #157347);
+  border: none;
+}
+
+.notes-panel .btn-success:hover {
+  background: linear-gradient(135deg, #157347, #12613e);
+}
+
+.notes-panel .btn-secondary {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  color: #333;
+}
+
+.notes-panel .btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Empty State */
+.notes-panel .empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #999;
+}
+
+.notes-panel .empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Alert Styles */
+.notes-panel .alert {
+  border-radius: 0.5rem;
+  border: none;
+  background: rgba(220, 53, 69, 0.1);
+  color: #721c24;
+}
+
+.notes-panel .alert-danger {
+  background: rgba(220, 53, 69, 0.1);
+  border-left: 4px solid #dc3545;
+}
+
+/* Badge Styles */
+.notes-panel .badge {
+  padding: 0.35rem 0.65rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.notes-panel .badge.bg-info {
+  background: linear-gradient(135deg, #0dcaf0, #0ba5d8) !important;
+}
+
+.notes-panel .badge.bg-light {
+  background: #f8f9fa !important;
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Modal Styles */
+.notes-panel .modal-header {
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+.notes-panel .modal-body {
+  padding: 1.5rem;
+}
+
+.notes-panel .modal-footer {
+  background: rgba(0, 0, 0, 0.02);
+  border: none;
+}
+
+/* Loading Spinner */
+.notes-panel .spinner-border {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Character Counter */
+.notes-panel .char-counter {
+  font-size: 0.85rem;
+  color: #999;
+  text-align: right;
+  margin-top: 0.5rem;
+}
+
+.notes-panel .char-counter.warning {
+  color: #ffc107;
+}
+
+.notes-panel .char-counter.error {
+  color: #dc3545;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .notes-body {
+    max-height: 400px;
+    padding: 1rem;
+  }
+
+  .note-item {
+    padding: 1rem !important;
+  }
+
+  .note-actions {
+    opacity: 1;
+  }
+
+  .notes-panel .btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .notes-body {
+    max-height: 300px;
+  }
+
+  .note-content {
+    font-size: 0.9rem;
+  }
+
+  .note-item {
+    padding: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .note-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .note-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .notes-panel {
+    background: #1e1e1e;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .note-item {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .note-item:hover {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .note-content {
+    color: #e0e0e0;
+  }
+
+  .note-date {
+    color: #999;
+  }
+
+  .notes-panel .form-control,
+  .notes-panel .form-select {
+    background: #2d2d2d;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+  }
+
+  .notes-panel .form-control:focus,
+  .notes-panel .form-select:focus {
+    border-color: #0d6efd;
+    background: #2d2d2d;
+  }
+}

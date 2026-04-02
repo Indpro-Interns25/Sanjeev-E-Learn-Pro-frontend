@@ -1,0 +1,160 @@
+/* Progress Bar Components Styles */
+
+.course-progress-container {
+  margin-bottom: 1.5rem;
+}
+
+.course-progress-container.progress-size-small {
+  --progress-height: 8px;
+}
+
+.course-progress-container.progress-size-normal {
+  --progress-height: 12px;
+}
+
+.course-progress-container.progress-size-large {
+  --progress-height: 16px;
+}
+
+.progress-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.course-progress-bar {
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.1);
+  height: var(--progress-height, 12px);
+  overflow: hidden;
+}
+
+.course-progress-bar .progress-bar {
+  border-radius: 10px;
+  transition: width 0.3s ease;
+  font-size: 0.75rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+}
+
+.lecture-progress-container {
+  margin-bottom: 1rem;
+}
+
+.lecture-progress-bar-wrapper {
+  cursor: pointer;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.lecture-progress-bar-wrapper:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.lecture-progress-bar {
+  border-radius: 4px;
+  height: 6px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.lecture-progress-bar .progress-bar {
+  background: linear-gradient(90deg, #0d6efd, #0b5ed7);
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+.skill-progress-container {
+  padding: 0.75rem 0;
+}
+
+.skill-progress-bar {
+  height: 8px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.skill-progress-bar .progress-bar {
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+/* Dashboard Progress Card */
+.dashboard-progress-card {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  display: block;
+}
+
+.dashboard-progress-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+.dashboard-progress-card .progress {
+  height: 8px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-progress-card .progress-bar {
+  border-radius: 10px;
+  background: linear-gradient(90deg, #0d6efd, #0b5ed7);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .progress-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .course-progress-bar {
+    height: 10px;
+  }
+}
+
+/* Animation for progress updates */
+@keyframes progressPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(13, 110, 253, 0);
+  }
+}
+
+.progress-bar.animated {
+  animation: progressPulse 2s infinite;
+}
+
+/* Progress text badges */
+.progress-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+/* Linear gradient backgrounds for different progress levels */
+.progress-0-25 {
+  background: linear-gradient(90deg, #dc3545, #fd7e14);
+}
+
+.progress-25-50 {
+  background: linear-gradient(90deg, #fd7e14, #ffc107);
+}
+
+.progress-50-75 {
+  background: linear-gradient(90deg, #ffc107, #17a2b8);
+}
+
+.progress-75-100 {
+  background: linear-gradient(90deg, #17a2b8, #28a745);
+}

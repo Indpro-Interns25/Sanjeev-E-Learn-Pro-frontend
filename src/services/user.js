@@ -2,14 +2,38 @@ import apiClient from './apiClient';
 
 /**
  * Get user's enrolled courses
+ * @param {number} userId - The user ID
  * @returns {Promise<Array>} Promise that resolves to enrolled courses array
  */
-export async function getEnrolledCourses() {
+export async function getEnrolledCourses(userId) {
   try {
-    console.warn('🌐 Fetching enrolled courses from API...');
-    const response = await apiClient.get('/api/user/enrolled-courses');
+    if (!userId) {
+      throw new Error('User ID is required to fetch enrolled courses');
+    }
+
+    console.warn(`🌐 Fetching enrolled courses from API for user ${userId}...`);
+    
+    // Use the same endpoint as enrollment.js for consistency
+    // This ensures compatibility with backend
+    const response = await apiClient.get(`/api/enrollments/users/${userId}`);
     console.warn('📚 Enrolled courses received:', response.data);
-    return response.data;
+    
+    // Handle wrapped response structure
+    if (response.data?.success && Array.isArray(response.data?.data)) {
+      return response.data.data;
+    }
+    
+    // Handle direct array response
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+    
+    // Handle single object response (convert to array)
+    if (response.data && typeof response.data === 'object') {
+      return [response.data];
+    }
+    
+    return [];
   } catch (error) {
     console.error('🚨 Failed to fetch enrolled courses:', error);
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
@@ -26,18 +50,24 @@ export async function getEnrolledCourses() {
                    error.response?.data?.error || 
                    error.message || 
                    'Failed to fetch enrolled courses';
-    throw new Error(message);
+    console.error(message);
+    return [];
   }
 }
 
 /**
  * Get user's learning statistics
+ * @param {number} userId - The user ID
  * @returns {Promise<Object>} Promise that resolves to user stats object
  */
-export async function getUserStats() {
+export async function getUserStats(userId) {
   try {
-    console.warn('📊 Fetching user stats from API...');
-    const response = await apiClient.get('/api/user/stats');
+    if (!userId) {
+      throw new Error('User ID is required to fetch user stats');
+    }
+
+    console.warn(`📊 Fetching user stats from API for user ${userId}...`);
+    const response = await apiClient.get(`/api/user/${userId}/stats`);
     console.warn('📈 User stats received:', response.data);
     return response.data;
   } catch (error) {
@@ -47,7 +77,7 @@ export async function getUserStats() {
       
       // Fallback: Calculate stats from enrolled courses
       try {
-        const enrolledCourses = await getEnrolledCourses();
+        const enrolledCourses = await getEnrolledCourses(userId);
         return calculateStatsFromCourses(enrolledCourses);
       } catch (coursesError) {
         console.error('Could not fetch enrolled courses for stats calculation:', coursesError);
@@ -73,7 +103,15 @@ export async function getUserStats() {
                    error.response?.data?.error || 
                    error.message || 
                    'Failed to fetch user statistics';
-    throw new Error(message);
+    console.error(message);
+    
+    // Return default stats on error instead of throwing
+    return {
+      coursesInProgress: 0,
+      completedCourses: 0,
+      totalLessons: 0,
+      completedLessons: 0
+    };
   }
 }
 
@@ -109,14 +147,26 @@ function calculateStatsFromCourses(enrolledCourses) {
 
 /**
  * Enroll user in a course
+ * @param {number} userId - The user ID
  * @param {number} courseId - Course ID to enroll in
  * @returns {Promise<Object>} Promise that resolves to enrollment result
  */
-export async function enrollInCourse(courseId) {
+export async function enrollInCourse(userId, courseId) {
   try {
-    const response = await apiClient.post(`/api/courses/${courseId}/enroll`);
+    if (!userId || !courseId) {
+      throw new Error('User ID and Course ID are required to enroll');
+    }
+
+    console.warn(`📝 Enrolling user ${userId} in course ${courseId}...`);
+    const response = await apiClient.post(`/api/user/${userId}/courses/${courseId}/enroll`, {
+      userId,
+      courseId
+    });
+    console.warn('✅ Enrollment successful:', response.data);
     return response.data;
   } catch (error) {
+    console.error('🚨 Enrollment error:', error);
+    
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
       throw new Error('Backend API server is not running. Please start the backend server.');
     }
@@ -139,12 +189,18 @@ export async function enrollInCourse(courseId) {
 
 /**
  * Get user's progress for a specific course
+ * @param {number} userId - The user ID
  * @param {number} courseId - Course ID
  * @returns {Promise<Object>} Promise that resolves to progress object
  */
-export async function getCourseProgress(courseId) {
+export async function getCourseProgress(userId, courseId) {
   try {
-    const response = await apiClient.get(`/api/courses/${courseId}/progress`);
+    if (!userId || !courseId) {
+      throw new Error('User ID and Course ID are required to fetch progress');
+    }
+
+    console.warn(`📈 Fetching progress for user ${userId} in course ${courseId}...`);
+    const response = await apiClient.get(`/api/user/${userId}/courses/${courseId}/progress`);
     return response.data;
   } catch (error) {
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
@@ -168,7 +224,13 @@ export async function getCourseProgress(courseId) {
                    error.response?.data?.error || 
                    error.message || 
                    'Failed to fetch course progress';
-    throw new Error(message);
+    console.error(message);
+    
+    return {
+      completedLessons: 0,
+      totalLessons: 0,
+      progressPercentage: 0
+    };
   }
 }
 

@@ -132,7 +132,7 @@ export default function StudentDashboard() {
             <h1 className="h3 fw-bold mb-1">
               Welcome back, <span className="text-primary">{user?.name?.split(' ')[0] || 'Student'}!</span> 👋
             </h1>
-            <p className="text-muted mb-0">Here's your learning summary for today.</p>
+            <p className="text-muted mb-0">Here&apos;s your learning summary for today.</p>
           </div>
           <Link to="/catalog" className="btn btn-primary">
             <i className="bi bi-search me-2" />Browse Courses

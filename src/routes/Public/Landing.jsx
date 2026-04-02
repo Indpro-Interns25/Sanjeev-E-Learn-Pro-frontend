@@ -1,22 +1,7 @@
-
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { useEffect } from 'react';
-import { initScrollAnimations, initHoverEffects } from '../../utils/scrollAnimations';
-import '../../styles/image-effects.css';
 
-export default function Home() {
-  useEffect(() => {
-    // Initialize scroll animations and hover effects
-    const observer = initScrollAnimations();
-    initHoverEffects();
-
-    // Cleanup observer on unmount
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-
+export default function Landing() {
   return (
     <main>
       {/* Hero Section - Main Call to Action */}
@@ -56,7 +41,7 @@ export default function Home() {
                 </Button>
                 <Button
                   as={Link}
-                  to="/explore"
+                  to="/catalog"
                   variant="outline-light"
                   size="lg"
                   className="px-5 py-3 fw-bold"

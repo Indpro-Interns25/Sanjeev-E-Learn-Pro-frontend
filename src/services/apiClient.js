@@ -39,7 +39,10 @@ apiClient.interceptors.request.use(
       token = localStorage.getItem('token');
     }
 
-    if (token) {
+    const isDemoToken = typeof token === 'string' && (token.startsWith('demo-token-') || token.startsWith('demo-admin-'));
+
+    // Never attach demo tokens to backend requests; they are local-only fallback sessions.
+    if (token && !isDemoToken) {
       config.headers.Authorization = `Bearer ${token}`;
     } else if (isAdminEndpoint && bypassAdminAuth) {
       // Informative log only in development
@@ -66,15 +69,30 @@ apiClient.interceptors.response.use(
   (error) => {
     // Handle 401 Unauthorized
     if (error.response?.status === 401) {
-      const isAdminEndpoint = error.config?.url?.includes('/admin/');
+      const requestUrl = error.config?.url || '';
+      const isAdminEndpoint = requestUrl.includes('/admin/');
+      const isAuthEndpoint = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/register') || requestUrl.includes('/auth/forgot-password');
+      const isPublicCatalogEndpoint = requestUrl.includes('/api/courses') || requestUrl.includes('/api/categories');
+
+      const userToken = localStorage.getItem('token');
+      const adminToken = localStorage.getItem('adminToken');
+      const hasDemoUserToken = typeof userToken === 'string' && userToken.startsWith('demo-token-');
+      const hasDemoAdminToken = typeof adminToken === 'string' && adminToken.startsWith('demo-admin-');
+
+      // Do not hard-redirect for auth/public endpoints or local demo sessions.
+      if (isAuthEndpoint || isPublicCatalogEndpoint || hasDemoUserToken || hasDemoAdminToken) {
+        return Promise.reject(error);
+      }
       
-      if (isAdminEndpoint) {
+      const onAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+
+      if (isAdminEndpoint && onAdminRoute) {
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminData');
         window.location.href = '/admin-login';
-      } else {
+      } else if (!isAdminEndpoint) {
         localStorage.removeItem('token');
-        localStorage.removeItem('userData');
+        localStorage.removeItem('user');
         window.location.href = '/login';
       }
     }
