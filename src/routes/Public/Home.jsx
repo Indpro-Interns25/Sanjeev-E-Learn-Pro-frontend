@@ -1,9 +1,36 @@
 
 import { Container, Row, Col, Button, Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { getPlatformStats } from '../../services/stats';
 import '../../styles/home-page.css';
 
 export default function Home() {
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalCourses, setTotalCourses] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
+
+  const formatCount = (value) => `${Math.max(0, Number(value || 0)).toLocaleString()}+`;
+  const formatRating = (value) => `${Math.max(0, Number(value || 0)).toFixed(1)}★`;
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const stats = await getPlatformStats();
+        setTotalUsers(stats.totalUsers);
+        setTotalCourses(stats.totalCourses);
+        setAverageRating(stats.averageRating);
+      } catch (error) {
+        console.error('Error fetching platform stats:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   return (
     <main className="home-page public-home-clean">
       {/* Hero Section - Enhanced */}
@@ -14,7 +41,9 @@ export default function Home() {
               <div className="hero-content-enhanced">
                 <div className="hero-badge mb-4">
                   <span className="badge-icon">✨</span>
-                  <span className="badge-text">Trusted by 50,000+ learners worldwide</span>
+                  <span className="badge-text">
+                    Trusted by {statsLoading ? '...' : formatCount(totalUsers)} learners worldwide
+                  </span>
                 </div>
                 
                 <h1 className="hero-title-enhanced mb-4">
@@ -86,21 +115,21 @@ export default function Home() {
           <Row>
             <Col md={4} className="mb-4 mb-md-0">
               <div className="stat-card">
-                <div className="stat-number">50K+</div>
+                <div className="stat-number">{statsLoading ? '...' : formatCount(totalUsers)}</div>
                 <div className="stat-label">Active Learners</div>
                 <p className="stat-description">Join our global community of learners</p>
               </div>
             </Col>
             <Col md={4} className="mb-4 mb-md-0">
               <div className="stat-card">
-                <div className="stat-number">1000+</div>
+                <div className="stat-number">{statsLoading ? '...' : formatCount(totalCourses)}</div>
                 <div className="stat-label">Expert Courses</div>
                 <p className="stat-description">Curated courses from industry leaders</p>
               </div>
             </Col>
             <Col md={4}>
               <div className="stat-card">
-                <div className="stat-number">4.8★</div>
+                <div className="stat-number">{statsLoading ? '...' : formatRating(averageRating)}</div>
                 <div className="stat-label">Average Rating</div>
                 <p className="stat-description">Highly rated by our learners</p>
               </div>
@@ -227,7 +256,10 @@ export default function Home() {
                       </span>
                     </div>
                     <div className="course-footer">
-                      <span className="course-price">{course.price}</span>
+                      {course.isFree === true
+                        ? <span className="course-price fw-bold text-success">Free</span>
+                        : <span className="course-price fw-bold text-success">Free</span>
+                      }
                       <Button as={Link} to="/explore" className="btn-course-action">
                         View Course
                       </Button>

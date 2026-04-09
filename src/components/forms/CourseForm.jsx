@@ -82,7 +82,7 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
         description: course.description || '',
         category: course.category || '',
         level: course.level || 'beginner',
-        price: course.price || 0,
+        price: 0,
         thumbnail: course.thumbnail || '',
         duration: course.duration || '',
         status: course.status || 'draft'

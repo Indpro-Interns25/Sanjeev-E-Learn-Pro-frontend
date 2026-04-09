@@ -59,7 +59,9 @@ export default function VideoPreviewModal({ course, show, onHide }) {
           
           <div className="mt-4 d-flex justify-content-between align-items-center">
             <div>
-              <div className="h4 text-primary mb-0">{course.price}</div>
+              <div className="h4 text-success mb-0">
+                {course.isFree === true ? 'Free' : 'Free'}
+              </div>
               <div className="text-warning small">
                 {[...Array(5)].map((_, i) => (
                   <i key={i} className={`bi bi-star${i < Math.round(course.rating) ? '-fill' : ''}`}></i>

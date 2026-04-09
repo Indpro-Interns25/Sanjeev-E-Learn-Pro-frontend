@@ -64,11 +64,8 @@ export default function Payment() {
     );
   }
 
-  const amountPaise = discountedPaise
-    ? parseInt(discountedPaise, 10)
-    : Math.round((course.price ?? 0) * 100);
-
-  const isFree = amountPaise === 0;
+  const amountPaise = discountedPaise ? parseInt(discountedPaise, 10) : 0;
+  const isFree = course.isFree === true;
 
   // ── Trigger Razorpay popup ────────────────────────────────────────────────
   async function handlePay() {
@@ -238,7 +235,7 @@ export default function Payment() {
 
               <div className="d-flex justify-content-between mb-2">
                 <span>Course Price</span>
-                <span>{formatINR(amountPaise)}</span>
+                <span>Free</span>
               </div>
               <div className="d-flex justify-content-between mb-3 text-muted small">
                 <span>Taxes (included)</span>
@@ -247,7 +244,7 @@ export default function Payment() {
               <hr />
               <div className="d-flex justify-content-between fw-bold fs-5 mb-4">
                 <span>Total</span>
-                <span className="text-primary">{isFree ? 'Free' : formatINR(amountPaise)}</span>
+                <span className="text-success">Free</span>
               </div>
 
               <div className="d-flex gap-3 mt-auto text-center small text-muted mb-3">
@@ -255,7 +252,7 @@ export default function Payment() {
                 <span>Secured by 256-bit SSL encryption</span>
               </div>
 
-              {isFree ? (
+              {isFree === true ? (
                 <Button
                   variant="success"
                   size="lg"
@@ -270,15 +267,15 @@ export default function Payment() {
                 </Button>
               ) : (
                 <Button
-                  variant="primary"
+                  variant="success"
                   size="lg"
                   className="w-100"
-                  onClick={handlePay}
+                  onClick={handleFreeEnroll}
                   disabled={status === 'loading'}
                 >
                   {status === 'loading'
-                    ? <><Spinner animation="border" size="sm" className="me-2" />Processing…</>
-                    : <><i className="bi bi-credit-card me-2" />Pay {formatINR(amountPaise)}</>
+                    ? <><Spinner animation="border" size="sm" className="me-2" />Enrolling…</>
+                    : <><i className="bi bi-check-circle me-2" />Enroll for Free</>
                   }
                 </Button>
               )}

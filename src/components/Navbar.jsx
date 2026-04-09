@@ -2,6 +2,7 @@
 import { Navbar, Container, Nav, NavDropdown, Button, Badge } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import NotificationBell from './NotificationBell';
 import '../styles/globals.css';
 
 export default function AppNavbar() {
@@ -55,11 +56,18 @@ export default function AppNavbar() {
               </>
             )}
             {isAuthenticated && user?.role === 'student' && (
-              <Nav.Link as={Link} to="/student/my-learning">My Learning</Nav.Link>
+              <>
+                <Nav.Link as={Link} to="/student/my-learning">My Learning</Nav.Link>
+                <Nav.Link as={Link} to="/student/messages">Messages</Nav.Link>
+                <Nav.Link as={Link} to="/live/student-main">Live Classes</Nav.Link>
+              </>
             )}
 
             {isAuthenticated && user?.role === 'instructor' && (
-              <Nav.Link as={Link} to="/instructor/dashboard">Dashboard</Nav.Link>
+              <>
+                <Nav.Link as={Link} to="/instructor/dashboard">Dashboard</Nav.Link>
+                <Nav.Link as={Link} to="/live/instructor-main">Live Classes</Nav.Link>
+              </>
             )}
           </Nav>
 
@@ -83,41 +91,43 @@ export default function AppNavbar() {
                 </Button>
               </div>
             ) : (
-              <NavDropdown
-                title={
-                  <span className="d-flex align-items-center gap-2">
-                    {user?.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt="avatar"
-                        width={28}
-                        height={28}
-                        className="rounded-circle"
-                        style={{ objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <div
-                        className="rounded-circle d-flex align-items-center justify-content-center"
-                        style={{
-                          width: 28,
-                          height: 28,
-                          fontSize: 12,
-                          fontWeight: 700,
-                          background: '#4f46e5',
-                          color: '#ffffff'
-                        }}
-                      >
-                        {(user?.name?.[0] || 'U').toUpperCase()}
-                      </div>
-                    )}
-                    <span className="d-none d-lg-inline" style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {user?.name || 'Profile'}
+              <>
+                <NotificationBell />
+                <NavDropdown
+                  title={
+                    <span className="d-flex align-items-center gap-2">
+                      {user?.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt="avatar"
+                          width={28}
+                          height={28}
+                          className="rounded-circle"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <div
+                          className="rounded-circle d-flex align-items-center justify-content-center"
+                          style={{
+                            width: 28,
+                            height: 28,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            background: '#4f46e5',
+                            color: '#ffffff'
+                          }}
+                        >
+                          {(user?.name?.[0] || 'U').toUpperCase()}
+                        </div>
+                      )}
+                      <span className="d-none d-lg-inline" style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {user?.name || 'Profile'}
+                      </span>
                     </span>
-                  </span>
-                }
-                id="profile-dropdown"
-                align="end"
-              >
+                  }
+                  id="profile-dropdown"
+                  align="end"
+                >
                 {/* User info header */}
                 <div className="px-3 py-2 border-bottom" style={{ minWidth: 200 }}>
                   <div className="fw-semibold" style={{ fontSize: '0.9rem' }}>{user?.name || 'User'}</div>
@@ -152,11 +162,12 @@ export default function AppNavbar() {
                   </NavDropdown.Item>
                 )}
 
-                <NavDropdown.Divider />
-                <NavDropdown.Item onClick={handleLogout} className="text-danger">
-                  <i className="bi bi-box-arrow-right me-2" />Logout
-                </NavDropdown.Item>
-              </NavDropdown>
+                  <NavDropdown.Divider />
+                  <NavDropdown.Item onClick={handleLogout} className="text-danger">
+                    <i className="bi bi-box-arrow-right me-2" />Logout
+                  </NavDropdown.Item>
+                </NavDropdown>
+              </>
             )}
           </Nav>
         </Navbar.Collapse>

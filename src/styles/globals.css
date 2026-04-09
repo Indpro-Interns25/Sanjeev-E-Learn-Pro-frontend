@@ -296,6 +296,132 @@ body {
   background-color: var(--light-color);
 }
 
+/* ============================================
+   FOOTER - POLISHED LAYOUT
+   ============================================ */
+
+.site-footer {
+  position: relative;
+  background: linear-gradient(180deg, #1c2430 0%, #151b24 100%);
+  color: #f8fafc;
+}
+
+.site-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0) 0%, rgba(148, 163, 184, 0.55) 50%, rgba(148, 163, 184, 0) 100%);
+}
+
+.footer-brand-title {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+
+.footer-brand-subtitle {
+  font-size: 1.05rem;
+  color: rgba(226, 232, 240, 0.9);
+  line-height: 1.6;
+}
+
+.footer-links li {
+  margin-bottom: 0.35rem;
+}
+
+.footer-link {
+  color: #f8fafc;
+  text-decoration: none;
+  font-size: 1.03rem;
+  font-weight: 500;
+  line-height: 1.8;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.footer-link:hover {
+  color: #93c5fd;
+  opacity: 1;
+}
+
+.footer-social-title {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.social-link {
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(148, 163, 184, 0.06);
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.social-link:hover {
+  transform: translateY(-1px);
+  border-color: rgba(147, 197, 253, 0.9);
+  background: rgba(59, 130, 246, 0.22);
+  color: #ffffff;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.footer-copyright {
+  color: rgba(226, 232, 240, 0.88);
+  font-size: 0.98rem;
+}
+
+@media (max-width: 991.98px) {
+  .footer-brand-title {
+    font-size: 1.8rem;
+  }
+
+  .footer-social-title {
+    font-size: 1.65rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .site-footer .container {
+    padding-top: 2.4rem !important;
+    padding-bottom: 2.25rem !important;
+  }
+
+  .footer-brand-title {
+    font-size: 1.6rem;
+  }
+
+  .footer-brand-subtitle {
+    font-size: 1rem;
+  }
+
+  .footer-link {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .footer-social-title {
+    font-size: 1.45rem;
+    margin-bottom: 0.85rem !important;
+  }
+
+  .footer-copyright {
+    font-size: 0.9rem;
+  }
+}
+
 /* Common utility classes */
 .cursor-pointer {
   cursor: pointer;

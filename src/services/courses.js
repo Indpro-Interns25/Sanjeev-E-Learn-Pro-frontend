@@ -479,8 +479,9 @@ export function formatCourseData(course) {
 
   return {
     ...course,
-    // Ensure price is a number
-    price: parseFloat(course.price) || 0,
+    // Prices are normalized to free-only frontend behavior
+    price: 0,
+    isFree: course.isFree === true,
     // Ensure rating is a number  
     rating: parseFloat(course.rating) || 0,
     // Handle enrolled count from backend (API may return enrolled_count or enrolled)
@@ -497,10 +498,8 @@ export function formatCourseData(course) {
     // Format dates
     createdAt: new Date(course.created_at),
     updatedAt: new Date(course.updated_at),
-    // Add formatted price for free courses
-    formattedPrice: parseFloat(course.price || 0) === 0 || course.price === 'Free' || course.price === 'free' 
-      ? 'Free' 
-      : `$${parseFloat(course.price).toFixed(2)}`,
+    // Keep a single display value for all course cards and lists
+    formattedPrice: 'Free',
     // Add formatted rating
     formattedRating: parseFloat(course.rating || 0).toFixed(1),
   };

@@ -69,6 +69,35 @@ export default function InstructorDashboard() {
         </Col>
       </Row>
 
+      <Row className="mb-4 g-3">
+        <Col md={6}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 className="fw-bold mb-1">Host Live Class</h6>
+                <p className="text-muted small mb-0">Start a real-time class room with video and chat.</p>
+              </div>
+              <Button as={Link} to="/live/instructor-main" variant="outline-primary" size="sm">
+                Start Live
+              </Button>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={6}>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 className="fw-bold mb-1">Quiz Management</h6>
+                <p className="text-muted small mb-0">Create timed quizzes and track learner scores.</p>
+              </div>
+              <Button as={Link} to="/instructor/dashboard" variant="outline-secondary" size="sm">
+                Manage
+              </Button>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
       <h2 className="h3 mb-4">Your Courses</h2>
 
       {instructorCourses.length > 0 ? (

@@ -2,12 +2,20 @@ import { Container, Row, Col, Button, Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getAllCourses } from '../../services/courses';
+import { getPlatformStats } from '../../services/stats';
 import { initScrollAnimations, initHoverEffects } from '../../utils/scrollAnimations';
 import '../../styles/landing-page.css';
 
 export default function LandingPage() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalCourses, setTotalCourses] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
+
+  const formatCount = (value) => `${Math.max(0, Number(value || 0)).toLocaleString()}+`;
+  const formatRating = (value) => `${Math.max(0, Number(value || 0)).toFixed(1)}★`;
 
   useEffect(() => {
     // Initialize scroll animations
@@ -25,7 +33,21 @@ export default function LandingPage() {
       }
     };
 
+    const fetchStats = async () => {
+      try {
+        const stats = await getPlatformStats();
+        setTotalUsers(stats.totalUsers);
+        setTotalCourses(stats.totalCourses);
+        setAverageRating(stats.averageRating);
+      } catch (error) {
+        console.error('Error fetching platform stats:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
     fetchCourses();
+    fetchStats();
 
     // Cleanup observer on unmount
     return () => {
@@ -71,15 +93,15 @@ export default function LandingPage() {
               </div>
               <div className="d-flex justify-content-center gap-4 text-muted flex-wrap">
                 <div className="stat-box">
-                  <h5 className="mb-1 fw-bold text-dark">50K+</h5>
+                  <h5 className="mb-1 fw-bold text-dark">{statsLoading ? '...' : formatCount(totalUsers)}</h5>
                   <small>Active Learners</small>
                 </div>
                 <div className="stat-box">
-                  <h5 className="mb-1 fw-bold text-dark">1000+</h5>
+                  <h5 className="mb-1 fw-bold text-dark">{statsLoading ? '...' : formatCount(totalCourses)}</h5>
                   <small>Expert Courses</small>
                 </div>
                 <div className="stat-box">
-                  <h5 className="mb-1 fw-bold text-dark">4.8★</h5>
+                  <h5 className="mb-1 fw-bold text-dark">{statsLoading ? '...' : formatRating(averageRating)}</h5>
                   <small>Average Rating</small>
                 </div>
               </div>
@@ -191,8 +213,11 @@ export default function LandingPage() {
                         <span className="text-warning">
                           <i className="bi bi-star-fill"></i> {course.rating || 4.5}
                         </span>
-                        <span className="fw-bold text-primary">
-                          ${course.price || 'Free'}
+                        <span className="fw-bold">
+                          {course.isFree === true
+                            ? <span className="text-success">Free</span>
+                            : <span className="text-success">Free</span>
+                          }
                         </span>
                       </div>
                     </Card.Body>
@@ -281,9 +306,9 @@ export default function LandingPage() {
         <Container className="position-relative z-1">
           <Row className="justify-content-center text-center">
             <Col lg={8}>
-              <h2 className="section-title mb-4 text-white">Join Thousands of Learners Today</h2>
-              <p className="section-subtitle mb-5 text-white-50">
-                Start your learning journey with EduLearn Pro. No credit card required.
+              <h2 className="section-title mb-4 text-white">Start Learning Skills That Move Your Career Forward</h2>
+              <p className="section-subtitle mb-5 text-white">
+                Join a growing community of learners and build real-world expertise with guided, project-based courses.
               </p>
               <div className="d-flex gap-3 justify-content-center flex-wrap">
                 <Button
@@ -293,7 +318,7 @@ export default function LandingPage() {
                   size="lg"
                   className="fw-bold px-5 py-3"
                 >
-                  Get Started Free
+                  Create Free Account
                 </Button>
                 <Button
                   as={Link}
@@ -302,7 +327,7 @@ export default function LandingPage() {
                   size="lg"
                   className="fw-bold px-5 py-3"
                 >
-                  Explore Courses
+                  Browse All Courses
                 </Button>
               </div>
             </Col>

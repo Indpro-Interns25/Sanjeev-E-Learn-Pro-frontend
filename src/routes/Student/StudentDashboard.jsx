@@ -175,6 +175,35 @@ export default function StudentDashboard() {
           </Card>
         )}
 
+        <Row className="mb-4 g-3">
+          <Col md={6}>
+            <Card className="border-0 shadow-sm h-100">
+              <Card.Body className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 className="fw-bold mb-1">Live Classes</h6>
+                  <p className="text-muted small mb-0">Join interactive sessions with instructors.</p>
+                </div>
+                <Link to="/live/student-main" className="btn btn-outline-primary btn-sm">
+                  Join Live
+                </Link>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={6}>
+            <Card className="border-0 shadow-sm h-100">
+              <Card.Body className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 className="fw-bold mb-1">Messages</h6>
+                  <p className="text-muted small mb-0">One-to-one and group chat with peers.</p>
+                </div>
+                <Link to="/student/messages" className="btn btn-outline-primary btn-sm">
+                  Open Chat
+                </Link>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+
         {/* Courses heading */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h2 className="h4 fw-bold mb-0">Your Courses</h2>

@@ -4,6 +4,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './context/AuthContext';
 import { UiProvider } from './context/UiContext';
 import { ChatProvider } from './context/ChatContext';
+import { NotificationProvider } from './context/NotificationContext';
 import GlobalToast from './components/GlobalToast';
 import LoadingOverlay from './components/LoadingOverlay';
 import Chatbot from './components/Chatbot';
@@ -44,9 +45,11 @@ const MyLearning        = lazy(() => import('./routes/Student/MyLearning'));
 const Quiz              = lazy(() => import('./routes/Student/Quiz'));
 const CertificatePage   = lazy(() => import('./routes/Student/CertificatePage'));
 const CourseChat        = lazy(() => import('./routes/Student/CourseChat'));
+const Messages          = lazy(() => import('./routes/Student/Messages'));
 const Payment           = lazy(() => import('./routes/Student/Payment'));
 const Profile           = lazy(() => import('./routes/Student/Profile'));
 const PaymentHistory    = lazy(() => import('./routes/Student/PaymentHistory'));
+const LiveClassRoom     = lazy(() => import('./routes/Live/LiveClassRoom'));
 
 // Instructor
 const InstructorDashboard = lazy(() => import('./routes/Instructor/InstructorDashboard'));
@@ -105,11 +108,12 @@ export default function App() {
       <AuthProvider>
         <UiProvider>
           <ChatProvider>
-            <LoadingOverlay />
-            <GlobalToast />
-            <Chatbot />
-            <Suspense fallback={<PageSpinner />}>
-              <Routes>
+            <NotificationProvider>
+              <LoadingOverlay />
+              <GlobalToast />
+              <Chatbot />
+              <Suspense fallback={<PageSpinner />}>
+                <Routes>
                 <Route path="/login"         element={<Login />} />
                 <Route path="/register"      element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -220,6 +224,26 @@ export default function App() {
                       <ProtectedRoute>
                         <RoleGuard roles={['student']}>
                           <CourseChat />
+                        </RoleGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/student/messages"
+                    element={
+                      <ProtectedRoute>
+                        <RoleGuard roles={['student']}>
+                          <Messages />
+                        </RoleGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/live/:classId"
+                    element={
+                      <ProtectedRoute>
+                        <RoleGuard roles={['student', 'instructor', 'admin']}>
+                          <LiveClassRoom />
                         </RoleGuard>
                       </ProtectedRoute>
                     }
@@ -359,8 +383,9 @@ export default function App() {
 
                 {/* ── Not Found Route ─────────────────────────────── */}
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
+                </Routes>
+              </Suspense>
+            </NotificationProvider>
           </ChatProvider>
         </UiProvider>
       </AuthProvider>

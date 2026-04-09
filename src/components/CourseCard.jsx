@@ -7,6 +7,7 @@ import { getCourseEnrollmentCount } from '../services/enrollment';
 export default function CourseCard({ course }) {
   const [realEnrollmentCount, setRealEnrollmentCount] = useState(0);
   const [loadingCount, setLoadingCount] = useState(true);
+  const isFreeCourse = course.isFree === true;
 
   useEffect(() => {
     const fetchEnrollmentCount = async () => {
@@ -67,9 +68,9 @@ export default function CourseCard({ course }) {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <strong className="h5 mb-0">
-                {parseFloat(course.price || 0) === 0 || course.price === 'Free' || course.price === 'free' 
-                  ? 'Free' 
-                  : `$${parseFloat(course.price).toFixed(2)}`
+                {isFreeCourse === true
+                  ? <span className="text-success fw-bold">Free</span>
+                  : <span className="text-success fw-bold">Free</span>
                 }
               </strong>
               <div className="text-warning small">
@@ -107,7 +108,7 @@ CourseCard.propTypes = {
     instructor_name: PropTypes.string,
     enrolled_count: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     enrolled: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    isFree: PropTypes.bool,
     rating: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
   }).isRequired
 };

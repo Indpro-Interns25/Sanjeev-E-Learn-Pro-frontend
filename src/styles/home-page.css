@@ -2051,14 +2051,167 @@
 }
 
 /* ============================================
-   STUDENT HOME CLEAN MODE (aligned with Explore page)
+   STUDENT HOME NETWORK HERO SECTION
    ============================================ */
 
-.student-home-clean {
-  background: #f8fafc;
+.hero-network-section {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f172a 0%, #1a3a4a 50%, #0d2d3d 100%);
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.student-home-clean .welcome-section,
+.hero-network-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.network-bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+  display: block;
+}
+
+.hero-network-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.hero-network-title {
+  font-size: 4.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.hero-network-subtitle {
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+  line-height: 1.8;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+.hero-network-buttons {
+  animation: slideUp 0.8s ease-out 0.2s both;
+}
+
+.btn-network-primary,
+.btn-network-secondary {
+  padding: 0.95rem 2.5rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  letter-spacing: 0.4px;
+}
+
+.btn-network-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+}
+
+.btn-network-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1a40b8 100%);
+  box-shadow: 0 8px 28px rgba(37, 99, 235, 0.45);
+  transform: translateY(-2px);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.btn-network-secondary {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+}
+
+.btn-network-secondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-network-title {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero-network-subtitle {
+    font-size: 1.05rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn-network-primary,
+  .btn-network-secondary {
+    padding: 0.8rem 1.8rem;
+    font-size: 0.95rem;
+    width: 100%;
+  }
+
+  .hero-network-buttons {
+    flex-direction: column;
+  }
+
+  .hero-network-section {
+    min-height: 70vh;
+    padding: 4rem 0;
+  }
+}
+
+
+
+.student-home-clean {
+  background: #ffffff;
+}
+
 .student-home-clean .enrolled-courses-section,
 .student-home-clean .learning-progress-section,
 .student-home-clean .recommended-section,
@@ -2066,60 +2219,24 @@
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   border-top: 0;
-  padding: 4rem 0 5rem;
+  padding: 5rem 0;
   min-height: auto;
 }
 
-.student-home-clean .welcome-section {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  padding: 3.5rem 0 4rem;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.student-home-clean .enrolled-courses-section,
-.student-home-clean .recommended-section {
-  padding: 5rem 0;
-}
-
-.student-home-clean .welcome-section::after,
-.student-home-clean .activity-section::before,
+.student-home-clean .welcome-section,
 .student-home-clean .welcome-background,
-.student-home-clean .motivational-background,
-.student-home-clean .course-card-modern::before,
-.student-home-clean .stat-card::before,
-.student-home-clean .stat-card::after,
-.student-home-clean .section-title::after {
-  display: none;
-}
-
 .student-home-clean .welcome-content,
 .student-home-clean .user-profile-section,
 .student-home-clean .stats-grid,
-.student-home-clean .section-header,
-.student-home-clean .activity-item,
-.student-home-clean .course-card-wrapper {
-  animation: none;
-}
-
 .student-home-clean .welcome-title,
-.student-home-clean .section-title {
-  background: none;
-  -webkit-text-fill-color: initial;
-  color: #0f172a;
-  letter-spacing: -0.5px;
-  font-weight: 800;
-}
-
-.student-home-clean .welcome-title {
-  font-size: 2.5rem;
-  line-height: 1.3;
-  margin-bottom: 0.75rem;
-}
-
-.student-home-clean .section-title {
-  font-size: 2.2rem;
-  margin-bottom: 0.5rem;
-  color: #1e293b;
+.student-home-clean .welcome-subtitle,
+.student-home-clean .welcome-description,
+.student-home-clean .user-avatar-wrapper,
+.student-home-clean .stat-card,
+.student-home-clean .stat-icon,
+.student-home-clean .stat-number,
+.student-home-clean .stat-label {
+  display: none;
 }
 
 .student-home-clean .section-header {

@@ -548,10 +548,7 @@ export default function AdminLanding() {
                           </Badge>
                         </td>
                         <td>
-                          {parseFloat(course.price || 0) === 0 || course.price === 'Free' || course.price === 'free' 
-                            ? 'Free' 
-                            : `$${parseFloat(course.price).toFixed(2)}`
-                          }
+                          {course.isFree === true ? 'Free' : 'Free'}
                         </td>
                         <td>
                           <Badge bg={course.status === 'published' ? 'success' : 'warning'}>

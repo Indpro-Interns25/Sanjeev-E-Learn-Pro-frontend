@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAccessToken, getAdminToken, clearAuthSession, clearAdminSession } from '../utils/tokenStorage';
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -34,9 +35,9 @@ apiClient.interceptors.request.use(
     // Use appropriate token based on endpoint unless bypass is enabled
     let token;
     if (isAdminEndpoint && !bypassAdminAuth) {
-      token = localStorage.getItem('adminToken');
+      token = getAdminToken();
     } else if (!isAdminEndpoint) {
-      token = localStorage.getItem('token');
+      token = getAccessToken();
     }
 
     const isDemoToken = typeof token === 'string' && (token.startsWith('demo-token-') || token.startsWith('demo-admin-'));
@@ -74,8 +75,8 @@ apiClient.interceptors.response.use(
       const isAuthEndpoint = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/register') || requestUrl.includes('/auth/forgot-password');
       const isPublicCatalogEndpoint = requestUrl.includes('/api/courses') || requestUrl.includes('/api/categories');
 
-      const userToken = localStorage.getItem('token');
-      const adminToken = localStorage.getItem('adminToken');
+      const userToken = getAccessToken();
+      const adminToken = getAdminToken();
       const hasDemoUserToken = typeof userToken === 'string' && userToken.startsWith('demo-token-');
       const hasDemoAdminToken = typeof adminToken === 'string' && adminToken.startsWith('demo-admin-');
 
@@ -87,12 +88,10 @@ apiClient.interceptors.response.use(
       const onAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
 
       if (isAdminEndpoint && onAdminRoute) {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminData');
+        clearAdminSession();
         window.location.href = '/admin-login';
       } else if (!isAdminEndpoint) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        clearAuthSession();
         window.location.href = '/login';
       }
     }

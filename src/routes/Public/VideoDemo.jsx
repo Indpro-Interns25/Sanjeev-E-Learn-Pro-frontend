@@ -177,7 +177,12 @@ export default function VideoDemo() {
                 </Card.Text>
                 <div className="d-flex justify-content-between align-items-center mt-auto">
                   <div>
-                    <strong className="h5 text-primary">{course.price}</strong>
+                    <strong className="h5">
+                      {course.isFree === true
+                        ? <span className="text-success">Free</span>
+                        : <span className="text-success">Free</span>
+                      }
+                    </strong>
                     <div className="text-warning small">
                       {[...Array(5)].map((_, i) => (
                         <i key={i} className={`bi bi-star${i < Math.round(course.rating) ? '-fill' : ''}`}></i>

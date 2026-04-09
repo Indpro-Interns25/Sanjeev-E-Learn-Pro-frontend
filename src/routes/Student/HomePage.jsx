@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { getAllCourses } from '../../services/courses';
 import { getCourseVideoProgress } from '../../services/videoProgress';
+import networkBg from '../../assets/d89ea4c3-4bb6-4a5e-b6c1-96e578569721.png';
 import '../../styles/home-page.css';
 
 export default function HomePage() {
@@ -51,13 +52,6 @@ export default function HomePage() {
     fetchCourses();
   }, [user]);
 
-  const currentDate = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-
   if (!isAuthenticated) {
     return (
       <Container className="py-5 text-center">
@@ -71,71 +65,33 @@ export default function HomePage() {
 
   return (
     <div className="home-page student-home-clean">
-      {/* ============ WELCOME SECTION ============ */}
-      <section className="welcome-section">
-        <div className="welcome-background"></div>
+      {/* ============ HERO SECTION WITH NETWORK BACKGROUND ============ */}
+      <section className="hero-network-section">
+        <div className="hero-network-bg">
+          <img src={networkBg} alt="Network Background" className="network-bg-image" />
+        </div>
         <Container>
-          <Row className="align-items-center justify-content-between position-relative z-1 py-5">
-            <Col lg={6}>
-              <div className="welcome-content">
-                <div className="user-profile-section mb-4">
-                  <div className="user-avatar-wrapper">
-                    <img 
-                      src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id || user?.email}`}
-                      alt={user?.name}
-                      className="user-avatar"
-                    />
-                    <div className="avatar-status"></div>
-                  </div>
-                </div>
-                <h1 className="welcome-title mb-3">
-                  Welcome back, <span className="text-gradient">{user?.name?.split(' ')[0]}</span>! 👋
-                </h1>
-                <p className="welcome-subtitle mb-4">
-                  {currentDate}
+          <Row className="align-items-center justify-content-center position-relative z-1" style={{ minHeight: '70vh' }}>
+            <Col lg={8} className="text-center">
+              <div className="hero-network-content">
+                <h1 className="hero-network-title mb-4">Learn Without Limits</h1>
+                <p className="hero-network-subtitle mb-5">
+                  Continue your learning journey with world-class courses
                 </p>
-                <p className="welcome-description mb-0">
-                  Continue your learning journey and unlock new skills today
-                </p>
-              </div>
-            </Col>
-            <Col lg={5} className="mt-5 mt-lg-0">
-              <div className="stats-grid">
-                <div className="stat-card stat-card-1">
-                  <div className="stat-icon">
-                    <i className="bi bi-book-fill"></i>
-                  </div>
-                  <div className="stat-content">
-                    <h4 className="stat-number">3</h4>
-                    <p className="stat-label">Enrolled Courses</p>
-                  </div>
-                </div>
-                <div className="stat-card stat-card-2">
-                  <div className="stat-icon">
-                    <i className="bi bi-lightning-fill"></i>
-                  </div>
-                  <div className="stat-content">
-                    <h4 className="stat-number">45%</h4>
-                    <p className="stat-label">Overall Progress</p>
-                  </div>
-                </div>
-                <div className="stat-card stat-card-3">
-                  <div className="stat-icon">
-                    <i className="bi bi-fire"></i>
-                  </div>
-                  <div className="stat-content">
-                    <h4 className="stat-number">7</h4>
-                    <p className="stat-label">Day Streak</p>
-                  </div>
-                </div>
-                <div className="stat-card stat-card-4">
-                  <div className="stat-icon">
-                    <i className="bi bi-star-fill"></i>
-                  </div>
-                  <div className="stat-content">
-                    <h4 className="stat-number">2</h4>
-                    <p className="stat-label">Certificates</p>
-                  </div>
+                <div className="hero-network-buttons d-flex gap-3 justify-content-center flex-wrap">
+                  <Button 
+                    as={Link}
+                    to="/explore"
+                    className="btn-network-primary"
+                  >
+                    Start Learning
+                  </Button>
+                  <Button 
+                    className="btn-network-secondary"
+                  >
+                    <i className="bi bi-play-circle me-2"></i>
+                    Explore Dashboard
+                  </Button>
                 </div>
               </div>
             </Col>
@@ -325,7 +281,6 @@ export default function HomePage() {
               {recommendedCourses.map((course) => {
                 const numericRating = Number.parseFloat(course.rating);
                 const rating = Number.isFinite(numericRating) ? numericRating.toFixed(1) : '4.5';
-                const coursePrice = Number.parseFloat(course.price);
                 return (
                   <Col md={6} lg={4} key={course.id}>
                     <Card className="h-100 course-card-recommended border-0 overflow-hidden">
@@ -358,9 +313,10 @@ export default function HomePage() {
 
                         <div className="course-footer">
                           <div className="price-section">
-                            <span className="course-price fw-bold text-primary">
-                              {Number.isFinite(coursePrice) ? `$${coursePrice}` : 'Free'}
-                            </span>
+                            {course.isFree === true
+                              ? <span className="course-price fw-bold text-success">Free</span>
+                              : <span className="course-price fw-bold text-success">Free</span>
+                            }
                           </div>
                         </div>
 

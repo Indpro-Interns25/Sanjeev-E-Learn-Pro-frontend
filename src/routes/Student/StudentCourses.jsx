@@ -222,7 +222,12 @@ export default function StudentCourses() {
                     </div>
                     <div className="d-flex justify-content-between text-sm mt-1">
                       <span><i className="bi bi-play-circle me-1"></i>{course.lesson_count} lessons</span>
-                      <span className="fw-bold text-primary">${course.price}</span>
+                      <span className="fw-bold">
+                        {course.isFree === true
+                          ? <span className="text-success">Free</span>
+                          : <span className="text-success">Free</span>
+                        }
+                      </span>
                     </div>
                   </div>
 
@@ -325,7 +330,12 @@ export default function StudentCourses() {
                 </Col>
                 <Col md={4}>
                   <div className="text-end">
-                    <h3 className="text-primary">${selectedCourse.price}</h3>
+                    <h3>
+                      {selectedCourse.isFree === true
+                        ? <span className="text-success">Free</span>
+                        : <span className="text-success">Free</span>
+                      }
+                    </h3>
                     <p className="text-muted mb-1">
                       <i className="bi bi-person me-1"></i>{selectedCourse.instructor}
                     </p>

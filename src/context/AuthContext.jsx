@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { jwtDecode } from 'jwt-decode';
 import * as authService from '../services/authApi';
 import { AuthContext } from './auth-context';
+import { getAccessToken, getAuthUser, setAuthSession, clearAuthSession } from '../utils/tokenStorage';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 function getTokenExpiry(token) {
@@ -68,6 +69,7 @@ function authReducer(state, action) {
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const logoutTimerRef = useRef(null);
+  const readStorageUser = useCallback(() => getAuthUser(), []);
 
   // ─── schedule auto-logout when token is about to expire ───────────────────
   const scheduleAutoLogout = useCallback((token) => {
@@ -78,8 +80,7 @@ export function AuthProvider({ children }) {
     if (delay <= 0) return; // already expired, caller should handle
     logoutTimerRef.current = setTimeout(() => {
       console.warn('⏱️ Token expired — auto-logging out');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      clearAuthSession();
       dispatch({ type: 'LOGOUT' });
       window.location.href = '/login?expired=1';
     }, delay);
@@ -90,26 +91,19 @@ export function AuthProvider({ children }) {
       // Only remove truly corrupted / structurally-invalid user records.
       // We intentionally do NOT filter by a hardcoded ID whitelist — any
       // authenticated user (real or offline-demo) must survive a page refresh.
-      const savedUser = localStorage.getItem('user');
+      const savedUser = readStorageUser();
       if (!savedUser) return;
-      try {
-        const user = JSON.parse(savedUser);
-        if (!user || !user.id || !user.email || !user.role) {
-          console.warn('🚮 Removing corrupted user data from localStorage');
-          localStorage.removeItem('user');
-          localStorage.removeItem('token');
-        }
-      } catch {
-        console.warn('🚮 Removing unparseable user data from localStorage');
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+      const user = savedUser;
+      if (!user || !user.id || !user.email || !user.role) {
+        console.warn('🚮 Removing corrupted user data from browser storage');
+        clearAuthSession();
       }
     };
 
     const initAuth = async () => {
       cleanupDemoData();
-      const token = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
+      const token = getAccessToken();
+      const savedUser = readStorageUser();
 
       if (!token || !savedUser) {
         dispatch({ type: 'AUTH_ERROR', payload: null });
@@ -119,8 +113,7 @@ export function AuthProvider({ children }) {
       // Reject expired real JWTs before even hitting the network
       if (isTokenExpired(token)) {
         console.warn('🔒 Stored token is expired — clearing session');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        clearAuthSession();
         dispatch({ type: 'AUTH_ERROR', payload: 'Session expired. Please log in again.' });
         return;
       }
@@ -132,14 +125,13 @@ export function AuthProvider({ children }) {
       } catch (err) {
         console.warn('Token validation failed, using saved user:', err.message);
         try {
-          const user = JSON.parse(savedUser);
+          const user = savedUser;
           if (!user.id || !user.email) throw new Error('Invalid saved user data');
           dispatch({ type: 'AUTH_SUCCESS', payload: { user, token } });
           scheduleAutoLogout(token);
         } catch (parseError) {
           console.error('Failed to parse saved user:', parseError);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          clearAuthSession();
           dispatch({ type: 'AUTH_ERROR', payload: null });
         }
       }
@@ -150,14 +142,14 @@ export function AuthProvider({ children }) {
     return () => {
       if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
     };
-  }, [scheduleAutoLogout]);
+  }, [scheduleAutoLogout, readStorageUser]);
 
-  const login = async (email, password) => {
+  const login = async (email, password, options = {}) => {
+    const { remember = false } = options;
     dispatch({ type: 'AUTH_INIT' });
     try {
       const { user, token } = await authService.login(email, password);
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      setAuthSession({ token, user, remember });
       dispatch({ type: 'AUTH_SUCCESS', payload: { user, token } });
       scheduleAutoLogout(token);
       return user;
@@ -178,8 +170,7 @@ export function AuthProvider({ children }) {
         avatar: null
       };
       const demoToken = 'demo-token-' + stableId;
-      localStorage.setItem('token', demoToken);
-      localStorage.setItem('user', JSON.stringify(demoUser));
+      setAuthSession({ token: demoToken, user: demoUser, remember });
       dispatch({ type: 'AUTH_SUCCESS', payload: { user: demoUser, token: demoToken } });
       // demo tokens don't expire — no scheduleAutoLogout needed
       return demoUser;
@@ -190,7 +181,7 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'AUTH_INIT' });
     try {
       const { user, token } = await authService.register(userData);
-      localStorage.setItem('token', token);
+      setAuthSession({ token, user, remember: true });
       dispatch({
         type: 'AUTH_SUCCESS',
         payload: { user, token }
@@ -207,8 +198,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    clearAuthSession();
     dispatch({ type: 'LOGOUT' });
   };
 

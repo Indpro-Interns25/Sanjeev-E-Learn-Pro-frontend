@@ -5,16 +5,13 @@ import { mockCourses } from '../data/mockCourses';
 
 const CATEGORIES = [...new Set(mockCourses.map((c) => c.category))];
 const LEVELS = [...new Set(mockCourses.map((c) => c.level))];
-
-function formatCurrency(amount) {
-  return `₹${amount.toLocaleString('en-IN')}`;
-}
+const FREE_LABEL = 'Free';
 
 function courseCard(course) {
   return `📚 **${course.title}**
 • Category: ${course.category}  |  Level: ${course.level}
 • Instructor: ${course.instructor.name}
-• Duration: ${course.duration}  |  Price: ${formatCurrency(course.price)}
+• Duration: ${course.duration}  |  Price: ${FREE_LABEL}
 • Rating: ⭐ ${course.rating}/5`;
 }
 
@@ -45,7 +42,7 @@ function getBotResponse(userMessage) {
   // ── All courses ────────────────────────────────────────────────────────────
   if (/all courses|list courses|show courses|available courses|what courses|course catalog/i.test(msg)) {
     const list = mockCourses
-      .map((c, i) => `${i + 1}. **${c.title}** (${c.level}) – ${formatCurrency(c.price)}`)
+      .map((c, i) => `${i + 1}. **${c.title}** (${c.level}) – ${FREE_LABEL}`)
       .join('\n');
     return `📚 We have **${mockCourses.length} courses** available:\n\n${list}\n\nAsk me about any course to get full details!`;
   }
@@ -70,32 +67,30 @@ function getBotResponse(userMessage) {
   // ── Best rated ──────────────────────────────────────────────────────────────
   if (/best rated|top rated|highest rated|popular|best courses|recommended/i.test(msg)) {
     const sorted = [...mockCourses].sort((a, b) => b.rating - a.rating).slice(0, 5);
-    const list = sorted.map((c) => `⭐ ${c.rating} – **${c.title}** (${formatCurrency(c.price)})`).join('\n');
+    const list = sorted.map((c) => `⭐ ${c.rating} – **${c.title}** (${FREE_LABEL})`).join('\n');
     return `🏆 **Top 5 Highest Rated Courses**:\n\n${list}\n\nWant details on any of these?`;
   }
 
   // ── Cheapest / budget ──────────────────────────────────────────────────────
   if (/cheap|affordable|lowest price|budget|least expensive/i.test(msg)) {
-    const sorted = [...mockCourses].sort((a, b) => a.price - b.price).slice(0, 5);
-    const list = sorted.map((c) => `💰 ${formatCurrency(c.price)} – **${c.title}**`).join('\n');
+    const sorted = [...mockCourses].sort((a, b) => b.rating - a.rating).slice(0, 5);
+    const list = sorted.map((c) => `💰 ${FREE_LABEL} – **${c.title}**`).join('\n');
     return `💸 **Most Affordable Courses**:\n\n${list}\n\nGreat choices to start your learning journey!`;
   }
 
   // ── Most expensive / premium ────────────────────────────────────────────────
   if (/expensive|premium|high.end|most .* cost|priciest/i.test(msg)) {
-    const sorted = [...mockCourses].sort((a, b) => b.price - a.price).slice(0, 5);
-    const list = sorted.map((c) => `💎 ${formatCurrency(c.price)} – **${c.title}**`).join('\n');
+    const sorted = [...mockCourses].sort((a, b) => b.rating - a.rating).slice(0, 5);
+    const list = sorted.map((c) => `💎 ${FREE_LABEL} – **${c.title}**`).join('\n');
     return `💎 **Premium Courses**:\n\n${list}`;
   }
 
   // ── Price filter "under ₹X" ────────────────────────────────────────────────
   const priceMatch = msg.match(/under\s*[₹rs]?\s*(\d+)/i);
   if (priceMatch) {
-    const limit = parseInt(priceMatch[1]);
-    const filtered = mockCourses.filter((c) => c.price <= limit);
-    if (filtered.length === 0) return `❌ No courses found under ₹${limit}. Try a higher budget?`;
-    const list = filtered.map((c) => `• **${c.title}** – ${formatCurrency(c.price)}`).join('\n');
-    return `💰 **Courses under ${formatCurrency(limit)}** (${filtered.length} found):\n\n${list}`;
+    const filtered = [...mockCourses];
+    const list = filtered.map((c) => `• **${c.title}** – ${FREE_LABEL}`).join('\n');
+    return `💰 **All courses are ${FREE_LABEL}** (${filtered.length} found):\n\n${list}`;
   }
 
   // ── Category-specific search ────────────────────────────────────────────────
@@ -114,12 +109,12 @@ function getBotResponse(userMessage) {
     if (found.length > 0) {
       const details = found
         .slice(0, 3)
-        .map((c) => `• **${c.title}**: ${formatCurrency(c.price)} (${c.duration})`)
+        .map((c) => `• **${c.title}**: ${FREE_LABEL} (${c.duration})`)
         .join('\n');
       return `💰 **Course Pricing**:\n\n${details}`;
     }
     const allPrices = mockCourses
-      .map((c) => `• ${c.title}: ${formatCurrency(c.price)}`)
+      .map((c) => `• ${c.title}: ${FREE_LABEL}`)
       .join('\n');
     return `💰 **All Course Prices**:\n\n${allPrices}`;
   }
@@ -159,7 +154,7 @@ function getBotResponse(userMessage) {
     if (found.length > 0) {
       const course = found[0];
       const topics = course.curriculum?.map((t) => `  ✓ ${t}`).join('\n') || 'Curriculum details coming soon.';
-      return `📖 **${course.title} – Curriculum**:\n\n${topics}\n\n📌 Level: ${course.level} | Duration: ${course.duration} | Price: ${formatCurrency(course.price)}`;
+      return `📖 **${course.title} – Curriculum**:\n\n${topics}\n\n📌 Level: ${course.level} | Duration: ${course.duration} | Price: ${FREE_LABEL}`;
     }
   }
 
@@ -183,7 +178,7 @@ function getBotResponse(userMessage) {
     if (found.length === 1) {
       const c = found[0];
       const topics = c.curriculum?.slice(0, 4).map((t) => `  ✓ ${t}`).join('\n') || '';
-      return `📚 **${c.title}**\n\n${c.description}\n\n**Details:**\n• Instructor: ${c.instructor.name}\n• Level: ${c.level}\n• Duration: ${c.duration}\n• Price: ${formatCurrency(c.price)}\n• Rating: ⭐ ${c.rating}/5\n\n**You'll learn:**\n${topics}\n${c.curriculum?.length > 4 ? `  ... and ${c.curriculum.length - 4} more topics` : ''}`;
+      return `📚 **${c.title}**\n\n${c.description}\n\n**Details:**\n• Instructor: ${c.instructor.name}\n• Level: ${c.level}\n• Duration: ${c.duration}\n• Price: ${FREE_LABEL}\n• Rating: ⭐ ${c.rating}/5\n\n**You'll learn:**\n${topics}\n${c.curriculum?.length > 4 ? `  ... and ${c.curriculum.length - 4} more topics` : ''}`;
     }
     if (found.length > 1) {
       const list = found.slice(0, 5).map((c) => courseCard(c)).join('\n\n');

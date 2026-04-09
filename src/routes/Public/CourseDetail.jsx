@@ -750,7 +750,12 @@ export default function CourseDetail() {
                 </div>
                 <div className="d-flex justify-content-between mb-2">
                   <span>Price:</span>
-                  <span className="text-success fw-bold">Free</span>
+                  <span>
+                    {course.isFree === true
+                      ? <span className="text-success fw-bold">Free</span>
+                      : <span className="text-success fw-bold">Free</span>
+                    }
+                  </span>
                 </div>
               </div>
 

@@ -13,7 +13,7 @@
 
 /* ============ HERO SECTION ============ */
 .hero-section-landing {
-  background-image: url('../assets/hero-background.svg');
+  background-image: url('../assets/Futuristic learning in a digital world.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -335,7 +335,7 @@
   position: relative;
   height: 220px;
   overflow: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #e5e7eb 0%, #cbd5e1 100%);
   background-attachment: scroll;
   perspective: 1000px;
 }
@@ -375,7 +375,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+  background: rgba(15, 23, 42, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -391,7 +391,7 @@
 
 .btn-view-course {
   background: #fff;
-  color: #667eea;
+  color: #1e40af;
   border: none;
   padding: 0.9rem 2rem;
   border-radius: 12px;
@@ -411,10 +411,10 @@
 }
 
 .btn-view-course:hover {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #0f172a;
   color: #fff;
   transform: scale(1.08);
-  box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
 }
 
 .btn-view-course:hover::after {
@@ -559,13 +559,24 @@
   letter-spacing: -0.5px;
 }
 
+.cta-section .section-title {
+  background: none;
+  -webkit-background-clip: initial;
+  -webkit-text-fill-color: #ffffff;
+  background-clip: initial;
+  color: #ffffff;
+  text-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
 .cta-section p {
   font-size: 1.15rem;
   font-weight: 400;
   line-height: 1.8;
-  opacity: 0.97;
+  opacity: 0.98;
   animation: slideUp 0.8s ease-out;
   letter-spacing: 0.3px;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
 }
 
 /* ============ RESPONSIVE DESIGN ============ */
