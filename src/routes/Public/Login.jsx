@@ -14,16 +14,29 @@ export default function Login() {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const from = location.state?.from?.pathname || '/catalog';
+  const from = location.state?.from?.pathname;
   const sessionExpired = new URLSearchParams(location.search).get('expired') === '1';
+
+  const getRoleDashboardPath = (role) => {
+    switch (role) {
+      case 'admin':
+        return '/admin-dashboard';
+      case 'instructor':
+        return '/instructor/dashboard';
+      case 'student':
+      default:
+        return '/student/dashboard';
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      await login(email, password, { remember });
-      navigate(from, { replace: true });
+      const loggedInUser = await login(email, password, { remember });
+      const destination = from || getRoleDashboardPath(loggedInUser?.role);
+      navigate(destination, { replace: true });
     } catch (err) {
       setError(err.message || 'Unable to sign in');
     } finally {

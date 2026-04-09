@@ -8,6 +8,7 @@ import '../styles/globals.css';
 export default function AppNavbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = isAuthenticated && user?.role === 'admin';
 
   const handleLogout = () => {
     logout();
@@ -23,7 +24,7 @@ export default function AppNavbar() {
     <Navbar expand="lg" sticky="top" className="navbar">
       <Container>
         {/* Brand */}
-        <Navbar.Brand as={Link} to="/">
+        <Navbar.Brand as={Link} to={isAdmin ? '/admin-dashboard' : '/'}>
           <span className="d-flex align-items-center gap-2">
             <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
               <g>
@@ -44,8 +45,12 @@ export default function AppNavbar() {
           <Nav className="mx-auto">
             {isAuthenticated ? (
               <>
-                <Nav.Link as={Link} to="/home">Home</Nav.Link>
-                <Nav.Link as={Link} to="/explore">Courses</Nav.Link>
+                {!isAdmin && (
+                  <>
+                    <Nav.Link as={Link} to="/home">Home</Nav.Link>
+                    <Nav.Link as={Link} to="/explore">Courses</Nav.Link>
+                  </>
+                )}
               </>
             ) : (
               <>
