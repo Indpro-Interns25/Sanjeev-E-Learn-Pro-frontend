@@ -13,8 +13,8 @@ export default function Footer() {
             <p className="footer-brand-subtitle mb-0">Learn with confidence. Grow with purpose.</p>
           </Col>
 
-          <Col md={4} className="text-center">
-            <ul className="list-unstyled footer-links mb-0">
+          <Col md={4} className="footer-links-col d-flex justify-content-center">
+            <ul className="list-unstyled footer-links mb-0 d-inline-block text-start">
               <li><Link to="/about" className="footer-link">About Us</Link></li>
               <li><Link to="/contact" className="footer-link">Contact</Link></li>
               <li><Link to="/terms" className="footer-link">Terms of Service</Link></li>
@@ -22,9 +22,9 @@ export default function Footer() {
             </ul>
           </Col>
 
-          <Col md={4} className="text-center text-md-end">
+          <Col md={4} className="footer-social-col text-start">
             <h6 className="footer-social-title mb-3">Connect With Us</h6>
-            <div className="social-links d-inline-flex gap-2">
+            <div className="social-links d-flex gap-2">
               <a href="#" className="social-link" aria-label="Facebook">
                 <i className="bi bi-facebook"></i>
               </a>

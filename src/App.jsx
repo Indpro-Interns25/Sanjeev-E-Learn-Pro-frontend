@@ -66,6 +66,7 @@ const AdminLogin          = lazy(() => import('./components/AdminLogin'));
 const AdminLanding        = lazy(() => import('./components/AdminLanding'));
 const AddCourse           = lazy(() => import('./routes/Admin/AddCourse'));
 const AnalyticsDashboard  = lazy(() => import('./routes/Admin/AnalyticsDashboard'));
+const StudentManagement  = lazy(() => import('./components/StudentManagement'));
 
 // Error pages
 const NotFound     = lazy(() => import('./pages/NotFound'));
@@ -122,6 +123,7 @@ export default function App() {
                 <Route path="/admin"          element={<AdminLogin />} />
                 <Route path="/admin-login"    element={<AdminLogin />} />
                 <Route path="/admin-dashboard" element={<AdminLanding />} />
+                <Route path="/admin/students" element={<StudentManagement />} />
                 <Route path="/admin/courses/add" element={<AddCourse />} />
                 <Route path="/admin/analytics"   element={<AnalyticsDashboard />} />
 

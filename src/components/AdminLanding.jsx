@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Nav, Card, Table, Button, Badge, Form, Modal, Alert, Spinner } from 'react-bootstrap';
-import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin, getAllStudents, getAllInstructors, deleteCourse, deleteLesson, createInstructor, updateInstructor, deleteInstructor, createStudent, updateStudent, deleteStudent } from '../services/admin';
+import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin, getAllStudents, getAllInstructors, deleteCourse, deleteLesson, createInstructor, updateInstructor, deleteInstructor, deleteStudent } from '../services/admin';
 import { createLesson, updateLesson } from '../services/lessons';
 import { createCourse } from '../services/courses';
 import { getUserEnrollments } from '../services/enrollment';
@@ -51,13 +51,6 @@ export default function AdminLanding() {
     email: ''
   });
 
-  const [studentForm, setStudentForm] = useState({
-    name: '',
-    email: '',
-    enrolled_courses: 0
-  });
-  const [studentFormErrors, setStudentFormErrors] = useState({});
-  const [editingStudentId, setEditingStudentId] = useState(null);
 
   const [editingInstructorId, setEditingInstructorId] = useState(null);
 
@@ -189,62 +182,45 @@ export default function AdminLanding() {
     return '';
   };
 
-  const showAlert = (message, type = 'success') => {
-    setAlert({ message, type });
-    const timeout = type === 'danger' ? 8000 : 3000; // Show error messages longer
-    setTimeout(() => setAlert(null), timeout);
-  };
-
-  const handleAction = (action, item = null) => {
-    setModalType(action);
-    setSelectedItem(item);
+    const handleAction = (action, item) => {
+      setSelectedItem(item);
+      setModalType(action);
     
-    // Pre-populate forms if editing
-    if (action === 'editLesson' && item) {
-      // Pre-populate duration as a numeric value for the number input.
-      // Prefer duration_number (backend numeric), then try parsing duration string.
-      let durationValue = '';
-      if (item.duration_number !== undefined && item.duration_number !== null) {
-        durationValue = item.duration_number;
-      } else if (item.duration) {
-        const parsed = parseInt(String(item.duration), 10);
-        durationValue = Number.isNaN(parsed) ? '' : parsed;
+      if (action === 'editLesson') {
+        setLessonForm({
+          title: item.title,
+          description: item.description,
+          courseId: item.course_id,
+          duration: item.duration,
+          orderSequence: item.order_sequence,
+          videoUrl: item.video_url || '',
+          status: item.status || 'published'
+        });
+      } else if (action === 'createLesson') {
+        // Reset form for creating new lesson
+        setLessonForm({
+          title: '',
+          description: '',
+          courseId: '',
+          duration: '',
+          orderSequence: '',
+          videoUrl: '',
+          status: 'draft'
+        });
+      } else if (action === 'createInstructor') {
+        // Reset form for creating new instructor
+        setInstructorForm({
+          name: '',
+          email: '',
+          specialization: '',
+          bio: '',
+          experience: '',
+          status: 'active'
+        });
+        setEditingInstructorId(null);
       }
-
-      setLessonForm({
-        title: item.title,
-        description: item.description,
-        courseId: item.course_id,
-        duration: durationValue,
-        orderSequence: item.order_sequence,
-        videoUrl: item.video_url || '',
-        status: item.status || 'published'
-      });
-    } else if (action === 'createLesson') {
-      // Reset form for creating new lesson
-      setLessonForm({
-        title: '',
-        description: '',
-        courseId: '',
-        duration: '',
-        orderSequence: '',
-        videoUrl: '',
-        status: 'draft'
-      });
-    } else if (action === 'createInstructor') {
-      // Reset form for creating new instructor
-      setInstructorForm({
-        name: '',
-        email: '',
-        specialization: '',
-        bio: '',
-        experience: '',
-        status: 'active'
-      });
-      setEditingInstructorId(null);
-    }
     
-    setShowModal(true);
+      setShowModal(true);
   };
 
 
@@ -334,53 +310,11 @@ export default function AdminLanding() {
       }
 
       // Student create / edit
-      else if (modalType === 'createStudent' || modalType === 'editStudent') {
-        const studentData = {
-          name: studentForm.name,
-          email: studentForm.email,
-          enrolled_courses: parseInt(studentForm.enrolled_courses || 0)
-        };
-
-        // simple client-side validation
-        const sErrors = {};
-        if (!String(studentData.name || '').trim()) sErrors.name = 'Full name is required';
-        if (!String(studentData.email || '').trim()) sErrors.email = 'Email is required';
-        else {
-          const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@"]+\.)+[^<>()[\]\\.,;:\s@"]{2,})$/i;
-          if (!re.test(String(studentData.email))) sErrors.email = 'Please enter a valid email address';
-        }
-        if (!Number.isFinite(Number(studentData.enrolled_courses)) || Number(studentData.enrolled_courses) < 0) sErrors.enrolled_courses = 'Enrolled courses must be 0 or more';
-
-        if (Object.keys(sErrors).length > 0) {
-          setStudentFormErrors(sErrors);
-          setLoading(false);
-          return;
-        }
-
-        if (modalType === 'createStudent') {
-          await createStudent({
-            ...studentData,
-            name: String(studentData.name).trim(),
-            email: String(studentData.email).trim().toLowerCase()
-          });
-          showAlert('Student created successfully!', 'success');
-        } else {
-          await updateStudent(editingStudentId || selectedItem?.id, {
-            ...studentData,
-            name: String(studentData.name).trim(),
-            email: String(studentData.email).trim().toLowerCase()
-          });
-          showAlert('Student updated successfully!', 'success');
-        }
-      }
-      
       // Close modal and reset forms
       setShowModal(false);
     setLessonForm({ title: '', description: '', courseId: '', customCourseName: '', duration: '', orderSequence: '', videoUrl: '', status: 'draft' });
     setInstructorForm({ name: '', email: '', specialization: '', bio: '', experience: '', status: 'active' });
     setEditingInstructorId(null);
-    setStudentForm({ name: '', email: '', enrolled_courses: 0 });
-    setEditingStudentId(null);
       
       // Refresh data to show changes
       await fetchInitialData();
@@ -664,9 +598,6 @@ export default function AdminLanding() {
                 <h4>Student Management</h4>
                 <small className="text-muted">Basic student information overview</small>
               </div>
-              <Button variant="primary" onClick={() => { setStudentForm({ name: '', email: '', enrolled_courses: 0 }); setEditingStudentId(null); handleAction('createStudent'); }}>
-                <i className="fas fa-plus"></i> Add New Student
-              </Button>
             </div>
 
             <Card>
@@ -678,6 +609,8 @@ export default function AdminLanding() {
                       <th>Email</th>
                       <th>Enrolled Courses</th>
                       <th>Join Date</th>
+                      <th>Status</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -718,15 +651,12 @@ export default function AdminLanding() {
                           </div>
                         </td>
                         <td>
+                          <Badge bg={student.status === 'blocked' ? 'danger' : 'success'}>
+                            {student.status === 'blocked' ? 'Blocked' : 'Active'}
+                          </Badge>
+                        </td>
+                        <td>
                           <div className="d-flex">
-                            <Button variant="outline-primary" size="sm" className="me-2" onClick={() => {
-                              // Prefill student form and open modal
-                              setStudentForm({ name: student.name || student.username || '', email: student.email || '', enrolled_courses: student.enrolled_courses || 0 });
-                              setEditingStudentId(student.id);
-                              handleAction('editStudent', student);
-                            }}>
-                              Edit
-                            </Button>
                             <Button variant="outline-danger" size="sm" onClick={async () => {
                               try {
                                 setLoading(true);
@@ -747,15 +677,7 @@ export default function AdminLanding() {
                       </tr>
                     )) : (
                       <tr>
-                        <td colSpan="4" className="text-center text-muted">
-                          <div className="py-5">
-                            <div className="display-1 text-muted mb-3">
-                              <i className="fas fa-users"></i>
-                            </div>
-                            <h5 className="text-muted mb-2">No Students Found</h5>
-                            <p className="text-muted mb-0">Students will appear here when they register on the platform</p>
-                          </div>
-                        </td>
+                        <td colSpan="6" className="text-center text-muted">No students found</td>
                       </tr>
                     )}
                   </tbody>
@@ -1442,56 +1364,6 @@ export default function AdminLanding() {
             </Form>
           )}
 
-          {(modalType === 'createStudent' || modalType === 'editStudent') && (
-            <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-3">
-                <Form.Label>Full Name *</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={studentForm.name}
-                  onChange={(e) => setStudentForm({...studentForm, name: e.target.value})}
-                  placeholder="Enter student's full name"
-                  required
-                        isInvalid={!!studentFormErrors.name}
-                />
-                      <Form.Control.Feedback type="invalid">{studentFormErrors.name}</Form.Control.Feedback>
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Email Address *</Form.Label>
-                <Form.Control
-                  type="email"
-                  value={studentForm.email}
-                  onChange={(e) => setStudentForm({...studentForm, email: e.target.value})}
-                  placeholder="Enter email address"
-                  required
-                  isInvalid={!!studentFormErrors.email}
-                />
-                <Form.Control.Feedback type="invalid">{studentFormErrors.email}</Form.Control.Feedback>
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Enrolled Courses</Form.Label>
-                <Form.Control
-                  type="number"
-                  min="0"
-                  value={studentForm.enrolled_courses}
-                  onChange={(e) => setStudentForm({...studentForm, enrolled_courses: parseInt(e.target.value || 0)})}
-                  isInvalid={!!studentFormErrors.enrolled_courses}
-                />
-                <Form.Control.Feedback type="invalid">{studentFormErrors.enrolled_courses}</Form.Control.Feedback>
-              </Form.Group>
-
-              <div className="d-flex justify-content-end">
-                <Button variant="secondary" className="me-2" onClick={() => setShowModal(false)} disabled={loading}>
-                  Cancel
-                </Button>
-                <Button variant="primary" type="submit" disabled={loading}>
-                  {loading ? 'Saving...' : (modalType === 'createStudent' ? 'Create Student' : 'Update Student')}
-                </Button>
-              </div>
-            </Form>
-          )}
 
           {(modalType === 'deleteCourse' || modalType === 'deleteLesson') && (
             <div>

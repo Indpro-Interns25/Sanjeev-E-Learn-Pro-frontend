@@ -353,6 +353,24 @@ body {
   color: #ffffff;
 }
 
+.footer-links-col {
+  justify-content: center;
+}
+
+.footer-links {
+  text-align: left;
+}
+
+.footer-social-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.social-links {
+  justify-content: flex-start;
+}
+
 .social-link {
   width: 2.35rem;
   height: 2.35rem;
@@ -397,6 +415,14 @@ body {
   .site-footer .container {
     padding-top: 2.4rem !important;
     padding-bottom: 2.25rem !important;
+  }
+
+  .footer-links-col {
+    justify-content: center;
+  }
+
+  .footer-social-col {
+    align-items: flex-start;
   }
 
   .footer-brand-title {

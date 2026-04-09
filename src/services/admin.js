@@ -875,6 +875,162 @@ export async function checkDeleteEndpoints() {
   }
 }
 
+/**
+ * Block a student account (admin)
+ * @param {number|string} studentId
+ * @returns {Promise<Object>} block response
+ */
+export async function blockStudent(studentId) {
+  try {
+    console.warn(`🚫 Blocking student ${studentId} via API...`);
+    const id = String(studentId).trim();
+    
+    // Try multiple endpoint variants
+    const endpoints = [
+      `/api/admin/students/${id}/block`,
+      `/api/admin/students/${id}/status`,
+      `/api/students/${id}/block`
+    ];
+    
+    let lastError;
+    for (const ep of endpoints) {
+      try {
+        const response = await apiClient.put(ep, { status: 'blocked' });
+        console.warn(`✅ Student blocked via ${ep}:`, response.data);
+        if (response.data && response.data.success) return response.data;
+        return response.data || { success: true, message: 'Student blocked' };
+      } catch (err) {
+        lastError = err;
+        if (err.response?.status === 404) {
+          continue;
+        }
+        if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') {
+          throw new Error('Cannot connect to the server. Please check if the backend is running.');
+        }
+        console.warn(`Attempt to block student via ${ep} failed:`, err.message);
+      }
+    }
+    
+    const message = lastError?.response?.data?.message || lastError?.message || 'Failed to block student';
+    throw new Error(message);
+  } catch (error) {
+    console.error('🚨 Failed to block student:', error);
+    throw error instanceof Error ? error : new Error('Failed to block student');
+  }
+}
+
+/**
+ * Unblock a student account (admin)
+ * @param {number|string} studentId
+ * @returns {Promise<Object>} unblock response
+ */
+export async function unblockStudent(studentId) {
+  try {
+    console.warn(`✅ Unblocking student ${studentId} via API...`);
+    const id = String(studentId).trim();
+    
+    // Try multiple endpoint variants
+    const endpoints = [
+      `/api/admin/students/${id}/unblock`,
+      `/api/admin/students/${id}/status`,
+      `/api/students/${id}/unblock`
+    ];
+    
+    let lastError;
+    for (const ep of endpoints) {
+      try {
+        const response = await apiClient.put(ep, { status: 'active' });
+        console.warn(`✅ Student unblocked via ${ep}:`, response.data);
+        if (response.data && response.data.success) return response.data;
+        return response.data || { success: true, message: 'Student unblocked' };
+      } catch (err) {
+        lastError = err;
+        if (err.response?.status === 404) {
+          continue;
+        }
+        if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') {
+          throw new Error('Cannot connect to the server. Please check if the backend is running.');
+        }
+        console.warn(`Attempt to unblock student via ${ep} failed:`, err.message);
+      }
+    }
+    
+    const message = lastError?.response?.data?.message || lastError?.message || 'Failed to unblock student';
+    throw new Error(message);
+  } catch (error) {
+    console.error('🚨 Failed to unblock student:', error);
+    throw error instanceof Error ? error : new Error('Failed to unblock student');
+  }
+}
+
+/**
+ * Assign a course to a student (admin)
+ * @param {number|string} studentId
+ * @param {number|string} courseId
+ * @returns {Promise<Object>} assignment response
+ */
+export async function assignCourseToStudent(studentId, courseId) {
+  try {
+    console.warn(`📚 Assigning course ${courseId} to student ${studentId}...`);
+    const sId = String(studentId).trim();
+    const cId = String(courseId).trim();
+    
+    // Try multiple endpoint variants
+    const endpoints = [
+      `/api/admin/students/${sId}/assign-course`,
+      `/api/admin/students/${sId}/courses`,
+      `/api/students/${sId}/enroll`,
+      `/api/enrollment`,
+    ];
+    
+    let lastError;
+    for (const ep of endpoints) {
+      try {
+        const response = await apiClient.post(ep, { courseId: cId });
+        console.warn(`✅ Course assigned via ${ep}:`, response.data);
+        if (response.data && response.data.success) return response.data;
+        return response.data || { success: true, message: 'Course assigned to student' };
+      } catch (err) {
+        lastError = err;
+        if (err.response?.status === 404) {
+          continue;
+        }
+        if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') {
+          throw new Error('Cannot connect to the server. Please check if the backend is running.');
+        }
+        console.warn(`Attempt to assign course via ${ep} failed:`, err.message);
+      }
+    }
+    
+    const message = lastError?.response?.data?.message || lastError?.message || 'Failed to assign course';
+    throw new Error(message);
+  } catch (error) {
+    console.error('🚨 Failed to assign course:', error);
+    throw error instanceof Error ? error : new Error('Failed to assign course to student');
+  }
+}
+
+/**
+ * Get all available courses for course assignment
+ * @returns {Promise<Array>} List of courses
+ */
+export async function getCoursesList() {
+  try {
+    console.warn('📚 Fetching courses list for assignment...');
+    const response = await apiClient.get('/api/admin/courses');
+    console.warn('📚 Courses list response:', response.data);
+    
+    if (response.data.success && response.data.data) {
+      return Array.isArray(response.data.data) ? response.data.data : [];
+    }
+    
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error('🚨 Failed to fetch courses:', error);
+    return [];
+  }
+}
+
 // Export default object with all functions for easier importing
 export default {
   getAdminStats,
@@ -884,5 +1040,9 @@ export default {
   getAllLessonsAdmin,
   deleteCourse,
   deleteLesson,
-  checkDeleteEndpoints
+  checkDeleteEndpoints,
+  blockStudent,
+  unblockStudent,
+  assignCourseToStudent,
+  getCoursesList
 };

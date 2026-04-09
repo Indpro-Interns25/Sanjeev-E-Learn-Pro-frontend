@@ -34,10 +34,10 @@ const INSTRUCTOR_NAV = [
 const ADMIN_NAV = [
   { section: 'Overview' },
   { to: '/admin-dashboard', icon: 'bi-speedometer2', label: 'Dashboard' },
-  { to: '/admin/analytics', icon: 'bi-bar-chart-line', label: 'Analytics' },
   { section: 'Management' },
-  { to: '/admin/courses/add', icon: 'bi-plus-circle', label: 'Add Course' },
-  { to: '/catalog', icon: 'bi-grid', label: 'Browse Catalog' },
+  { to: '/admin/courses/add', icon: 'bi-journal-richtext', label: 'Manage Courses' },
+  { to: '/admin/students', icon: 'bi-people-fill', label: 'Students' },
+  { to: '/admin/analytics', icon: 'bi-bar-chart-line', label: 'Reports' },
 ];
 
 function getNav(role) {
