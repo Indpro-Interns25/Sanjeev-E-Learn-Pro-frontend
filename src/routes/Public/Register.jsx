@@ -1,8 +1,10 @@
 
 import { useState } from 'react';
-import { Card, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import RegisterForm from '../../components/forms/RegisterForm';
+import loginBg from '../../assets/login.png';
+import './Login.css';
+import './Register.css';
 
 
 export default function Register() {
@@ -14,21 +16,31 @@ export default function Register() {
   };
 
   return (
-    <div className="d-flex flex-column justify-content-center align-items-center min-vh-100">
-      <Card className="shadow-lg border-0 rounded-4" style={{ maxWidth: 400, width: '100%' }}>
-        <Card.Body className="p-4">
-          <h3 className="text-center fw-bold mb-2">Create Account</h3>
-          <p className="text-center text-muted mb-4">Join EduLearn Pro to start learning</p>
-          {error && (
-            <div className="text-center text-danger mb-3" style={{ fontWeight: 500 }}>{error}</div>
-          )}
-          <RegisterForm onSuccess={handleRegisterSuccess} onError={setError} />
-          <div className="text-center">
-            <span>Already have an account? </span>
-            <Button variant="link" className="p-0 fw-bold" onClick={() => navigate('/login')}>Sign in</Button>
-          </div>
-        </Card.Body>
-      </Card>
+    <div className="user-login-screen register-page">
+      <div
+        className="user-login-bg"
+        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.3), rgba(0,0,0,0.2)), url(${loginBg})` }}
+        aria-hidden="true"
+      ></div>
+      <div className="user-login-overlay" aria-hidden="true"></div>
+
+      <div className="user-login-card register-card" role="region" aria-label="User registration panel">
+        <h1 className="user-login-title">Join EduLearn Pro</h1>
+        <p className="user-login-subtitle">Create your free account to access expert-led courses and more.</p>
+
+        {error && (
+          <div className="text-center text-danger mb-3" style={{ fontWeight: 500 }}>{error}</div>
+        )}
+
+        <RegisterForm onSuccess={handleRegisterSuccess} onError={setError} />
+
+        <p className="user-login-footer">
+          Already have an account?{' '}
+          <button type="button" className="user-link-btn" onClick={() => navigate('/login')}>
+            Login
+          </button>
+        </p>
+      </div>
     </div>
   );
 }

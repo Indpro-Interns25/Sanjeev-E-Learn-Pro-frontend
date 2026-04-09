@@ -1,0 +1,57 @@
+.register-page .register-card {
+  width: min(100%, 360px);
+}
+
+.register-page form {
+  margin-top: 4px;
+}
+
+.register-page .form-label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #1e2d4f;
+  margin-bottom: 6px;
+}
+
+.register-page .form-control,
+.register-page .form-select {
+  height: 40px;
+  border-radius: 9px;
+  border: 1px solid rgba(224, 231, 248, 0.95);
+  background: rgba(248, 250, 255, 0.72);
+  color: #112240;
+  font-size: 0.92rem;
+}
+
+.register-page .form-control:focus,
+.register-page .form-select:focus {
+  border-color: rgba(58, 117, 213, 0.85);
+  box-shadow: 0 0 0 2px rgba(58, 117, 213, 0.16);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.register-page .btn-primary {
+  margin-top: 4px;
+  height: 42px;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #2e7cf6, #2368d8);
+  box-shadow: 0 10px 20px rgba(28, 96, 205, 0.3);
+}
+
+.register-page .btn-primary:hover:not(:disabled),
+.register-page .btn-primary:focus:not(:disabled) {
+  background: linear-gradient(135deg, #226de2, #1f5fc5);
+}
+
+.register-page .alert {
+  margin-bottom: 10px;
+}
+
+@media (max-width: 992px) {
+  .register-page .register-card {
+    width: min(100%, 360px);
+  }
+}

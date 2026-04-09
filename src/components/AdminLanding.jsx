@@ -9,7 +9,7 @@ import { getUserEnrollments } from '../services/enrollment';
 export default function AdminLanding() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
@@ -30,6 +30,7 @@ export default function AdminLanding() {
   const [lessons, setLessons] = useState([]);
   const [students, setStudents] = useState([]);
   const [instructors, setInstructors] = useState([]);
+  const [statsLastUpdated, setStatsLastUpdated] = useState(null);
   
   // Reports loading state
   const [reportsLoading, setReportsLoading] = useState(false);
@@ -79,18 +80,7 @@ export default function AdminLanding() {
       
       // Fetch admin data in parallel - only use real backend data
       const [adminStats, coursesData, lessonsData, studentsData, instructorsData] = await Promise.all([
-        getAdminStats().catch((error) => {
-          console.warn('Admin stats API unavailable:', error.message);
-          return { 
-            totalStudents: 0,
-            totalInstructors: 0, 
-            totalCourses: 0, 
-            totalLessons: 0, 
-            totalEnrollments: 0,
-            activeUsers: 0,
-            recentActivity: []
-          };
-        }),
+        getAdminStats(),
         getAllCoursesAdmin().catch((error) => {
           console.warn('Courses API unavailable:', error.message);
           return [];
@@ -142,10 +132,15 @@ export default function AdminLanding() {
         totalInstructors: instructorsData.length,
         totalCourses: coursesData.length,
         totalLessons: lessonsData.length,
-        totalEnrollments: studentsData.reduce((total, student) => total + (student.enrolled_courses || 0), 0),
-        activeUsers: studentsData.filter(student => student.status === 'active').length + instructorsData.filter(instructor => instructor.status === 'active').length
+        // Keep enrollments sourced from /api/admin/stats to avoid stale or missing per-student aggregates.
+        totalEnrollments: Number(adminStats?.totalEnrollments) || 0,
+        activeUsers: Number(adminStats?.activeUsers) || (
+          studentsData.filter(student => student.status === 'active').length +
+          instructorsData.filter(instructor => instructor.status === 'active').length
+        )
       };
       setStats(updatedStats);
+      setStatsLastUpdated(new Date());
       
     } catch (err) {
       console.error('Error fetching admin data:', err);
@@ -885,6 +880,9 @@ export default function AdminLanding() {
                         </div>
                         <h4 className="text-warning mb-1">{stats?.totalEnrollments || 0}</h4>
                         <p className="text-muted mb-0 small">Total Enrollments</p>
+                        <small className="text-muted d-block mt-1">
+                          Updated {statsLastUpdated ? statsLastUpdated.toLocaleTimeString() : '--:--:--'}
+                        </small>
                       </Card.Body>
                     </Card>
                   </div>
