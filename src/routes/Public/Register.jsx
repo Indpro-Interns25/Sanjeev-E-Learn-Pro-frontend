@@ -25,6 +25,14 @@ export default function Register() {
       <div className="user-login-overlay" aria-hidden="true"></div>
 
       <div className="user-login-card register-card" role="region" aria-label="User registration panel">
+        <div className="auth-card-header">
+          <div className="auth-card-badge">
+            <i className="bi bi-stars me-2"></i>Start Learning
+          </div>
+          <div className="auth-card-mark" aria-hidden="true">
+            <i className="bi bi-person-plus-fill"></i>
+          </div>
+        </div>
         <h1 className="user-login-title">Join EduLearn Pro</h1>
         <p className="user-login-subtitle">Create your free account to access expert-led courses and more.</p>
 

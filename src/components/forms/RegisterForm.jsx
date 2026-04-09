@@ -1,4 +1,3 @@
-// Clean restored file
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
@@ -16,7 +15,7 @@ export default function RegisterForm({ onSuccess }) {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'student'
+    role: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -50,6 +49,10 @@ export default function RegisterForm({ onSuccess }) {
       setError('Passwords do not match');
       return false;
     }
+    if (!formData.role) {
+      setError('Please choose how you want to register');
+      return false;
+    }
     return true;
   };
 
@@ -69,33 +72,71 @@ export default function RegisterForm({ onSuccess }) {
   };
 
   return (
-    <Form onSubmit={handleSubmit} noValidate>
+    <Form onSubmit={handleSubmit} noValidate className="register-form">
       {error && (
         <Alert variant="danger" dismissible onClose={() => setError(null)}>{error}</Alert>
       )}
-      <Form.Group className="mb-3" controlId="regName">
-        <Form.Label>Full Name</Form.Label>
-        <Form.Control name="name" value={formData.name} onChange={handleChange} required />
-      </Form.Group>
-      <Form.Group className="mb-3" controlId="regEmail">
-        <Form.Label>Email</Form.Label>
-        <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} required />
-      </Form.Group>
-      <Form.Group className="mb-3" controlId="regPassword">
-        <Form.Label>Password</Form.Label>
-        <Form.Control type="password" name="password" value={formData.password} onChange={handleChange} required />
-      </Form.Group>
-      <Form.Group className="mb-3" controlId="regConfirmPassword">
-        <Form.Label>Confirm Password</Form.Label>
-        <Form.Control type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required />
-      </Form.Group>
-      <Form.Group className="mb-3" controlId="regRole">
-        <Form.Label>I want to</Form.Label>
-        <Form.Select name="role" value={formData.role} onChange={handleChange} required>
-          {ROLES.map(r => (<option key={r.value} value={r.value}>Register as a {r.label}</option>))}
+      <Form.Floating className="mb-3">
+        <Form.Control
+          id="regName"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          placeholder="Full Name"
+          required
+        />
+        <Form.Label htmlFor="regName">Full Name</Form.Label>
+      </Form.Floating>
+
+      <Form.Floating className="mb-3">
+        <Form.Control
+          id="regEmail"
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="Email Address"
+          required
+        />
+        <Form.Label htmlFor="regEmail">Email Address</Form.Label>
+      </Form.Floating>
+
+      <Form.Floating className="mb-3">
+        <Form.Control
+          id="regPassword"
+          type="password"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="Password"
+          required
+        />
+        <Form.Label htmlFor="regPassword">Password</Form.Label>
+      </Form.Floating>
+      <div className="register-hint">Use at least 6 characters with upper, lower, and a number.</div>
+
+      <Form.Floating className="mb-3">
+        <Form.Control
+          id="regConfirmPassword"
+          type="password"
+          name="confirmPassword"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          placeholder="Confirm Password"
+          required
+        />
+        <Form.Label htmlFor="regConfirmPassword">Confirm Password</Form.Label>
+      </Form.Floating>
+
+      <Form.Floating className="mb-3">
+        <Form.Select id="regRole" name="role" value={formData.role} onChange={handleChange} required>
+          <option value="" disabled>Select your role</option>
+          {ROLES.map(r => (<option key={r.value} value={r.value}>{r.label}</option>))}
         </Form.Select>
-      </Form.Group>
-      <Button type="submit" variant="primary" className="w-100" disabled={loading}>
+        <Form.Label htmlFor="regRole">I want to join as</Form.Label>
+      </Form.Floating>
+
+      <Button type="submit" variant="primary" className="w-100 auth-submit-btn" disabled={loading}>
         {loading ? 'Creating Account...' : 'Create Account'}
       </Button>
     </Form>

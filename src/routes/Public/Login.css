@@ -15,14 +15,14 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: blur(3px);
-  transform: scale(1.03);
+  filter: blur(1px) saturate(1.08) contrast(1.06);
+  transform: scale(1.01);
 }
 
 .user-login-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.16));
   pointer-events: none;
 }
 
@@ -33,11 +33,45 @@
   padding: 20px;
   border-radius: 16px;
   border: 1px solid rgba(226, 232, 255, 0.72);
-  background: rgba(239, 243, 255, 0.34);
+  background: rgba(239, 243, 255, 0.28);
   box-shadow:
     0 18px 38px rgba(10, 23, 54, 0.28),
     inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(8px);
+}
+
+.auth-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.auth-card-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(173, 192, 239, 0.75);
+  background: rgba(255, 255, 255, 0.3);
+  color: #1b3767;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.auth-card-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(46, 124, 246, 0.94), rgba(35, 104, 216, 0.86));
+  color: #fff;
+  box-shadow: 0 10px 18px rgba(28, 96, 205, 0.3);
 }
 
 .user-login-title {
@@ -157,11 +191,32 @@
   cursor: not-allowed;
 }
 
+.auth-support-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  color: rgba(23, 36, 61, 0.76);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.auth-support-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .user-login-footer {
   margin: 12px 0 0;
   text-align: center;
   color: #1f2f52;
   font-size: 0.84rem;
+}
+
+.user-login-footer.signup-link {
+  margin-top: 10px;
 }
 
 @media (max-width: 992px) {

@@ -2,36 +2,54 @@
   width: min(100%, 360px);
 }
 
-.register-page form {
-  margin-top: 4px;
+.register-page .auth-card-header {
+  margin-bottom: 12px;
 }
 
-.register-page .form-label {
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: #1e2d4f;
-  margin-bottom: 6px;
+.register-page .user-login-card {
+  background: rgba(239, 243, 255, 0.28);
+  backdrop-filter: blur(8px);
 }
 
-.register-page .form-control,
-.register-page .form-select {
-  height: 40px;
-  border-radius: 9px;
+.register-page .register-form {
+  margin-top: 6px;
+}
+
+.register-page .form-floating > .form-control,
+.register-page .form-floating > .form-select {
+  height: 44px;
+  min-height: 44px;
+  padding-top: 1rem;
+  padding-bottom: 0.4rem;
+  border-radius: 10px;
   border: 1px solid rgba(224, 231, 248, 0.95);
   background: rgba(248, 250, 255, 0.72);
   color: #112240;
   font-size: 0.92rem;
 }
 
-.register-page .form-control:focus,
-.register-page .form-select:focus {
+.register-page .form-floating > .form-control:focus,
+.register-page .form-floating > .form-select:focus {
   border-color: rgba(58, 117, 213, 0.85);
   box-shadow: 0 0 0 2px rgba(58, 117, 213, 0.16);
   background: rgba(255, 255, 255, 0.86);
 }
 
-.register-page .btn-primary {
-  margin-top: 4px;
+.register-page .form-floating > label {
+  padding: 0.7rem 0.9rem;
+  color: rgba(23, 36, 61, 0.76);
+  font-size: 0.84rem;
+}
+
+.register-page .register-hint {
+  margin: -4px 0 10px;
+  padding-left: 2px;
+  font-size: 0.74rem;
+  color: rgba(23, 36, 61, 0.72);
+}
+
+.register-page .auth-submit-btn {
+  margin-top: 6px;
   height: 42px;
   border: 0;
   border-radius: 999px;
@@ -41,8 +59,8 @@
   box-shadow: 0 10px 20px rgba(28, 96, 205, 0.3);
 }
 
-.register-page .btn-primary:hover:not(:disabled),
-.register-page .btn-primary:focus:not(:disabled) {
+.register-page .auth-submit-btn:hover:not(:disabled),
+.register-page .auth-submit-btn:focus:not(:disabled) {
   background: linear-gradient(135deg, #226de2, #1f5fc5);
 }
 
