@@ -11,6 +11,8 @@ export default function QuizComponent({
   passing_score = 70,
   onSubmit = null,
   onCancel = null,
+  onRetry = null,
+  showPassFail = true,
   loading = false
 }) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -103,6 +105,17 @@ export default function QuizComponent({
     }
   };
 
+  const handleRetry = () => {
+    setCurrentQuestionIndex(0);
+    setAnswers({});
+    setTimeRemaining(timeLimit * 60);
+    setIsSubmitted(false);
+    setScore(null);
+    setShowReview(false);
+    setShowWarning(false);
+    onRetry?.();
+  };
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -138,19 +151,23 @@ export default function QuizComponent({
       <Card className="quiz-container quiz-results">
         <Card.Body className="text-center py-5">
           <div className="result-icon mb-4">
-            {score.passed ? (
-              <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '4rem' }}></i>
+            {showPassFail ? (
+              score.passed ? (
+                <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '4rem' }}></i>
+              ) : (
+                <i className="bi bi-x-circle-fill text-danger" style={{ fontSize: '4rem' }}></i>
+              )
             ) : (
-              <i className="bi bi-x-circle-fill text-danger" style={{ fontSize: '4rem' }}></i>
+              <i className="bi bi-info-circle-fill text-primary" style={{ fontSize: '4rem' }}></i>
             )}
           </div>
 
           <h3 className="mb-3">
-            {score.passed ? 'Congratulations!' : 'Try Again'}
+            {showPassFail ? (score.passed ? 'Congratulations!' : 'Try Again') : 'Lesson Quiz Completed'}
           </h3>
 
           <div className="score-display mb-4">
-            <h1 className={score.passed ? 'text-success' : 'text-danger'}>
+            <h1 className={showPassFail ? (score.passed ? 'text-success' : 'text-danger') : 'text-primary'}>
               {score.percentage}%
             </h1>
             <p className="text-muted">
@@ -158,23 +175,33 @@ export default function QuizComponent({
             </p>
           </div>
 
-          {score.passed && (
+          {showPassFail && score.passed && (
             <Alert variant="success" className="mb-4">
               <i className="bi bi-check-circle me-2"></i>
               You have passed the quiz! Great job!
             </Alert>
           )}
 
-          {!score.passed && (
+          {showPassFail && !score.passed && (
             <Alert variant="danger" className="mb-4">
               <i className="bi bi-exclamation-triangle me-2"></i>
               You need to score at least {passing_score}% to pass. Please review and try again.
             </Alert>
           )}
 
+          {!showPassFail && (
+            <Alert variant="info" className="mb-4">
+              <i className="bi bi-info-circle me-2"></i>
+              Your lesson quiz attempt has been recorded.
+            </Alert>
+          )}
+
           <div className="d-flex gap-2 justify-content-center">
             <Button variant="primary" onClick={() => setShowReview(true)}>
               <i className="bi bi-eye me-2"></i> Review Answers
+            </Button>
+            <Button variant="outline-primary" onClick={handleRetry}>
+              <i className="bi bi-arrow-clockwise me-2"></i> Retry Quiz
             </Button>
             <Button variant="outline-secondary" onClick={handleCancel}>
               <i className="bi bi-x-circle me-2"></i> Exit Quiz
@@ -376,5 +403,7 @@ QuizComponent.propTypes = {
   passing_score: PropTypes.number,
   onSubmit: PropTypes.func,
   onCancel: PropTypes.func,
+  onRetry: PropTypes.func,
+  showPassFail: PropTypes.bool,
   loading: PropTypes.bool
 };

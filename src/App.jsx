@@ -40,6 +40,7 @@ const MyEnrolledCourses = lazy(() => import('./routes/Student/MyEnrolledCourses'
 const EnrolledCourseView = lazy(() => import('./routes/Student/EnrolledCourseView'));
 const MyCourses         = lazy(() => import('./routes/Student/MyCourses'));
 const LessonPlayer      = lazy(() => import('./routes/Student/LessonPlayer'));
+const LessonQuizPage    = lazy(() => import('./routes/Student/LessonQuizPage'));
 const Progress          = lazy(() => import('./routes/Student/Progress'));
 const MyLearning        = lazy(() => import('./routes/Student/MyLearning'));
 const Quiz              = lazy(() => import('./routes/Student/Quiz'));
@@ -176,6 +177,16 @@ export default function App() {
                       <ProtectedRoute>
                         <RoleGuard roles={['student']}>
                           <LessonPlayer />
+                        </RoleGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/student/courses/:courseId/lessons/:lessonId/quiz"
+                    element={
+                      <ProtectedRoute>
+                        <RoleGuard roles={['student']}>
+                          <LessonQuizPage />
                         </RoleGuard>
                       </ProtectedRoute>
                     }

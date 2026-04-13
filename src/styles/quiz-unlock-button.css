@@ -1,0 +1,87 @@
+/* Quiz Unlock Button Styles */
+
+.quiz-unlock-button-container {
+  padding: 1rem 0;
+  border-radius: 0.5rem;
+}
+
+.quiz-progress-section {
+  background-color: rgba(13, 110, 253, 0.05);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border-left: 4px solid #0d6efd;
+}
+
+.quiz-progress-bar {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.quiz-unlock-btn {
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
+.quiz-unlock-btn.locked {
+  opacity: 0.7;
+  cursor: not-allowed !important;
+  background-color: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.quiz-unlock-btn.locked:hover {
+  background-color: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.quiz-unlock-btn.unlocked {
+  box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
+  animation: pulse-success 2s ease-in-out infinite;
+}
+
+.quiz-unlock-btn.unlocked:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(25, 135, 84, 0.4);
+}
+
+.quiz-unlock-btn:disabled {
+  cursor: not-allowed;
+}
+
+.quiz-unlock-btn i {
+  font-size: 1.1em;
+}
+
+/* Pulse animation for unlocked button */
+@keyframes pulse-success {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
+  }
+  50% {
+    box-shadow: 0 2px 12px rgba(25, 135, 84, 0.5);
+  }
+}
+
+/* Loading state */
+.quiz-unlock-btn .spinner-border {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .quiz-unlock-button-container {
+    padding: 0.75rem 0;
+  }
+
+  .quiz-progress-section {
+    padding: 0.75rem;
+  }
+
+  .quiz-unlock-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+  }
+}

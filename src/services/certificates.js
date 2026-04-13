@@ -2,6 +2,7 @@
  * Certificate Service
  * Handles certificate generation, storage, and retrieval
  */
+import jsPDF from 'jspdf';
 
 /**
  * Generate a unique certificate ID
@@ -47,6 +48,110 @@ export function generateCertificate({
   };
 
   return certificate;
+}
+
+/**
+ * Generate and save a certificate from a passed final test.
+ * @param {Object} params
+ * @returns {Object} Generated certificate
+ */
+export function generateFinalTestCertificate({
+  userId,
+  courseId,
+  courseTitle,
+  score,
+  percentage,
+  totalScore,
+  instructorName = 'EduLearn Pro Team',
+  completionDate = new Date().toISOString(),
+}) {
+  const certificate = generateCertificate({
+    userId,
+    courseId,
+    courseTitle,
+    quizId: `final-${courseId}`,
+    score,
+    totalScore,
+    percentage,
+    instructorName,
+    completionDate,
+  });
+
+  saveCertificateLocally(userId, certificate);
+  return certificate;
+}
+
+/**
+ * Download a certificate as PDF.
+ * @param {Object} certificate
+ * @param {Object} options
+ */
+export async function downloadCertificatePDF(certificate, options = {}) {
+  if (!certificate) {
+    throw new Error('Certificate is required');
+  }
+
+  const userName = options.userName || 'Student';
+  const courseTitle = options.courseTitle || certificate.courseTitle || 'Course';
+  const completionDate = options.completionDate || certificate.completionDate;
+
+  const pdf = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 12;
+
+  pdf.setFillColor(250, 250, 252);
+  pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
+  pdf.setDrawColor(59, 130, 246);
+  pdf.setLineWidth(1.5);
+  pdf.rect(margin, margin, pageWidth - margin * 2, pageHeight - margin * 2);
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(30, 41, 59);
+  pdf.setFontSize(28);
+  pdf.text('Certificate of Completion', pageWidth / 2, 34, { align: 'center' });
+
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('This certifies that', pageWidth / 2, 50, { align: 'center' });
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(24);
+  pdf.text(userName, pageWidth / 2, 66, { align: 'center' });
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(12);
+  pdf.text('has successfully completed the course', pageWidth / 2, 80, { align: 'center' });
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(20);
+  const wrappedCourse = pdf.splitTextToSize(courseTitle, pageWidth - 40);
+  pdf.text(wrappedCourse, pageWidth / 2, 94, { align: 'center' });
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(12);
+  pdf.text(`Score: ${certificate.score} / ${certificate.totalScore}`, pageWidth / 2, 118, { align: 'center' });
+  pdf.text(`Percentage: ${certificate.percentage}%`, pageWidth / 2, 128, { align: 'center' });
+  pdf.text(`Completion Date: ${new Date(completionDate).toLocaleDateString()}`, pageWidth / 2, 138, { align: 'center' });
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`Certificate ID: ${certificate.id}`, pageWidth / 2, 158, { align: 'center' });
+  pdf.text(`Verification Code: ${certificate.verificationCode}`, pageWidth / 2, 168, { align: 'center' });
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(10);
+  pdf.setTextColor(100, 116, 139);
+  pdf.text(certificate.instructorName || 'EduLearn Pro Team', pageWidth / 2, pageHeight - 24, { align: 'center' });
+
+  const fileName = `Certificate-${certificate.id}.pdf`;
+  pdf.save(fileName);
+  return fileName;
 }
 
 /**

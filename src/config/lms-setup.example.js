@@ -197,8 +197,6 @@ export function CourseLearningPageExample() {
   const handleMarkComplete = async () => {
     try {
       await markLectureCompleted(currentLectureId, user.id);
-      // Show toast
-      console.log('Lecture marked as complete');
     } catch (err) {
       console.error('Error marking complete:', err);
     }
@@ -346,7 +344,6 @@ export function CourseLearningPageExample() {
 
 export function QuizPageExample() {
   const handleQuizSubmit = (result) => {
-    console.log('Quiz Result:', result);
     // {
     //   quiz_id: 1,
     //   score: 85,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Button, Spinner, Alert } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -11,17 +11,25 @@ export default function QuizPage() {
   const { courseId, quizId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const questionRefs = useRef({});
 
   // State
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState(null);
   const [startTime] = useState(new Date());
+
+  const buildInitialAnswers = (questionList) => {
+    const initialAnswers = {};
+    questionList.forEach((question) => {
+      initialAnswers[question.id] = null;
+    });
+    return initialAnswers;
+  };
 
   // Fetch quiz data
   useEffect(() => {
@@ -44,12 +52,7 @@ export default function QuizPage() {
         }
 
         setQuiz(quizData);
-        // Initialize answers object
-        const initialAnswers = {};
-        quizData.questions?.forEach((question) => {
-          initialAnswers[question.id] = null;
-        });
-        setAnswers(initialAnswers);
+        setAnswers(buildInitialAnswers(quizData.questions || []));
       } catch (err) {
         console.error('Error fetching quiz:', err);
         setError(err.message || 'Failed to load quiz');
@@ -62,31 +65,19 @@ export default function QuizPage() {
   }, [courseId, quizId]);
 
   // Handle answer selection
-  const handleSelectAnswer = (optionIndex) => {
-    const currentQuestion = quiz?.questions?.[currentQuestionIndex];
-    if (currentQuestion) {
-      setAnswers(prev => ({
-        ...prev,
-        [currentQuestion.id]: optionIndex
-      }));
-    }
+  const handleSelectAnswer = (questionId, optionIndex) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: optionIndex
+    }));
   };
 
-  // Navigation
-  const handleNext = () => {
-    if (currentQuestionIndex < (quiz?.questions?.length || 0) - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
-    }
+  const scrollToQuestion = (index) => {
+    questionRefs.current[index]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   // Check if all questions answered
-  const allAnswered = Object.values(answers).every(a => a !== null && a !== undefined);
+  const allAnswered = (quiz?.questions || []).every((question) => answers[question.id] !== null && answers[question.id] !== undefined);
 
   // Submit quiz
   const handleSubmit = async () => {
@@ -137,14 +128,7 @@ export default function QuizPage() {
 
   // Handle retry
   const handleRetry = () => {
-    setCurrentQuestionIndex(0);
-    setAnswers({});
-    quiz?.questions?.forEach((question) => {
-      setAnswers(prev => ({
-        ...prev,
-        [question.id]: null
-      }));
-    });
+    setAnswers(buildInitialAnswers(quiz?.questions || []));
     setSubmitted(false);
     setResult(null);
   };
@@ -218,19 +202,50 @@ export default function QuizPage() {
   }
 
   // Main quiz page
-  const currentQuestion = quiz.questions?.[currentQuestionIndex];
-  const currentAnswer = answers[currentQuestion?.id];
+  const answeredCount = (quiz.questions || []).filter((question) => answers[question.id] !== null && answers[question.id] !== undefined).length;
 
   return (
     <Container className="quiz-container py-5">
       <Row className="justify-content-center">
-        <Col lg={8}>
+        <Col lg={10} xl={9}>
           {/* Quiz Header */}
           <div className="quiz-header">
             <h1 className="quiz-title">{quiz.title || 'Quiz'}</h1>
             {quiz.description && (
               <p className="quiz-description">{quiz.description}</p>
             )}
+          </div>
+
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="text-muted small">
+              Question 1 of {quiz.questions.length}
+            </div>
+            <div className="text-muted small">
+              {answeredCount} / {quiz.questions.length} answered
+            </div>
+          </div>
+
+          <div
+            className="quiz-question-scroll"
+            style={{ maxHeight: '65vh', overflowY: 'auto', paddingRight: '0.25rem' }}
+          >
+            {quiz.questions.map((question, index) => (
+              <div
+                key={question.id}
+                ref={(node) => {
+                  questionRefs.current[index] = node;
+                }}
+                className="mb-4"
+              >
+                <QuestionCard
+                  question={question}
+                  questionNumber={index + 1}
+                  totalQuestions={quiz.questions.length}
+                  selectedAnswer={answers[question.id]}
+                  onSelectAnswer={(optionIndex) => handleSelectAnswer(question.id, optionIndex)}
+                />
+              </div>
+            ))}
           </div>
 
           {/* Error Alert */}
@@ -240,69 +255,32 @@ export default function QuizPage() {
             </Alert>
           )}
 
-          {/* Question */}
-          {currentQuestion && (
-            <QuestionCard
-              question={currentQuestion}
-              questionNumber={currentQuestionIndex + 1}
-              totalQuestions={quiz.questions.length}
-              selectedAnswer={currentAnswer}
-              onSelectAnswer={handleSelectAnswer}
-            />
-          )}
-
-          {/* Navigation */}
-          <div className="quiz-navigation">
-            <Button
-              onClick={handlePrevious}
-              disabled={currentQuestionIndex === 0}
-              variant="outline-primary"
-              className="nav-btn"
-            >
-              ← Previous
-            </Button>
-
-            <div className="nav-info">
-              <span className="question-counter">
-                {currentQuestionIndex + 1} / {quiz.questions.length}
-              </span>
-              <span className={`answer-status ${currentAnswer !== null ? 'answered' : 'unanswered'}`}>
-                {currentAnswer !== null ? '✓ Answered' : '○ Unanswered'}
-              </span>
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
+            <div className="text-muted small">
+              Scroll through the full quiz and answer every question before submitting.
             </div>
-
-            {currentQuestionIndex < quiz.questions.length - 1 ? (
-              <Button
-                onClick={handleNext}
-                variant="primary"
-                className="nav-btn"
-              >
-                Next →
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={!allAnswered || submitting}
-                variant="success"
-                className="nav-btn submit-btn"
-              >
-                {submitting ? (
-                  <>
-                    <Spinner
-                      as="span"
-                      animation="border"
-                      size="sm"
-                      role="status"
-                      aria-hidden="true"
-                      className="me-2"
-                    />
-                    Submitting...
-                  </>
-                ) : (
-                  'Submit Quiz'
-                )}
-              </Button>
-            )}
+            <Button
+              onClick={handleSubmit}
+              disabled={!allAnswered || submitting}
+              variant="success"
+              className="nav-btn submit-btn"
+            >
+              {submitting ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                    className="me-2"
+                  />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Full Quiz'
+              )}
+            </Button>
           </div>
 
           {/* Unanswered Questions Warning */}
@@ -323,9 +301,9 @@ export default function QuizPage() {
                 <button
                   key={index}
                   className={`overview-item ${
-                    index === currentQuestionIndex ? 'active' : ''
+                    answers[question.id] !== null ? 'answered' : 'unanswered'
                   } ${answers[question.id] !== null ? 'answered' : 'unanswered'}`}
-                  onClick={() => setCurrentQuestionIndex(index)}
+                  onClick={() => scrollToQuestion(index)}
                   title={`Question ${index + 1}`}
                 >
                   {index + 1}

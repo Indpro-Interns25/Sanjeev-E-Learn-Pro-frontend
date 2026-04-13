@@ -54,12 +54,10 @@ export default function EnrollmentForm({
     setSubmitting(true);
     try {
       // Call the enrollment service
-      const result = await enrollUserInCourse(
+      await enrollUserInCourse(
         parseInt(formData.studentId),
         parseInt(formData.courseId)
       );
-
-      console.log('Enrollment result:', result);
       
       // Call the parent onSubmit callback
       if (onSubmit) {

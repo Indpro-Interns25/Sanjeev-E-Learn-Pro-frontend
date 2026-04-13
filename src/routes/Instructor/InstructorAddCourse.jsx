@@ -61,18 +61,16 @@ export default function InstructorAddCourse() {
         // For editing, we'll use the regular update endpoint
         // If thumbnailFile is provided, we'd need a separate upload endpoint
         // For now, just update the course data
-        const result = await updateCourse(editingCourse.id, courseData);
-        console.log('Course updated:', result);
+        await updateCourse(editingCourse.id, courseData);
         showToast('Course updated successfully!', 'success');
         showAlert('Course updated successfully!', 'success');
       } else {
         // Create new course with file upload
-        const result = await createCourseWithFile(
+        await createCourseWithFile(
           courseData,
           thumbnailFile,
           (progress) => setUploadProgress(progress)
         );
-        console.log('Course created:', result);
         showToast('Course created successfully!', 'success');
         showAlert('Course created successfully!', 'success');
       }
