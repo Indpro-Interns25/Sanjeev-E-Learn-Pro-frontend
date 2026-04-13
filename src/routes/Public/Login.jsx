@@ -5,7 +5,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import loginBg from '../../assets/login.png';
 import './Login.css';
-import './Login-landing.css';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -48,66 +47,10 @@ export default function Login() {
   };
 
   return (
-    <div className="user-login-screen login-landing-page" style={{ backgroundImage: `url(${loginBg})` }}>
-      {/* Navigation Bar */}
-      <nav className="login-navbar">
-        <div className="navbar-brand">EduLearn Pro</div>
-        <div className="navbar-links">
-          <a href="#home">Home</a>
-          <a href="#courses">Courses</a>
-          <a href="#categories">Categories</a>
-          <button className="btn-enroll">Enroll Now</button>
-          <div className="user-avatar">👤</div>
-        </div>
-      </nav>
-
-      {/* Main Content Area */}
-      <div className="login-content-wrapper">
-        {/* Left Sidebar - Categories */}
-        <aside className="login-sidebar-left">
-          <div className="category-card">
-            <div className="category-icon">📊</div>
-            <h4>Data Science</h4>
-            <p>Learn how to use quantum computing</p>
-          </div>
-          <div className="category-card">
-            <div className="category-icon">💼</div>
-            <h4>Business</h4>
-            <p>Find business knowledge, financial...</p>
-          </div>
-          <div className="category-card">
-            <div className="category-icon">🎨</div>
-            <h4>Creative Arts</h4>
-            <p>Learn more about medicine and cre...</p>
-          </div>
-          <div className="category-card latest-enrollments">
-            <h4>Latest Enrollments</h4>
-            <p>Get in touch with new enrollees across all categories</p>
-          </div>
-        </aside>
-
-        {/* Center - Course Cards */}
-        <section className="login-center-courses">
-          <div className="course-bubble">
-            <span>Introduction to Quantum Computing</span>
-          </div>
-          <div className="course-bubble">
-            <span>Global Financial Markets</span>
-          </div>
-          <div className="course-bubble">
-            <span>Ethical AI and Bias</span>
-          </div>
-          <div className="course-bubble">
-            <span>History of Art</span>
-          </div>
-          <div className="course-bubble">
-            <span>Data Science</span>
-          </div>
-        </section>
-
-        {/* Right - Login Form */}
-        <section className="login-sidebar-right">
-          <div className="user-login-card" role="region" aria-label="User login panel">
+    <div className="user-login-screen">
+      <div className="user-login-bg" style={{ backgroundImage: `url(${loginBg})` }}></div>
+      <div className="user-login-overlay"></div>
+      <div className="user-login-card" role="region" aria-label="User login panel">
           <div className="auth-card-header">
             <div className="auth-card-badge">
               <i className="bi bi-shield-lock me-2"></i>Secure Access
@@ -190,9 +133,8 @@ export default function Login() {
                 Create Account
               </button>
             </p>
-          </div>
-        </section>
       </div>
-    </div>
+      </div>
+    
   );
 }

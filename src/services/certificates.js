@@ -305,3 +305,38 @@ export function getCertificateStatistics(userId) {
     return null;
   }
 }
+
+/**
+ * Generate and save course completion certificate
+ * @param {number} userId - User ID
+ * @param {number} courseId - Course ID
+ * @param {Object} courseData - Course information { title, instructor }
+ * @returns {Object} Generated certificate
+ */
+export function generateCourseCompletionCertificate(userId, courseId, courseData = {}) {
+  const certificate = generateCertificate({
+    userId,
+    courseId,
+    courseTitle: courseData.title || 'Course',
+    quizId: null,
+    score: 100,
+    totalScore: 100,
+    percentage: 100,
+    instructorName: courseData.instructor || 'EduLearn Pro Team',
+    completionDate: new Date().toISOString()
+  });
+  
+  saveCertificateLocally(userId, certificate);
+  return certificate;
+}
+
+/**
+ * Check if user has certificate for course
+ * @param {number} userId - User ID
+ * @param {number} courseId - Course ID
+ * @returns {boolean} Has certificate
+ */
+export function hasCourseCompletionCertificate(userId, courseId) {
+  const certificate = getCertificateByCourseid(userId, courseId);
+  return certificate !== null;
+}

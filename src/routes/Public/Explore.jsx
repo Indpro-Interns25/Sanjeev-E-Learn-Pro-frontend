@@ -2,6 +2,7 @@ import { Container, Row, Col, Button, Form, InputGroup, Dropdown, Carousel, Spin
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { searchCourses, getCourseCategories, getFeaturedCourses, formatCoursesData, getAllCourses } from '../../services/courses';
+import coursesHeroBg from '../../assets/Futuristic learning in a digital world.png';
 
 const features = [
   {
@@ -142,7 +143,7 @@ export default function Explore() {
         className="hero-section d-flex flex-column justify-content-center align-items-center text-center position-relative"
         style={{
           minHeight: '60vh',
-          background: 'url(https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=1350&q=80) center/cover no-repeat',
+          background: `url(${coursesHeroBg}) center/cover no-repeat`,
           color: '#fff',
         }}
       >

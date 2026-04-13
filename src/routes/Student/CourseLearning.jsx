@@ -19,6 +19,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useUi } from '../../context/ui-context';
 import CourseVideoPlayer from '../../components/CourseVideoPlayer';
 import LectureList from '../../components/LectureList';
+import CourseCompletionCard from '../../components/CourseCompletionCard';
 import {
   fetchLectures,
   saveVideoTimestamp,
@@ -241,6 +242,15 @@ export default function CourseLearning() {
         <Row className="g-4">
           {/* ── Main content ──────────────────────────────────────────────── */}
           <Col lg={8} xl={9}>
+            {/* Course Completion Certificate Card */}
+            {progressPct === 100 && (
+              <CourseCompletionCard
+                courseId={parseInt(courseId)}
+                courseTitle={lectures[0]?.course_title || 'Course'}
+                progressPct={progressPct}
+              />
+            )}
+
             {/* Video player */}
             <div className="mb-3">
               {loadingLectures ? (

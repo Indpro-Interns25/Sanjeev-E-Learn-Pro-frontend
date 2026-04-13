@@ -1,0 +1,207 @@
+/* ========================================
+   COURSE COMPLETION CARD STYLES
+   ======================================== */
+
+.course-completion-card {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.course-completion-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.course-completion-card.incomplete {
+  border-left: 4px solid #ffc107;
+  background: linear-gradient(135deg, #fffbf0, #fff9e6);
+}
+
+.course-completion-card.completed {
+  border-left: 4px solid #22c55e;
+  background: linear-gradient(135deg, #f0fdf4, #e8f5e9);
+}
+
+.completion-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  animation: fadeInScale 0.5s ease;
+}
+
+.completion-icon.incomplete-icon {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.completion-icon.completed-icon {
+  background: #dcfce7;
+  color: #22c55e;
+  animation: slideInBounce 0.6s ease;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInBounce {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.8);
+  }
+  60% {
+    transform: translateX(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.button-group {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.btn-generate-certificate {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border: none;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.btn-generate-certificate:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  color: white;
+}
+
+.btn-generate-certificate.active,
+.btn-generate-certificate:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.btn-generate-certificate:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.certificate-info {
+  font-size: 14px;
+  border-left: 3px solid #4f46e5;
+}
+
+.font-monospace {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  background: rgba(79, 70, 229, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Modal Styles */
+.modal-content {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  border: none;
+  padding: 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #17243d;
+  letter-spacing: -0.3px;
+}
+
+.modal-body {
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  border: none;
+  padding: 16px 24px;
+  background: #f8f9fa;
+}
+
+/* Loading state */
+.spinner-border {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+/* Alert styling */
+.alert {
+  border: none;
+  border-left: 4px solid;
+  border-radius: 8px;
+}
+
+.alert-danger {
+  background: #fee2e2;
+  border-left-color: #dc2626;
+  color: #991b1b;
+}
+
+.alert-success {
+  background: #dcfce7;
+  border-left-color: #22c55e;
+  color: #166534;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .course-completion-card {
+    border-radius: 12px;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .button-group .btn {
+    width: 100%;
+  }
+
+  .completion-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-header,
+  .modal-footer {
+    padding: 16px;
+  }
+}
