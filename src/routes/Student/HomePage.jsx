@@ -74,9 +74,9 @@ export default function HomePage() {
           <Row className="align-items-center justify-content-center position-relative z-1" style={{ minHeight: '70vh' }}>
             <Col lg={8} className="text-center">
               <div className="hero-network-content">
-                <h1 className="hero-network-title mb-4">Learn Without Limits</h1>
+                <h1 className="hero-network-title mb-4">Welcome Back</h1>
                 <p className="hero-network-subtitle mb-5">
-                  Continue your learning journey with world-class courses
+                  Access your learning dashboard and continue where you left off
                 </p>
                 <div className="hero-network-buttons d-flex gap-3 justify-content-center flex-wrap">
                   <Button 

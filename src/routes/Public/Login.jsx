@@ -116,8 +116,8 @@ export default function Login() {
               <i className="bi bi-mortarboard-fill"></i>
             </div>
           </div>
-            <h2 className="user-login-title">Access Your Course Portal</h2>
-            <p className="user-login-subtitle">Your Learning Potential, Unlocked.</p>
+            <h2 className="user-login-title">Welcome Back</h2>
+            <p className="user-login-subtitle">Access your learning dashboard and continue where you left off</p>
 
             {sessionExpired && !error && (
               <Alert variant="warning" className="py-2 mb-3">
