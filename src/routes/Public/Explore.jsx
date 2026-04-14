@@ -142,7 +142,10 @@ export default function Explore() {
         className="hero-section d-flex flex-column justify-content-center align-items-center text-center position-relative"
         style={{
           minHeight: '60vh',
-          background: 'url(/images/futuristic-learning.png) center/cover no-repeat',
+          backgroundImage: "url('/images/futuristic-learning.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
           color: '#fff',
         }}
       >
