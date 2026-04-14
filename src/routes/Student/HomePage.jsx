@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { getAllCourses } from '../../services/courses';
 import { getCourseVideoProgress } from '../../services/videoProgress';
-import networkBg from '../../assets/futuristic-learning.png';
 import '../../styles/home-page.css';
 
 export default function HomePage() {
@@ -68,7 +67,7 @@ export default function HomePage() {
       {/* ============ HERO SECTION WITH NETWORK BACKGROUND ============ */}
       <section className="hero-network-section">
         <div className="hero-network-bg">
-          <img src={networkBg} alt="Network Background" className="network-bg-image" />
+          <img src="/images/futuristic-learning.png" alt="Network Background" className="network-bg-image" />
         </div>
         <Container>
           <Row className="align-items-center justify-content-center position-relative z-1" style={{ minHeight: '70vh' }}>
