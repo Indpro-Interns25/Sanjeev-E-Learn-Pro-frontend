@@ -4,12 +4,7 @@ import PropTypes from 'prop-types';
 import { useAuth } from '../hooks/useAuth';
 import { useUi } from '../context/ui-context';
 import Certificate from './Certificate';
-import {
-  generateCourseCompletionCertificate,
-  hasCourseCompletionCertificate,
-  getCertificateByCourseid,
-  downloadCertificatePDF
-} from '../services/certificates';
+import { generateCourseCompletionCertificate, getCertificateByCourseid } from '../services/certificates';
 import '../styles/course-completion.css';
 
 /**
@@ -25,7 +20,7 @@ export default function CourseCompletionCard({
 }) {
   const { user } = useAuth();
   const { showToast } = useUi();
-  
+
   const [certificate, setCertificate] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
@@ -34,7 +29,7 @@ export default function CourseCompletionCard({
   // Check if user already has certificate for this course
   useEffect(() => {
     if (!user || !courseId) return;
-    
+
     const existingCert = getCertificateByCourseid(user.id, courseId);
     if (existingCert) {
       setCertificate(existingCert);
@@ -52,19 +47,15 @@ export default function CourseCompletionCard({
     setError(null);
 
     try {
-      const newCert = generateCourseCompletionCertificate(
-        user.id,
-        courseId,
-        {
-          title: courseTitle,
-          instructor: courseInstructor
-        }
-      );
+      const newCert = generateCourseCompletionCertificate(user.id, courseId, {
+        title: courseTitle,
+        instructor: courseInstructor
+      });
 
       setCertificate(newCert);
-      showToast('🎉 Certificate generated successfully!', 'success');
+      showToast('Certificate generated successfully!', 'success');
       onCertificateGenerated(newCert);
-      
+
       // Auto-open certificate view
       setTimeout(() => {
         setShowCertificateModal(true);
@@ -72,22 +63,25 @@ export default function CourseCompletionCard({
     } catch (err) {
       const errMsg = err.message || 'Failed to generate certificate';
       setError(errMsg);
-      showToast(`❌ ${errMsg}`, 'danger');
+      showToast(errMsg, 'danger');
       console.error('Certificate generation error:', err);
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // Download certificate as PDF
+  // Download certificate as printable page
   const handleDownloadCertificate = async () => {
     if (!certificate) return;
 
     try {
       setIsGenerating(true);
-      // For now, we'll trigger a browser print dialog or use html2pdf
-      // In production, this would call downloadCertificatePDF from the service
+
       const printWindow = window.open('', '', 'height=600,width=800');
+      if (!printWindow) {
+        throw new Error('Unable to open print window');
+      }
+
       printWindow.document.write(`
         <html>
           <head>
@@ -110,14 +104,175 @@ export default function CourseCompletionCard({
               <h3>${courseTitle}</h3>
               <p class="info">Completed on ${new Date(certificate.completionDate).toLocaleDateString()}</p>
               <div class="footer">
-                <p>Certificate ID: ${certificate.id}</p>\n                <p>Verification Code: ${certificate.verificationCode}</p>\n              </div>\n            </div>\n          </body>\n        </html>\n      `);\n      printWindow.document.close();\n      printWindow.print();\n      showToast('📄 Certificate ready to download', 'success');\n    } catch (err) {\n      const errMsg = err.message || 'Failed to download certificate';\n      setError(errMsg);\n      showToast(`❌ ${errMsg}`, 'danger');\n    } finally {\n      setIsGenerating(false);\n    }\n  };
+                <p>Certificate ID: ${certificate.id}</p>
+                <p>Verification Code: ${certificate.verificationCode}</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+
+      printWindow.document.close();
+      printWindow.print();
+      showToast('Certificate ready to download', 'success');
+    } catch (err) {
+      const errMsg = err.message || 'Failed to download certificate';
+      setError(errMsg);
+      showToast(errMsg, 'danger');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const isCompleted = progressPct === 100;
   const hasCertificate = !!certificate;
 
-  // If not completed, show incomplete message
   if (!isCompleted) {
-    return (\n      <Card className=\"course-completion-card incomplete mb-3\">\n        <Card.Body>\n          <div className=\"d-flex align-items-center gap-3\">\n            <div className=\"completion-icon incomplete-icon\">\n              <i className=\"bi bi-lock-fill\"></i>\n            </div>\n            <div className=\"flex-grow-1\">\n              <h5 className=\"mb-1\">Course Not Yet Complete</h5>\n              <p className=\"text-muted mb-0\">Complete all lessons to unlock your certificate</p>\n              <div className=\"mt-2\">\n                <div className=\"small\">Progress: <span className=\"fw-bold\">{progressPct}%</span></div>\n              </div>\n            </div>\n          </div>\n        </Card.Body>\n      </Card>\n    );\n  }
+    return (
+      <Card className="course-completion-card incomplete mb-3">
+        <Card.Body>
+          <div className="d-flex align-items-center gap-3">
+            <div className="completion-icon incomplete-icon">
+              <i className="bi bi-lock-fill"></i>
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-1">Course Not Yet Complete</h5>
+              <p className="text-muted mb-0">Complete all lessons to unlock your certificate</p>
+              <div className="mt-2">
+                <div className="small">Progress: <span className="fw-bold">{progressPct}%</span></div>
+              </div>
+            </div>
+          </div>
+        </Card.Body>
+      </Card>
+    );
+  }
 
-  // Show completion with certificate options
-  return (\n    <>\n      <Card className=\"course-completion-card completed mb-3\">\n        <Card.Body>\n          <div className=\"d-flex align-items-center gap-3 mb-3\">\n            <div className=\"completion-icon completed-icon\">\n              <i className=\"bi bi-trophy-fill\"></i>\n            </div>\n            <div className=\"flex-grow-1\">\n              <h5 className=\"mb-1\">🎉 Course Completed!</h5>\n              <p className=\"text-muted mb-0\">Congratulations on finishing this course</p>\n            </div>\n            <Badge bg=\"success\" className=\"rounded-pill\">\n              <i className=\"bi bi-check-circle me-1\"></i>100%\n            </Badge>\n          </div>\n\n          {error && (\n            <Alert variant=\"danger\" dismissible onClose={() => setError(null)} className=\"mb-3\">\n              <i className=\"bi bi-exclamation-circle me-2\"></i>{error}\n            </Alert>\n          )}\n\n          <div className=\"button-group d-flex gap-2 flex-wrap\">\n            {!hasCertificate ? (\n              <Button\n                variant=\"success\"\n                className=\"btn-generate-certificate rounded-pill px-4\"\n                onClick={handleGenerateCertificate}\n                disabled={isGenerating}\n              >\n                {isGenerating ? (\n                  <>\n                    <Spinner animation=\"border\" size=\"sm\" className=\"me-2\" />\n                    Generating...\n                  </>\n                ) : (\n                  <>\n                    <i className=\"bi bi-file-earmark-pdf me-2\"></i>\n                    Download Certificate\n                  </>\n                )}\n              </Button>\n            ) : (\n              <>\n                <Button\n                  variant=\"primary\"\n                  className=\"rounded-pill px-4\"\n                  onClick={() => setShowCertificateModal(true)}\n                  disabled={isGenerating}\n                >\n                  <i className=\"bi bi-eye me-2\"></i>\n                  View Certificate\n                </Button>\n                <Button\n                  variant=\"outline-primary\"\n                  className=\"rounded-pill px-4\"\n                  onClick={handleDownloadCertificate}\n                  disabled={isGenerating}\n                >\n                  {isGenerating ? (\n                    <>\n                      <Spinner animation=\"border\" size=\"sm\" className=\"me-2\" />\n                      Downloading...\n                    </>\n                  ) : (\n                    <>\n                      <i className=\"bi bi-download me-2\"></i>\n                      Download PDF\n                    </>\n                  )}\n                </Button>\n              </>\n            )}\n          </div>\n\n          {certificate && (\n            <div className=\"certificate-info mt-3 p-2 bg-light rounded\">\n              <small className=\"text-muted\">\n                <i className=\"bi bi-info-circle me-1\"></i>\n                Certificate ID: <span className=\"font-monospace\">{certificate.id}</span>\n              </small>\n            </div>\n          )}\n        </Card.Body>\n      </Card>\n\n      {/* Certificate Modal */}\n      <Modal show={showCertificateModal} onHide={() => setShowCertificateModal(false)} size=\"lg\" centered>\n        <Modal.Header closeButton>\n          <Modal.Title>\n            <i className=\"bi bi-file-earmark-pdf me-2\"></i>Your Certificate\n          </Modal.Title>\n        </Modal.Header>\n        <Modal.Body>\n          {certificate && (\n            <Certificate\n              userName={user?.name || 'Student'}\n              courseTitle={courseTitle}\n              score={certificate.score}\n              percentage={certificate.percentage}\n              completionDate={certificate.completionDate}\n              certificateId={certificate.id}\n              certificateNumber={certificate.verificationCode}\n              instructorName={certificate.instructorName}\n            />\n          )}\n        </Modal.Body>\n        <Modal.Footer>\n          <Button\n            variant=\"primary\"\n            onClick={handleDownloadCertificate}\n            disabled={isGenerating}\n          >\n            <i className=\"bi bi-download me-2\"></i>\n            {isGenerating ? 'Downloading...' : 'Download as PDF'}\n          </Button>\n          <Button variant=\"secondary\" onClick={() => setShowCertificateModal(false)}>\n            Close\n          </Button>\n        </Modal.Footer>\n      </Modal>\n    </>\n  );\n}\n\nCourseCompletionCard.propTypes = {\n  courseId: PropTypes.number.isRequired,\n  courseTitle: PropTypes.string.isRequired,\n  progressPct: PropTypes.number,\n  courseInstructor: PropTypes.string,\n  onCertificateGenerated: PropTypes.func\n};\n
+  return (
+    <>
+      <Card className="course-completion-card completed mb-3">
+        <Card.Body>
+          <div className="d-flex align-items-center gap-3 mb-3">
+            <div className="completion-icon completed-icon">
+              <i className="bi bi-trophy-fill"></i>
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-1">Course Completed!</h5>
+              <p className="text-muted mb-0">Congratulations on finishing this course</p>
+            </div>
+            <Badge bg="success" className="rounded-pill">
+              <i className="bi bi-check-circle me-1"></i>100%
+            </Badge>
+          </div>
+
+          {error && (
+            <Alert variant="danger" dismissible onClose={() => setError(null)} className="mb-3">
+              <i className="bi bi-exclamation-circle me-2"></i>{error}
+            </Alert>
+          )}
+
+          <div className="button-group d-flex gap-2 flex-wrap">
+            {!hasCertificate ? (
+              <Button
+                variant="success"
+                className="btn-generate-certificate rounded-pill px-4"
+                onClick={handleGenerateCertificate}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <>
+                    <Spinner animation="border" size="sm" className="me-2" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-file-earmark-pdf me-2"></i>
+                    Download Certificate
+                  </>
+                )}
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="primary"
+                  className="rounded-pill px-4"
+                  onClick={() => setShowCertificateModal(true)}
+                  disabled={isGenerating}
+                >
+                  <i className="bi bi-eye me-2"></i>
+                  View Certificate
+                </Button>
+                <Button
+                  variant="outline-primary"
+                  className="rounded-pill px-4"
+                  onClick={handleDownloadCertificate}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Spinner animation="border" size="sm" className="me-2" />
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-download me-2"></i>
+                      Download PDF
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
+          </div>
+
+          {certificate && (
+            <div className="certificate-info mt-3 p-2 bg-light rounded">
+              <small className="text-muted">
+                <i className="bi bi-info-circle me-1"></i>
+                Certificate ID: <span className="font-monospace">{certificate.id}</span>
+              </small>
+            </div>
+          )}
+        </Card.Body>
+      </Card>
+
+      <Modal show={showCertificateModal} onHide={() => setShowCertificateModal(false)} size="lg" centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <i className="bi bi-file-earmark-pdf me-2"></i>Your Certificate
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {certificate && (
+            <Certificate
+              userName={user?.name || 'Student'}
+              courseTitle={courseTitle}
+              score={certificate.score}
+              percentage={certificate.percentage}
+              completionDate={certificate.completionDate}
+              certificateId={certificate.id}
+              certificateNumber={certificate.verificationCode}
+              instructorName={certificate.instructorName}
+            />
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={handleDownloadCertificate} disabled={isGenerating}>
+            <i className="bi bi-download me-2"></i>
+            {isGenerating ? 'Downloading...' : 'Download as PDF'}
+          </Button>
+          <Button variant="secondary" onClick={() => setShowCertificateModal(false)}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
+  );
+}
+
+CourseCompletionCard.propTypes = {
+  courseId: PropTypes.number.isRequired,
+  courseTitle: PropTypes.string.isRequired,
+  progressPct: PropTypes.number,
+  courseInstructor: PropTypes.string,
+  onCertificateGenerated: PropTypes.func
+};
