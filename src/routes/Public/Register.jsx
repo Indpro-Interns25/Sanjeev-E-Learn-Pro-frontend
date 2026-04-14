@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RegisterForm from '../../components/forms/RegisterForm';
-import loginBg from '../../assets/login.png';
 import './Login.css';
 import './Register.css';
 
@@ -19,7 +18,7 @@ export default function Register() {
     <div className="user-login-screen register-page">
       <div
         className="user-login-bg"
-        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.3), rgba(0,0,0,0.2)), url(${loginBg})` }}
+        style={{ backgroundImage: "linear-gradient(to right, rgba(0,0,0,0.3), rgba(0,0,0,0.2)), url('/images/login.png')" }}
         aria-hidden="true"
       ></div>
       <div className="user-login-overlay" aria-hidden="true"></div>

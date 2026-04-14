@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Alert } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import loginBg from '../../assets/login.png';
 import './Login.css';
 
 export default function Login() {
@@ -48,7 +47,7 @@ export default function Login() {
 
   return (
     <div className="user-login-screen">
-      <div className="user-login-bg" style={{ backgroundImage: `url(${loginBg})` }}></div>
+      <div className="user-login-bg" style={{ backgroundImage: "url('/images/login.png')" }}></div>
       <div className="user-login-overlay"></div>
       <div className="user-login-card" role="region" aria-label="User login panel">
           <div className="auth-card-header">
