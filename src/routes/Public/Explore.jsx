@@ -2,7 +2,7 @@ import { Container, Row, Col, Button, Form, InputGroup, Dropdown, Carousel, Spin
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { searchCourses, getCourseCategories, getFeaturedCourses, formatCoursesData, getAllCourses } from '../../services/courses';
-import coursesHeroBg from '../../assets/hero-background.svg';
+import coursesHeroBg from '../../assets/futuristic-learning.png';
 
 const features = [
   {
