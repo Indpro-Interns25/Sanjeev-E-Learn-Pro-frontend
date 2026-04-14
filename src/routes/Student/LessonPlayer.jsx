@@ -249,6 +249,7 @@ export default function LessonPlayer() {
   };
 
   const currentVideo = lesson?.videoUrl || lesson?.video_url;
+  const coursePlaylistId = course?.playlistId;
 
   if (!course || !lesson) {
     return (
@@ -291,6 +292,7 @@ export default function LessonPlayer() {
             <VideoPlayer
               videoUrl={currentVideo}
               title={lesson.title}
+              playlistId={coursePlaylistId}
               onProgress={(progressPercent) => {
                 if (user && isStudentMode && progressPercent > 0) {
                   // Get duration from lesson

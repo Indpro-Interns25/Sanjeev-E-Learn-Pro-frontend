@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { getAllCourses } from '../../services/courses';
 import { getCourseVideoProgress } from '../../services/videoProgress';
-import networkBg from '../../assets/login.png';
+import networkBg from '../../assets/d89ea4c3-4bb6-4a5e-b6c1-96e578569721.png';
 import '../../styles/home-page.css';
 
 export default function HomePage() {

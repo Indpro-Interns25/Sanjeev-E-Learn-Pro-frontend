@@ -17,6 +17,7 @@ export const mockCourses = [
     rating: 4.5,
     lessons: [1, 2, 3, 4, 5],
     previewVideo: 'https://www.youtube.com/watch?v=UB1O30fR-EE',
+    playlistId: 'PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf',
     curriculum: [
       'HTML Fundamentals and Document Structure',
       'CSS Styling and Layout Techniques',
@@ -43,6 +44,7 @@ export const mockCourses = [
     rating: 4.8,
     lessons: [6, 7, 8, 9],
     previewVideo: 'https://www.youtube.com/watch?v=HnXPKtro4SM',
+    playlistId: 'PLrAXtmErZgOeR5Q8zW8Lc5KOVVsY6k9p9',
     curriculum: [
       'React Hooks and Functional Components',
       'Context API and State Management',
@@ -68,6 +70,7 @@ export const mockCourses = [
     rating: 4.6,
     lessons: [10, 11, 12, 13, 14],
     previewVideo: 'https://www.youtube.com/watch?v=HrRA67O-QXI',
+    playlistId: 'PLrAXtmErZgOeW1lqX8x9f8x9y0z1a2b3c4d',
     curriculum: [
       'Python Basics for Data Science',
       'NumPy Arrays and Mathematical Operations',
@@ -94,6 +97,7 @@ export const mockCourses = [
     rating: 4.7,
     lessons: [15, 16, 17, 18, 19, 20],
     previewVideo: 'https://www.youtube.com/watch?v=h0e2HAPTGF4',
+    playlistId: 'PLrAXtmErZgOe5e6f7g8h9i0j1k2l3m4n5o',
     curriculum: [
       'Introduction to Machine Learning',
       'Data Preprocessing and Feature Engineering',
@@ -121,6 +125,7 @@ export const mockCourses = [
     rating: 4.4,
     lessons: [21, 22, 23, 24, 25],
     previewVideo: 'https://www.youtube.com/watch?v=nSFe1-kpfbQ',
+    playlistId: 'PLrAXtmErZgOe9q0r1s2t3u4v5w6x7y8z9',
     curriculum: [
       'Node.js Fundamentals and NPM',
       'Express.js Framework and Routing',
@@ -147,6 +152,7 @@ export const mockCourses = [
     rating: 4.6,
     lessons: [26, 27, 28, 29, 30, 31],
     previewVideo: 'https://www.youtube.com/watch?v=r0oBuQsYta0',
+    playlistId: 'PLrAXtmErZgOea1b2c3d4e5f6g7h8i9j0k',
     curriculum: [
       'React Native Setup and Environment',
       'Navigation and Screen Management',
@@ -174,6 +180,7 @@ export const mockCourses = [
     rating: 4.5,
     lessons: [32, 33, 34, 35, 36],
     previewVideo: 'https://www.youtube.com/watch?v=dS0PtshQDls',
+    playlistId: 'PLrAXtmErZgOel1m2n3o4p5q6r7s8t9u0',
     curriculum: [
       'Digital Marketing Fundamentals',
       'Search Engine Optimization (SEO)',
@@ -200,6 +207,7 @@ export const mockCourses = [
     rating: 4.8,
     lessons: [37, 38, 39, 40, 41],
     previewVideo: 'https://www.youtube.com/watch?v=bAARmsv1tms',
+    playlistId: 'PLrAXtmErZgOev1w2x3y4z5a6b7c8d9e0f',
     curriculum: [
       'Design Thinking and User Research',
       'Wireframing and Prototyping',
@@ -226,6 +234,7 @@ export const mockCourses = [
     rating: 4.7,
     lessons: [42, 43, 44, 45, 46],
     previewVideo: 'https://www.youtube.com/watch?v=NCwa_xi0Uuc',
+    playlistId: 'PLrAXtmErZgOeg1h2i3j4k5l6m7n8o9p0',
     curriculum: [
       'ES6+ Syntax and Features',
       'Promises and Async/Await',
@@ -252,6 +261,7 @@ export const mockCourses = [
     rating: 4.6,
     lessons: [47, 48, 49, 50, 51, 52],
     previewVideo: 'https://www.youtube.com/watch?v=34BtwcL7Mkg',
+    playlistId: 'PLrAXtmErZgOes1q2r3s4t5u6v7w8x9y0z',
     curriculum: [
       'Cybersecurity Fundamentals and Threats',
       'Network Security and Firewalls',
@@ -274,6 +284,7 @@ export const mockCourses = [
     thumbnail: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80',
     price: 799,
     duration: '11 weeks',
+    playlistId: 'PLrAXtmErZgOey1a2b3c4d5e6f7g8h9i0j',
     enrolled: 0,
     rating: 4.5,
     lessons: [53, 54, 55, 56, 57, 58, 59],

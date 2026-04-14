@@ -19,7 +19,8 @@ export default function VideoPlayer({
   videoUrl, 
   title, 
   onProgress, 
-  autoPlay = false 
+  autoPlay = false,
+  playlistId = null
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -36,8 +37,9 @@ export default function VideoPlayer({
   const controlsTimeoutRef = useRef(null);
 
   // Check if this is a YouTube URL
-  const isYouTube = isYouTubeUrl(videoUrl);
-  const youtubeVideoId = isYouTube ? getYouTubeVideoId(videoUrl) : null;
+  const isYouTube = isYouTubeUrl(videoUrl) || !!playlistId;
+  const youtubeVideoId = !playlistId && isYouTube ? getYouTubeVideoId(videoUrl) : null;
+  const usePlaylist = !!playlistId;
 
   // Initialize video player
   useEffect(() => {
@@ -102,7 +104,7 @@ export default function VideoPlayer({
         video.src = '';
       }
     };
-  }, [videoUrl, autoPlay, onProgress, isYouTube]);
+  }, [videoUrl, autoPlay, onProgress, isYouTube, playlistId]);
 
   // Auto-hide controls (only for direct video, not YouTube)
   useEffect(() => {
@@ -216,7 +218,7 @@ export default function VideoPlayer({
 
   // YouTube progress simulation (since iframe doesn't provide timeupdate events)
   useEffect(() => {
-    if (!isYouTube || !youtubeVideoId || !onProgress) return;
+    if (!isYouTube || (!youtubeVideoId && !playlistId) || !onProgress) return;
     
     let progressInterval;
     let currentProgress = 0;
@@ -226,7 +228,8 @@ export default function VideoPlayer({
       currentProgress += 15; // Increment by 15% every 15 seconds
       
       if (currentProgress <= 100) {
-        console.warn(`📺 YouTube progress simulated: ${currentProgress}%`);
+        const videoType = usePlaylist ? 'Playlist' : 'Video';
+        console.warn(`📺 YouTube ${videoType} progress simulated: ${currentProgress}%`);
         onProgress(currentProgress);
       }
       
@@ -239,7 +242,8 @@ export default function VideoPlayer({
     const startDelay = setTimeout(() => {
       progressInterval = setInterval(simulateProgress, 15000); // Every 15 seconds
       onProgress(10); // Initial 10% after 3 seconds
-      console.warn('📺 YouTube progress tracking started');
+      const videoType = usePlaylist ? 'Playlist' : 'Video';
+      console.warn(`📺 YouTube ${videoType} progress tracking started`);
     }, 3000);
     
     return () => {
@@ -248,7 +252,7 @@ export default function VideoPlayer({
         clearInterval(progressInterval);
       }
     };
-  }, [isYouTube, youtubeVideoId, onProgress]);
+  }, [isYouTube, youtubeVideoId, playlistId, onProgress, usePlaylist]);
 
   if (error) {
     return (
@@ -265,12 +269,23 @@ export default function VideoPlayer({
   }
 
   // Render YouTube iframe
-  if (isYouTube && youtubeVideoId) {
+  if (isYouTube && (youtubeVideoId || playlistId)) {
+    // Determine the iframe source based on playlist or single video
+    let iframeSrc;
+    if (usePlaylist && playlistId) {
+      // Use YouTube playlist format
+      iframeSrc = `https://www.youtube.com/embed/videoseries?list=${playlistId}&rel=0&modestbranding=1&controls=1`;
+    } else if (youtubeVideoId) {
+      // Use single video format
+      iframeSrc = `https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1&controls=1&showinfo=0&autoplay=1`;
+    }
+
     return (
       <Card className="video-player-container">
         {title && (
           <Card.Header className="bg-dark text-light d-flex justify-content-between align-items-center">
             <h6 className="mb-0">{title}</h6>
+            {usePlaylist && <Badge bg="info">Course Playlist</Badge>}
           </Card.Header>
         )}
         <div 
@@ -278,7 +293,7 @@ export default function VideoPlayer({
           className={`youtube-wrapper ${isFullscreen ? 'fullscreen' : ''}`}
         >
           <iframe
-            src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1&controls=1&showinfo=0&autoplay=1`}
+            src={iframeSrc}
             title={title || 'Educational Video'}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -436,5 +451,6 @@ VideoPlayer.propTypes = {
   videoUrl: PropTypes.string.isRequired,
   title: PropTypes.string,
   onProgress: PropTypes.func,
-  autoPlay: PropTypes.bool
+  autoPlay: PropTypes.bool,
+  playlistId: PropTypes.string
 };
