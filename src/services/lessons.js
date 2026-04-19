@@ -1,5 +1,6 @@
 import apiClient from './apiClient';
 import { mockLessons } from '../data/mockLessons';
+import { getApiErrorMessage } from './apiError';
 
 /**
  * Get all lessons (public endpoint)
@@ -37,19 +38,11 @@ export async function getCourseCurriculum(courseId) {
     return response.data;
   } catch (error) {
     console.error('🚨 API call failed:', error);
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
     if (error.response?.status === 404) {
       throw new Error('Course curriculum not found');
     }
-    
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to fetch course curriculum';
-    throw new Error(message);
+
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch course curriculum'));
   }
 }
 
@@ -63,19 +56,11 @@ export async function getLessonsByCourseId(courseId) {
     const response = await apiClient.get(`/api/courses/${courseId}/lessons`);
     return response.data;
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
     if (error.response?.status === 404) {
       throw new Error('Course or lessons not found');
     }
-    
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to fetch lessons';
-    throw new Error(message);
+
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch lessons'));
   }
 }
 
@@ -89,19 +74,11 @@ export async function getLessonById(lessonId) {
     const response = await apiClient.get(`/api/lessons/${lessonId}`);
     return response.data;
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
     if (error.response?.status === 404) {
       throw new Error('Lesson not found');
     }
-    
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to fetch lesson';
-    throw new Error(message);
+
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch lesson'));
   }
 }
 
@@ -115,19 +92,11 @@ export async function createLesson(lessonData) {
     const response = await apiClient.post('/api/lessons', lessonData);
     return response.data;
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
     if (error.response?.status === 403) {
       throw new Error('You are not authorized to create lessons');
     }
-    
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to create lesson';
-    throw new Error(message);
+
+    throw new Error(getApiErrorMessage(error, 'Failed to create lesson'));
   }
 }
 
@@ -142,10 +111,6 @@ export async function updateLesson(lessonId, lessonData) {
     const response = await apiClient.put(`/api/lessons/${lessonId}`, lessonData);
     return response.data;
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
     if (error.response?.status === 404) {
       throw new Error('Lesson not found');
     }
@@ -154,11 +119,7 @@ export async function updateLesson(lessonId, lessonData) {
       throw new Error('You are not authorized to update this lesson');
     }
     
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to update lesson';
-    throw new Error(message);
+    throw new Error(getApiErrorMessage(error, 'Failed to update lesson'));
   }
 }
 
@@ -171,10 +132,6 @@ export async function deleteLesson(lessonId) {
   try {
     await apiClient.delete(`/api/lessons/${lessonId}`);
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
     if (error.response?.status === 404) {
       throw new Error('Lesson not found');
     }
@@ -183,11 +140,7 @@ export async function deleteLesson(lessonId) {
       throw new Error('You are not authorized to delete this lesson');
     }
     
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to delete lesson';
-    throw new Error(message);
+    throw new Error(getApiErrorMessage(error, 'Failed to delete lesson'));
   }
 }
 

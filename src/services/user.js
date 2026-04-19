@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { getApiErrorMessage } from './apiError';
 
 /**
  * Get user's enrolled courses
@@ -166,11 +167,7 @@ export async function enrollInCourse(userId, courseId) {
     return response.data;
   } catch (error) {
     console.error('🚨 Enrollment error:', error);
-    
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server.');
-    }
-    
+
     if (error.response?.status === 400) {
       throw new Error('Already enrolled in this course');
     }
@@ -179,11 +176,7 @@ export async function enrollInCourse(userId, courseId) {
       throw new Error('Course not found');
     }
     
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to enroll in course';
-    throw new Error(message);
+    throw new Error(getApiErrorMessage(error, 'Failed to enroll in course'));
   }
 }
 

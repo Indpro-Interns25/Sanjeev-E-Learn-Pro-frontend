@@ -7,8 +7,6 @@
  */
 
 // Get API base URL from environment variable
-// In production (Vercel): https://sanjeev-e-learn-pro-backend-1.onrender.com
-// In development: Set in .env file or defaults below
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sanjeev-e-learn-pro-backend-1.onrender.com';
 
 // Socket URL for real-time connections
@@ -27,16 +25,5 @@ if (isDevelopment) {
     environment: import.meta.env.MODE
   });
 }
-
-/**
- * Validate that API URL is not localhost (except in development)
- */
-const validateApiUrl = () => {
-  if (!isDevelopment && API_BASE_URL.includes('localhost')) {
-    console.warn('⚠️ WARNING: Using localhost URL in production! This may not work.');
-  }
-};
-
-validateApiUrl();
 
 export { API_BASE_URL, SOCKET_URL, isDevelopment };

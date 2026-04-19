@@ -88,7 +88,7 @@ export const LMS_CONFIG = {
 
   // API Configuration
   API: {
-    BASE_URL: 'http://localhost:3002/api',
+    BASE_URL: 'https://sanjeev-e-learn-pro-backend-1.onrender.com/api',
     TIMEOUT: 30000, // 30 seconds
     RETRY_ATTEMPTS: 3
   }
@@ -470,7 +470,7 @@ export function useVideoProgress(lectureId, userId) {
 /**
  * Add to .env file:
  *
- * VITE_API_BASE_URL=http://localhost:3002
+ * VITE_API_BASE_URL=https://sanjeev-e-learn-pro-backend-1.onrender.com
  * VITE_AUTO_SAVE_INTERVAL=15000
  * VITE_PASSING_SCORE=70
  */

@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { getApiErrorMessage } from './apiError';
 
 /**
  * Real Authentication API Service
@@ -20,16 +21,7 @@ export async function register(userData) {
 
     return response.data;
   } catch (error) {
-    // Handle different error response formats
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Registration failed';
-    throw new Error(message);
+    throw new Error(getApiErrorMessage(error, 'Registration failed'));
   }
 }
 
@@ -43,15 +35,7 @@ export async function login(email, password) {
 
     return response.data;
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Login failed';
-    throw new Error(message);
+    throw new Error(getApiErrorMessage(error, 'Login failed'));
   }
 }
 
@@ -66,14 +50,7 @@ export async function validateToken(token) {
 
     return response.data.user;
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      // Backend is temporarily unavailable — do NOT wipe the token.
-      // The caller (initAuth) will fall back to the saved user from localStorage.
-      throw new Error('Backend API server is not running');
-    }
-    
-    const message = error.response?.data?.message || 'Invalid token';
-    throw new Error(message);
+    throw new Error(getApiErrorMessage(error, 'Invalid token'));
   }
 }
 
@@ -86,14 +63,7 @@ export async function requestPasswordReset(email) {
 
     return response.data;
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
-    const message = error.response?.data?.message || 
-                   error.message || 
-                   'Password reset request failed';
-    throw new Error(message);
+    throw new Error(getApiErrorMessage(error, 'Password reset request failed'));
   }
 }
 

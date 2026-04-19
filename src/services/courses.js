@@ -1,5 +1,6 @@
 import apiClient from './apiClient';
 import { mockCourses } from '../data/mockCourses';
+import { getApiErrorMessage } from './apiError';
 
 // =========================================
 // COURSES API SERVICE
@@ -99,7 +100,6 @@ export async function getAllCourses(filters = {}) {
     return courses;
   } catch (error) {
     console.warn('⚠️ API request failed, falling back to mock courses:', error.message);
-    console.warn('Please ensure your backend server is running at the correct URL for real course data');
     
     // Return mock courses as fallback
     let fallbackCourses = [...mockCourses];
@@ -171,19 +171,11 @@ export async function getCourseById(courseId) {
       }
     }
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
     if (error.response?.status === 404) {
       throw new Error('Course not found');
     }
-    
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to fetch course details';
-    throw new Error(message);
+
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch course details'));
   }
 }
 
@@ -197,15 +189,7 @@ export async function createCourse(courseData) {
     const response = await apiClient.post('/api/courses', courseData);
     return response.data;
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to create course';
-    throw new Error(message);
+    throw new Error(getApiErrorMessage(error, 'Failed to create course'));
   }
 }
 
@@ -246,15 +230,7 @@ export async function createCourseWithFile(courseData, thumbnailFile, onProgress
     
     return response.data;
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to create course';
-    throw new Error(message);
+    throw new Error(getApiErrorMessage(error, 'Failed to create course'));
   }
 }
 
@@ -269,10 +245,6 @@ export async function updateCourse(courseId, courseData) {
     const response = await apiClient.put(`/api/courses/${courseId}`, courseData);
     return response.data;
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
     if (error.response?.status === 404) {
       throw new Error('Course not found');
     }
@@ -281,11 +253,7 @@ export async function updateCourse(courseId, courseData) {
       throw new Error('You are not authorized to update this course');
     }
     
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to update course';
-    throw new Error(message);
+    throw new Error(getApiErrorMessage(error, 'Failed to update course'));
   }
 }
 
@@ -298,10 +266,6 @@ export async function deleteCourse(courseId) {
   try {
     await apiClient.delete(`/api/courses/${courseId}`);
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
     if (error.response?.status === 404) {
       throw new Error('Course not found');
     }
@@ -310,11 +274,7 @@ export async function deleteCourse(courseId) {
       throw new Error('You are not authorized to delete this course');
     }
     
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to delete course';
-    throw new Error(message);
+    throw new Error(getApiErrorMessage(error, 'Failed to delete course'));
   }
 }
 
@@ -382,19 +342,11 @@ export async function getCoursesByInstructor(instructorId) {
     const response = await apiClient.get(`/api/instructors/${instructorId}/courses`);
     return response.data;
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
     if (error.response?.status === 404) {
       throw new Error('Instructor not found');
     }
-    
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to fetch instructor courses';
-    throw new Error(message);
+
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch instructor courses'));
   }
 }
 
@@ -408,10 +360,6 @@ export async function getCourseStats(courseId) {
     const response = await apiClient.get(`/api/courses/${courseId}/stats`);
     return response.data;
   } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Backend API server is not running. Please start the backend server on port 3002.');
-    }
-    
     if (error.response?.status === 404) {
       throw new Error('Course not found');
     }
@@ -420,11 +368,7 @@ export async function getCourseStats(courseId) {
       throw new Error('You are not authorized to view course statistics');
     }
     
-    const message = error.response?.data?.message || 
-                   error.response?.data?.error || 
-                   error.message || 
-                   'Failed to fetch course statistics';
-    throw new Error(message);
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch course statistics'));
   }
 }
 
