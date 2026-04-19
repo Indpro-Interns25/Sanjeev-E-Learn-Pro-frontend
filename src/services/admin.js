@@ -257,7 +257,7 @@ export async function updateInstructor(instructorId, instructorData) {
       throw new Error('⚠️ API Endpoint Missing: PUT /api/admin/instructors/:id is not implemented on the backend.');
     }
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('🔌 Cannot connect to backend. Please ensure the backend server is running on http://localhost:3002');
+      throw new Error('🔌 Cannot connect to backend. Please check your network connection and ensure the backend server is running.');
     }
     const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to update instructor';
     throw new Error(message);
@@ -285,7 +285,7 @@ export async function deleteInstructor(instructorId) {
       throw new Error('Delete instructor API endpoint not found. Please contact the backend developer to implement the DELETE /api/admin/instructors/:id route.');
     }
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Cannot connect to the server. Please check if the backend is running on http://localhost:3002');
+      throw new Error('Cannot connect to the server. Please check your network connection and ensure the backend server is running.');
     }
     const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to delete instructor';
     throw new Error(message);
@@ -317,7 +317,7 @@ export async function createCourseAdmin(courseData) {
     }
 
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('🔌 Cannot connect to backend. Please ensure the backend server is running on http://localhost:3002');
+      throw new Error('🔌 Cannot connect to backend. Please check your network connection and ensure the backend server is running.');
     }
 
     if (error.response?.status === 401) {
@@ -358,7 +358,7 @@ export async function updateCourseAdmin(courseId, courseData) {
     }
 
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('🔌 Cannot connect to backend. Please ensure the backend server is running on http://localhost:3002');
+      throw new Error('🔌 Cannot connect to backend. Please check your network connection and ensure the backend server is running.');
     }
 
     if (error.response?.status === 401) {
@@ -523,7 +523,7 @@ export async function getStudentById(studentId) {
   } catch (error) {
     console.error('🚨 Failed to fetch student:', error);
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Cannot connect to the server. Please check if the backend is running on http://localhost:3002');
+      throw new Error('Cannot connect to the server. Please check your network connection and ensure the backend server is running.');
     }
 
     if (error.response?.status === 404) {
@@ -562,7 +562,7 @@ export async function createStudent(studentData) {
         }
         // For auth/network/server errors, break and report immediately
         if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') {
-          throw new Error('🔌 Cannot connect to backend. Please ensure the backend server is running on http://localhost:3002');
+          throw new Error('🔌 Cannot connect to backend. Please check your network connection and ensure the backend server is running.');
         }
         if (err.response?.status === 401) {
           throw new Error('Unauthorized. Please login as admin and try again.');
@@ -614,7 +614,7 @@ export async function updateStudent(studentId, studentData) {
           continue;
         }
         if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') {
-          throw new Error('🔌 Cannot connect to backend. Please ensure the backend server is running on http://localhost:3002');
+          throw new Error('🔌 Cannot connect to backend. Please check your network connection and ensure the backend server is running.');
         }
         if (err.response?.status === 401) {
           throw new Error('Unauthorized. Please login as admin and try again.');
@@ -671,7 +671,7 @@ export async function deleteStudent(studentId) {
           continue;
         }
         if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') {
-          throw new Error('Cannot connect to the server. Please check if the backend is running on http://localhost:3002');
+          throw new Error('Cannot connect to the server. Please check your network connection and ensure the backend server is running.');
         }
         if (err.response?.status === 401) {
           throw new Error('Unauthorized. Please login as admin again.');
@@ -735,7 +735,7 @@ export async function deleteCourse(courseId) {
     } else if (error.response?.status === 400) {
       throw new Error(error.response?.data?.message || 'Invalid request. Please check the course ID.');
     } else if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Cannot connect to the server. Please check if the backend is running on http://localhost:3002');
+      throw new Error('Cannot connect to the server. Please check your network connection and ensure the backend server is running.');
     }
     
     const message = error.response?.data?.message || 
@@ -776,7 +776,7 @@ export async function deleteLesson(lessonId) {
     } else if (error.response?.status === 500) {
       throw new Error('Server error occurred while deleting the lesson. Please try again later.');
     } else if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-      throw new Error('Cannot connect to the server. Please check if the backend is running on http://localhost:3002');
+      throw new Error('Cannot connect to the server. Please check your network connection and ensure the backend server is running.');
     }
     
     const message = error.response?.data?.message || 

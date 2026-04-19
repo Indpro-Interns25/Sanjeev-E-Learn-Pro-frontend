@@ -25,9 +25,9 @@ export default defineConfig({
     // Proxy /api requests to the backend (useful when code issues relative /api/... requests)
     proxy: {
       '/api': {
-        target: 'http://localhost:3002',
+        target: process.env.VITE_API_URL || 'https://sanjeev-e-learn-pro-backend-1.onrender.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
         rewrite: (path) => path.replace(/^\/api/, '/api')
       }
     }

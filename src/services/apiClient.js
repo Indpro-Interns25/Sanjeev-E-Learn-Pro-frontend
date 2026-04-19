@@ -1,9 +1,12 @@
 import axios from 'axios';
 import { getAccessToken, getAdminToken, clearAuthSession, clearAdminSession } from '../utils/tokenStorage';
 
+// Get API base URL from environment variable or use production default
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sanjeev-e-learn-pro-backend-1.onrender.com';
+
 // Create axios instance with default config
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3002',  // MUST be 3002, not 3000
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

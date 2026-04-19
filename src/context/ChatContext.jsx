@@ -4,8 +4,7 @@ import PropTypes from 'prop-types';
 import { useAuth } from '../hooks/useAuth';
 import { getAccessToken } from '../utils/tokenStorage';
 import { isValidChatMessage, isValidRoomId } from '../utils/socketGuards';
-
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3002';
+import { SOCKET_URL } from '../config/apiConfig';
 
 const ChatContext = createContext({
   unreadCount: 0,
