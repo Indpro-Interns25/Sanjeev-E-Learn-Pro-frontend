@@ -35,7 +35,8 @@ export default function CourseCard({ course }) {
         variant="top" 
         src={course.thumbnail} 
         alt={course.title}
-        style={{ height: '200px', objectFit: 'cover' }}
+        className="responsive-img img-ratio-card"
+        loading="lazy"
       />
       <Card.Body className="d-flex flex-column">
         <div className="mb-2 d-flex align-items-center justify-content-between">
@@ -44,7 +45,12 @@ export default function CourseCard({ course }) {
             <Badge bg="secondary">{course.difficulty_level || course.level || 'Beginner'}</Badge>
           </div>
           <div className="d-flex align-items-center">
-            <img src='https://placehold.co/32x32?text=I' alt={course.instructor_name || 'Instructor'} width="32" height="32" className="rounded-circle me-2" />
+            <img
+              src="https://placehold.co/32x32.webp?text=I"
+              alt={course.instructor_name || 'Instructor'}
+              className="responsive-img rounded-circle me-2 img-avatar-32"
+              loading="lazy"
+            />
             <span className="small text-muted">{course.instructor_name || 'Instructor'}</span>
           </div>
         </div>

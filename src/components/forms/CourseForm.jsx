@@ -281,8 +281,8 @@ export default function CourseForm({ course, onSubmit, isEdit = false }) {
               <img 
                 src={thumbnailPreview} 
                 alt="Thumbnail preview" 
-                className="img-thumbnail"
-                style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'cover' }}
+                className="img-thumbnail responsive-img img-ratio-card"
+                loading="lazy"
               />
               <Button
                 variant="danger"

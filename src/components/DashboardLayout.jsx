@@ -15,7 +15,6 @@ const STUDENT_NAV = [
   { to: '/student/chat', icon: 'bi-chat-dots', label: 'Course Chat' },
   { section: 'Account' },
   { to: '/student/profile', icon: 'bi-person-circle', label: 'Profile' },
-  { to: '/student/payment-history', icon: 'bi-receipt', label: 'Payment History' },
   { to: '/catalog', icon: 'bi-grid', label: 'Browse Courses' },
 ];
 
@@ -95,10 +94,8 @@ function Sidebar({ role, user, onLogout, open, onClose }) {
             <img
               src={user.avatar}
               alt=""
-              width={30}
-              height={30}
-              className="rounded-circle"
-              style={{ objectFit: 'cover' }}
+              className="responsive-img rounded-circle img-avatar-30"
+              loading="lazy"
             />
           ) : (
             <div

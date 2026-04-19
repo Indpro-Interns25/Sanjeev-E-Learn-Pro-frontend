@@ -22,7 +22,12 @@ export default function InstructorDashboard() {
     <Container className="py-4">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
         <div className="d-flex align-items-center gap-3">
-          <img src={user.avatar || 'https://placehold.co/48x48?text=I'} alt={user.name} width="48" height="48" className="rounded-circle border border-2 border-primary" />
+          <img
+            src={user.avatar || 'https://placehold.co/48x48.webp?text=I'}
+            alt={user.name}
+            className="responsive-img rounded-circle border border-2 border-primary img-avatar-48"
+            loading="lazy"
+          />
           <h1 className="mb-0">Instructor Dashboard</h1>
         </div>
         <Link to="/instructor/courses/new" className="btn btn-primary btn-lg">
@@ -109,7 +114,8 @@ export default function InstructorDashboard() {
                   variant="top"
                   src={course.thumbnail}
                   alt={course.title}
-                  style={{ height: '160px', objectFit: 'cover' }}
+                  className="responsive-img img-ratio-16-9"
+                  loading="lazy"
                 />
                 <Card.Body>
                   <Card.Title as="h5">{course.title}</Card.Title>

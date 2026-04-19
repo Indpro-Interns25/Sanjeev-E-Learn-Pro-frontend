@@ -256,13 +256,8 @@ export default function MyLearning() {
                   <img 
                     src={course.thumbnail} 
                     alt={course.title} 
-                    style={{
-                      width: 50, 
-                      height: 35, 
-                      objectFit: 'cover', 
-                      borderRadius: 6, 
-                      marginRight: 12
-                    }} 
+                    className="responsive-img img-my-learning-thumb"
+                    loading="lazy"
                   />
                   <div>
                     <h5 className="mb-0">{course.title}</h5>

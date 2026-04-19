@@ -105,10 +105,8 @@ export default function AppNavbar() {
                         <img
                           src={user.avatar}
                           alt="avatar"
-                          width={28}
-                          height={28}
-                          className="rounded-circle"
-                          style={{ objectFit: 'cover' }}
+                          className="responsive-img rounded-circle img-avatar-28"
+                          loading="lazy"
                         />
                       ) : (
                         <div
@@ -154,9 +152,6 @@ export default function AppNavbar() {
                     </NavDropdown.Item>
                     <NavDropdown.Item as={Link} to="/student/my-learning">
                       <i className="bi bi-collection-play me-2" />My Learning
-                    </NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/student/payment-history">
-                      <i className="bi bi-receipt me-2" />Payment History
                     </NavDropdown.Item>
                   </>
                 )}

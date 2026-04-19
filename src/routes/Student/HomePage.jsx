@@ -67,7 +67,7 @@ export default function HomePage() {
       {/* ============ HERO SECTION WITH NETWORK BACKGROUND ============ */}
       <section className="hero-network-section">
         <div className="hero-network-bg">
-          <img src="/images/futuristic-learning.png" alt="Network Background" className="network-bg-image" />
+          <img src="/images/futuristic-learning.png" alt="Network Background" className="network-bg-image responsive-img" loading="lazy" />
         </div>
         <Container>
           <Row className="align-items-center justify-content-center position-relative z-1" style={{ minHeight: '70vh' }}>
@@ -125,7 +125,8 @@ export default function HomePage() {
                           <img
                             src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f70a504f9?auto=format&fit=crop&w=400&q=80'}
                             alt={course.title}
-                            className="course-image"
+                            className="course-image responsive-img"
+                            loading="lazy"
                           />
                           <div className="course-badge-primary">
                             <Badge bg="primary" className="fw-bold">
@@ -287,7 +288,8 @@ export default function HomePage() {
                         <img
                           src={course.thumbnail || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=400&q=80'}
                           alt={course.title}
-                          className="course-image-recommended"
+                          className="course-image-recommended responsive-img"
+                          loading="lazy"
                         />
                         <div className="course-rating-badge">
                           <Badge bg="warning" text="dark" className="fw-bold">

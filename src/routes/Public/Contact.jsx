@@ -37,7 +37,12 @@ export default function Contact() {
           <Col key={c.email} xs={12} sm={6} md={4} className="d-flex align-items-stretch">
             <Card className="contact-card w-100 text-center shadow-sm border-0 animate__animated animate__fadeInUp" style={{ animationDelay: `${0.2 + i * 0.1}s` }}>
               <Card.Body>
-                <img src={c.avatar} alt={c.name} className="rounded-circle mb-3 shadow contact-avatar" width={72} height={72} />
+                <img
+                  src={c.avatar}
+                  alt={c.name}
+                  className="responsive-img rounded-circle mb-3 shadow contact-avatar img-avatar-72"
+                  loading="lazy"
+                />
                 <Card.Title className="mb-1 fw-semibold">{c.name}</Card.Title>
                 <div className="text-primary small mb-1">{c.role}</div>
                 <Card.Text className="mb-2 text-muted small">{c.desc}</Card.Text>

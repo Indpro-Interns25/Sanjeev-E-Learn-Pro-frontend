@@ -235,10 +235,10 @@ export default function Explore() {
                   featuredCourses.map(course => (
                     <Carousel.Item key={course.id} onClick={() => navigate(`/courses/${course.id}`)} style={{ cursor: 'pointer' }}>
                       <img 
-                        className="d-block w-100 rounded" 
+                        className="d-block w-100 rounded responsive-img img-ratio-hero" 
                         src={course.thumbnail} 
                         alt={course.title} 
-                        style={{ height: '400px', objectFit: 'cover' }} 
+                        loading="lazy"
                       />
                       <Carousel.Caption>
                         <h5>{course.title}</h5>
@@ -255,21 +255,21 @@ export default function Explore() {
                   // Fallback content while loading or if no featured courses
                   <>
                     <Carousel.Item>
-                      <img className="d-block w-100 rounded" src="https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=800&q=80" alt="Learning" style={{ height: '400px', objectFit: 'cover' }} />
+                      <img className="d-block w-100 rounded responsive-img img-ratio-hero" src="https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=800&q=80" alt="Learning" loading="lazy" />
                       <Carousel.Caption>
                         <h5>Expert-Led Learning</h5>
                         <p>Master new skills with hands-on projects and real-world applications.</p>
                       </Carousel.Caption>
                     </Carousel.Item>
                     <Carousel.Item>
-                      <img className="d-block w-100 rounded" src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80" alt="Collaboration" style={{ height: '400px', objectFit: 'cover' }} />
+                      <img className="d-block w-100 rounded responsive-img img-ratio-hero" src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80" alt="Collaboration" loading="lazy" />
                       <Carousel.Caption>
                         <h5>Collaborative Learning</h5>
                         <p>Work together and share knowledge in a modern environment.</p>
                       </Carousel.Caption>
                     </Carousel.Item>
                     <Carousel.Item>
-                      <img className="d-block w-100 rounded" src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=800&q=80" alt="Technology" style={{ height: '400px', objectFit: 'cover' }} />
+                      <img className="d-block w-100 rounded responsive-img img-ratio-hero" src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=800&q=80" alt="Technology" loading="lazy" />
                       <Carousel.Caption>
                         <h5>Latest Technology</h5>
                         <p>Stay updated with the latest trends and technologies in your field.</p>
@@ -296,7 +296,7 @@ export default function Explore() {
                 {results.map(course => (
                   <Col key={course.id}>
                     <div className="card h-100 border-0 shadow-sm rounded-4">
-                      <img src={course.thumbnail} alt={course.title} className="card-img-top" style={{ height: '200px', objectFit: 'cover' }} />
+                      <img src={course.thumbnail} alt={course.title} className="card-img-top responsive-img img-ratio-card" loading="lazy" />
                       <div className="card-body d-flex flex-column">
                         <h5 className="card-title">{course.title}</h5>
                         <p className="card-text text-muted">{course.description}</p>

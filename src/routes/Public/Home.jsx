@@ -245,7 +245,7 @@ export default function Home() {
               <Col md={6} lg={3} key={course.id} className="mb-4">
                 <div className="course-card">
                   <div className="course-image-wrapper">
-                    <img src={course.image} alt={course.title} className="course-image" />
+                    <img src={course.image} alt={course.title} className="course-image responsive-img" loading="lazy" />
                   </div>
                   <div className="course-content">
                     <h5 className="course-title">{course.title}</h5>

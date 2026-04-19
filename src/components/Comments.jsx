@@ -169,8 +169,8 @@ const Comments = ({ courseId, lessonId = null }) => {
                 <img
                   src={user.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&h=150&q=80'}
                   alt={user.name}
-                  className="rounded-circle me-3"
-                  style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                  className="responsive-img rounded-circle me-3 img-avatar-50"
+                  loading="lazy"
                 />
                 <div className="flex-grow-1">
                   {!lessonId && (
@@ -215,8 +215,8 @@ const Comments = ({ courseId, lessonId = null }) => {
                   <img
                     src={comment.userAvatar}
                     alt={comment.userName}
-                    className="rounded-circle me-3"
-                    style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                    className="responsive-img rounded-circle me-3 img-avatar-50"
+                    loading="lazy"
                   />
                   <div>
                     <h6 className="mb-0">{comment.userName}</h6>
@@ -264,8 +264,8 @@ const Comments = ({ courseId, lessonId = null }) => {
                     <img
                       src={user.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&h=150&q=80'}
                       alt={user.name}
-                      className="rounded-circle me-3"
-                      style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                      className="responsive-img rounded-circle me-3 img-avatar-40"
+                      loading="lazy"
                     />
                     <div className="flex-grow-1">
                       <Form.Control
@@ -312,8 +312,8 @@ const Comments = ({ courseId, lessonId = null }) => {
                       <img
                         src={reply.userAvatar}
                         alt={reply.userName}
-                        className="rounded-circle me-3"
-                        style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                        className="responsive-img rounded-circle me-3 img-avatar-40"
+                        loading="lazy"
                       />
                       <div className="flex-grow-1">
                         <div className="d-flex justify-content-between align-items-center mb-1">

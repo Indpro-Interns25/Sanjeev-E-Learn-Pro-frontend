@@ -221,7 +221,8 @@ export default function StudentDashboard() {
                     variant="top"
                     src={course.thumbnail || 'https://placehold.co/300x160?text=Course'}
                     alt={course.title}
-                    style={{ height: 160, objectFit: 'cover' }}
+                    className="responsive-img img-ratio-16-9"
+                    loading="lazy"
                   />
                   <Card.Body className="d-flex flex-column">
                     <Card.Title as="h6" className="fw-bold">{course.title}</Card.Title>

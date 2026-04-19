@@ -187,8 +187,8 @@ export default function LandingPage() {
                       <img
                         src={course.thumbnail || 'https://via.placeholder.com/400x250'}
                         alt={course.title}
-                        className="card-img-top image-effect-grayscale-to-color"
-                        style={{ height: '220px', objectFit: 'cover' }}
+                        className="card-img-top image-effect-grayscale-to-color responsive-img img-ratio-16-9"
+                        loading="lazy"
                       />
                       <div className="course-overlay">
                         <Button

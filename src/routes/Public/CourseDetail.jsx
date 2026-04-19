@@ -372,8 +372,9 @@ export default function CourseDetail() {
             <img
               src={course.thumbnail}
               alt={course.title}
-              className="img-fluid w-100"
-              style={{ height: '400px', objectFit: 'cover', filter: 'brightness(0.6)' }}
+              className="img-fluid w-100 responsive-img img-ratio-hero"
+              style={{ filter: 'brightness(0.6)' }}
+              loading="lazy"
             />
             <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-end p-4" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.8) 100%)', pointerEvents: 'none' }}>
               <h1 className="text-white fw-bold mb-2" style={{ textShadow: '0 2px 8px #000' }}>{course.title}</h1>
@@ -382,7 +383,12 @@ export default function CourseDetail() {
                 <Badge bg="secondary" className="fs-6 px-3 py-1 rounded-pill">{course.level}</Badge>
               </div>
               <div className="d-flex align-items-center mb-2">
-                <img src='https://placehold.co/40x40?text=I' alt={course.instructor?.name || course.instructor_name || 'Instructor'} width="40" height="40" className="rounded-circle me-2 border border-2 border-white" />
+                <img
+                  src="https://placehold.co/40x40.webp?text=I"
+                  alt={course.instructor?.name || course.instructor_name || 'Instructor'}
+                  className="responsive-img rounded-circle me-2 border border-2 border-white img-avatar-40"
+                  loading="lazy"
+                />
                 <span className="text-white fw-semibold">{course.instructor?.name || course.instructor_name || 'Instructor'}</span>
               </div>
               <div className="d-flex align-items-center">
@@ -725,8 +731,8 @@ export default function CourseDetail() {
                 <img
                   src={course.thumbnail}
                   alt={course.title}
-                  className="img-fluid rounded"
-                  style={{ maxHeight: '120px', objectFit: 'cover' }}
+                  className="img-fluid rounded responsive-img img-ratio-16-9"
+                  loading="lazy"
                 />
               </div>
               

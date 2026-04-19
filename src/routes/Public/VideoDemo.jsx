@@ -138,7 +138,8 @@ export default function VideoDemo() {
                   variant="top" 
                   src={course.thumbnail} 
                   alt={course.title}
-                  style={{ height: '200px', objectFit: 'cover' }}
+                  className="responsive-img img-ratio-card"
+                  loading="lazy"
                 />
                 {/* Video Preview Button */}
                 <div className="position-absolute top-50 start-50 translate-middle">

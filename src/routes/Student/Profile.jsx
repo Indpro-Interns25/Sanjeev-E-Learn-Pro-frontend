@@ -102,10 +102,8 @@ export default function Profile() {
                   <img
                     src={user.avatar}
                     alt="avatar"
-                    width={80}
-                    height={80}
-                    className="rounded-circle"
-                    style={{ objectFit: 'cover' }}
+                    className="responsive-img rounded-circle img-avatar-80"
+                    loading="lazy"
                   />
                 ) : (
                   <AvatarPlaceholder name={user?.name} size={80} />

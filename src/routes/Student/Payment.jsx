@@ -196,8 +196,8 @@ export default function Payment() {
                   <img
                     src={course.image}
                     alt={course.title}
-                    className="rounded"
-                    style={{ width: 80, height: 60, objectFit: 'cover', flexShrink: 0 }}
+                    className="rounded responsive-img img-payment-thumb"
+                    loading="lazy"
                   />
                 )}
                 <div>

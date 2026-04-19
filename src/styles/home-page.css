@@ -1123,8 +1123,8 @@
   right: 0;
   bottom: 0;
   background-image: url('/images/futuristic-learning.png');
-  background-size: 120%;
-  background-position: 50% 50%;
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
   opacity: 0.35;
   z-index: 0;
@@ -2089,13 +2089,17 @@
 }
 
 .hero-network-title {
-  font-size: 5rem;
+  font-size: clamp(3.2rem, 8vw, 5.8rem);
   font-weight: 900;
-  color: #ffffff;
+  color: #b9efff;
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   margin-bottom: 1.5rem;
-  text-shadow: 0 10px 34px rgba(0, 0, 0, 0.68);
+  background: linear-gradient(180deg, #d9f7ff 0%, #9fdfff 50%, #7dbfff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 4px 20px rgba(113, 209, 255, 0.28), 0 10px 30px rgba(0, 0, 0, 0.55);
 }
 
 .hero-network-subtitle {
@@ -2182,7 +2186,7 @@
 
 @media (max-width: 768px) {
   .hero-network-title {
-    font-size: 3rem;
+    font-size: clamp(2.3rem, 11vw, 3.4rem);
     margin-bottom: 1rem;
   }
 
