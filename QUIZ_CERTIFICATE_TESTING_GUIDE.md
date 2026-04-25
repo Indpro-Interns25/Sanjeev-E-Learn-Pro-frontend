@@ -33,7 +33,7 @@
 1. Navigate to My Learning → Select a course
 2. Go to course → Find Quiz section
 3. Click "Take Quiz"
-4. URL should be: localhost:3000/student/courses/{courseId}/quiz
+4. URL should be: /student/courses/{courseId}/quiz
 ```
 
 #### Check Quiz Loads

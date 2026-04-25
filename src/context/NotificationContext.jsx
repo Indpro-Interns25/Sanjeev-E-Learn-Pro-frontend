@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useUi } from '../hooks/useUi';
 import { getAccessToken } from '../utils/tokenStorage';
 import { isPlainObject, isValidChatMessage } from '../utils/socketGuards';
-import { SOCKET_URL } from '../config/apiConfig';
+import { SOCKET_URL } from '../config/api';
 
 const NotificationContext = createContext({
   notifications: [],

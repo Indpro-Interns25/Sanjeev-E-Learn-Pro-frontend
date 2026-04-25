@@ -114,7 +114,7 @@ I have successfully implemented and verified the **Quiz** and **Certificate** fe
 
 **Steps:**
 1. Click "View & Download Certificate" button from results
-2. URL changes to: `localhost:3000/student/certificate/{certificateId}`
+2. URL changes to: `/student/certificate/{certificateId}`
 
 **Expected Result:**
 - Professional certificate displays with:

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { useAuth } from '../hooks/useAuth';
 import { getAccessToken } from '../utils/tokenStorage';
 import { isValidChatMessage, isValidRoomId } from '../utils/socketGuards';
-import { SOCKET_URL } from '../config/apiConfig';
+import { SOCKET_URL } from '../config/api';
 
 const ChatContext = createContext({
   unreadCount: 0,

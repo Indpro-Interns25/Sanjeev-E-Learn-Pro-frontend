@@ -3,6 +3,7 @@
  * Handles certificate generation, storage, and retrieval
  */
 import jsPDF from 'jspdf';
+import { API_URL } from '../config/api';
 
 /**
  * Generate a unique certificate ID
@@ -362,7 +363,7 @@ export function getCertificateSummary(certificate) {
  */
 export async function submitCertificateToBackend(certificate) {
   try {
-    const response = await fetch('/api/certificates', {
+    const response = await fetch(`${API_URL}/api/certificates`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

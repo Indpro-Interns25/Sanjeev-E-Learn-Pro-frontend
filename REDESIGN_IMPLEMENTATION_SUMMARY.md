@@ -145,7 +145,7 @@ Background:      #ffffff / #f9fafb (Clean White)
    ```
 
 2. **Navigate to Home Page:**
-   - Go to `http://localhost:5173/` (or your dev server URL)
+   - Go to your dev server URL (for example the URL shown in your terminal)
    - Homepage will display new design
 
 3. **Test Responsiveness:**

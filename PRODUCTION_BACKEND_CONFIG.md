@@ -1,7 +1,7 @@
 # Production Backend Configuration Guide
 
 ## Overview
-This guide documents how the frontend has been configured to use the production backend URL instead of localhost.
+This guide documents how the frontend has been configured to use environment-based backend URLs instead of hardcoded development hosts.
 
 ## Backend URL
 **Production:** `https://sanjeev-e-learn-pro-backend-1.onrender.com`
@@ -20,7 +20,7 @@ Shows the correct format for both development and production configurations.
 ### 3. `src/services/apiClient.js` (Axios Client)
 Updated to use environment variable:
 ```javascript
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sanjeev-e-learn-pro-backend-1.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -37,7 +37,7 @@ import { API_BASE_URL, SOCKET_URL } from '../config/apiConfig';
 
 Features:
 - Reads from `VITE_API_URL` environment variable
-- Validates that production URLs don't use localhost
+- Validates that production URLs do not use hardcoded development hosts
 - Provides `API_BASE_URL` and `SOCKET_URL` for socket connections
 - Logs configuration in development mode
 
@@ -53,7 +53,7 @@ Updated proxy to use environment variable:
 ```javascript
 proxy: {
   '/api': {
-    target: process.env.VITE_API_URL || 'https://sanjeev-e-learn-pro-backend-1.onrender.com',
+    target: process.env.VITE_API_URL,
     changeOrigin: true,
     secure: true,
     rewrite: (path) => path.replace(/^\/api/, '/api')
@@ -98,20 +98,20 @@ All service files in `src/services/` use the centralized `apiClient`:
 - `certificates.js` - Certificate generation
 - And more...
 
-No hardcoded localhost URLs exist in any service files.
+No hardcoded development host URLs exist in any service files.
 
 ## Error Messages
 Error messages have been updated to be production-ready:
-- Removed references to specific localhost ports
+- Removed references to specific development ports
 - Use generic messages suitable for production
 - Example: "Cannot connect to the server. Please check your network connection and ensure the backend server is running."
 
 ## Testing the Configuration
 
-### Development (with local backend)
+### Development (with configurable backend)
 ```bash
-# .env will override with your local backend
-VITE_API_URL=http://localhost:3002
+# set this to your backend endpoint
+VITE_API_URL=https://your-backend-domain.com
 npm run dev
 ```
 
@@ -141,9 +141,9 @@ If you see "Cannot connect to backend" error:
 2. Check that backend server is running
 3. Verify there are no firewall/CORS issues
 
-## No Localhost URLs
-✓ All hardcoded `http://localhost:3002` references removed from source code
-✓ All hardcoded `http://localhost:3001` references removed
+## No Hardcoded Dev URLs
+✓ All hardcoded development backend URL references removed from source code
+✓ API and socket endpoints are read from Vite environment variables
 ✓ Environment variables used throughout for flexibility
 ✓ Production-ready for Vercel deployment
 

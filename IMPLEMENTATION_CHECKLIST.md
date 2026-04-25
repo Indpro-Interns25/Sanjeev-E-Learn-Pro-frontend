@@ -199,7 +199,7 @@ export const mockCourseProgress = {
 #### ✅ Update Service Configuration
 **Path:** `src/services/apiClient.js`
 
-- [ ] Verify base URL is correct (should be `http://localhost:3002`)
+- [ ] Verify base URL is correct (use `VITE_API_URL` from `.env`)
 - [ ] Add error handling for network failures
 - [ ] Add loading state management
 

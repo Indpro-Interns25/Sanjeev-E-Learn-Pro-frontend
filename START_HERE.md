@@ -204,7 +204,7 @@ GET    /api/notes/lecture/:lectureId/:userId
 ### Step 4: Test Components
 ```bash
 npm run dev
-# Visit http://localhost:5173
+# Visit the URL shown in the terminal
 # Test each component
 ```
 

@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import QuestionCard from './QuestionCard';
 import ResultPage from './ResultPage';
 import { getCourseQuiz, submitQuizAnswers } from '../services/quizAPI';
+import { API_URL } from '../config/api';
 import '../styles/quiz-interface.css';
 
 export default function QuizPage() {
@@ -42,7 +43,7 @@ export default function QuizPage() {
         if (courseId) {
           quizData = await getCourseQuiz(courseId);
         } else if (quizId) {
-          const response = await fetch(`/api/quiz/${quizId}`);
+          const response = await fetch(`${API_URL}/api/quiz/${quizId}`);
           quizData = await response.json();
         }
 
