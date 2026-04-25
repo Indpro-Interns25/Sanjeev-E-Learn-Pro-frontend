@@ -2,6 +2,21 @@ import axios from 'axios';
 import { getAccessToken, getAdminToken, clearAuthSession, clearAdminSession } from '../utils/tokenStorage';
 import { API_URL } from '../config/api';
 
+const LOCALHOST_ORIGIN_REGEX = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i;
+
+function rewriteLocalhostAbsoluteUrlToApiPath(url) {
+  if (typeof url !== 'string') return url;
+  const trimmed = url.trim();
+  if (!LOCALHOST_ORIGIN_REGEX.test(trimmed)) return trimmed;
+
+  try {
+    const parsed = new URL(trimmed);
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return trimmed;
+  }
+}
+
 // Create axios instance with default config
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -14,6 +29,12 @@ const apiClient = axios.create({
 // Request interceptor for adding auth token
 apiClient.interceptors.request.use(
   (config) => {
+    // Safety guard: never allow localhost backend URLs in runtime requests.
+    if (typeof config.baseURL === 'string' && LOCALHOST_ORIGIN_REGEX.test(config.baseURL)) {
+      console.warn('⚠️ Rewriting localhost baseURL to API_URL:', config.baseURL);
+      config.baseURL = API_URL;
+    }
+
     // Validate URL for trailing spaces
     if (config.url && config.url !== config.url.trim()) {
       console.error('🚨 URL has trailing spaces!', {
@@ -24,6 +45,14 @@ apiClient.interceptors.request.use(
       });
       // Fix the URL by trimming it
       config.url = config.url.trim();
+    }
+
+    // If an absolute localhost URL is passed directly to axios, convert it to
+    // a relative path and force the configured backend base URL.
+    if (typeof config.url === 'string' && LOCALHOST_ORIGIN_REGEX.test(config.url.trim())) {
+      console.warn('⚠️ Rewriting localhost request URL to API_URL:', config.url);
+      config.url = rewriteLocalhostAbsoluteUrlToApiPath(config.url);
+      config.baseURL = API_URL;
     }
     
     // Check if this is an admin endpoint
