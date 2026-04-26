@@ -1,6 +1,6 @@
 import { Container, Row, Col, Button, Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getAllCourses } from '../../services/courses';
 import { getPlatformStats } from '../../services/stats';
 import { initScrollAnimations, initHoverEffects } from '../../utils/scrollAnimations';
@@ -13,6 +13,13 @@ export default function LandingPage() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalCourses, setTotalCourses] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
+  const [animatedStats, setAnimatedStats] = useState({
+    users: 0,
+    courses: 0,
+    rating: 0
+  });
+  const hasAnimatedRef = useRef(false);
+  const animationFrameRef = useRef(null);
 
   const formatCount = (value) => `${Math.max(0, Number(value || 0)).toLocaleString()}+`;
   const formatRating = (value) => `${Math.max(0, Number(value || 0)).toFixed(1)}★`;
@@ -51,9 +58,58 @@ export default function LandingPage() {
 
     // Cleanup observer on unmount
     return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
       observer.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (statsLoading || hasAnimatedRef.current) return;
+
+    const animationDurationMs = 1500;
+    let startTimestamp = null;
+
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+    const animate = (timestamp) => {
+      if (startTimestamp === null) {
+        startTimestamp = timestamp;
+      }
+
+      const progress = Math.min((timestamp - startTimestamp) / animationDurationMs, 1);
+      const easedProgress = easeOutCubic(progress);
+
+      setAnimatedStats({
+        users: Math.round(totalUsers * easedProgress),
+        courses: Math.round(totalCourses * easedProgress),
+        rating: Number((averageRating * easedProgress).toFixed(1))
+      });
+
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      setAnimatedStats({
+        users: totalUsers,
+        courses: totalCourses,
+        rating: Number(averageRating.toFixed(1))
+      });
+
+      hasAnimatedRef.current = true;
+      animationFrameRef.current = null;
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [statsLoading, totalUsers, totalCourses, averageRating]);
 
   return (
     <div className="landing-page">
@@ -93,15 +149,15 @@ export default function LandingPage() {
               </div>
               <div className="d-flex justify-content-center gap-4 text-muted flex-wrap">
                 <div className="stat-box">
-                  <h5 className="mb-1 fw-bold text-dark">{statsLoading ? '...' : formatCount(totalUsers)}</h5>
+                  <h5 className="mb-1 fw-bold text-dark">{statsLoading ? '...' : formatCount(animatedStats.users)}</h5>
                   <small>Active Learners</small>
                 </div>
                 <div className="stat-box">
-                  <h5 className="mb-1 fw-bold text-dark">{statsLoading ? '...' : formatCount(totalCourses)}</h5>
+                  <h5 className="mb-1 fw-bold text-dark">{statsLoading ? '...' : formatCount(animatedStats.courses)}</h5>
                   <small>Expert Courses</small>
                 </div>
                 <div className="stat-box">
-                  <h5 className="mb-1 fw-bold text-dark">{statsLoading ? '...' : formatRating(averageRating)}</h5>
+                  <h5 className="mb-1 fw-bold text-dark">{statsLoading ? '...' : formatRating(animatedStats.rating)}</h5>
                   <small>Average Rating</small>
                 </div>
               </div>
