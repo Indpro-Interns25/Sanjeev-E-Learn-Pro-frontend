@@ -7,6 +7,7 @@ export const AuthContext = createContext({
   loading: true,
   error: null,
   login: () => {},
+  completeOAuthLogin: () => {},
   register: () => {},
   logout: () => {}
 });

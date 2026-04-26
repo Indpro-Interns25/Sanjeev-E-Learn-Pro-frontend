@@ -1,15 +1,25 @@
 
-import { Container, Row, Col, Button, Card } from 'react-bootstrap';
+import { Container, Row, Col, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { getPlatformStats } from '../../services/stats';
+import { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
 import '../../styles/home-page.css';
 
 export default function Home() {
+  const API_URL = import.meta.env.VITE_API_URL;
   const [statsLoading, setStatsLoading] = useState(true);
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [totalCourses, setTotalCourses] = useState(0);
-  const [averageRating, setAverageRating] = useState(0);
+  const [stats, setStats] = useState({
+    users: 0,
+    courses: 0,
+    rating: 0
+  });
+  const [animatedStats, setAnimatedStats] = useState({
+    users: 0,
+    courses: 0,
+    rating: 0
+  });
+  const hasAnimatedRef = useRef(false);
+  const animationFrameRef = useRef(null);
 
   const formatCount = (value) => `${Math.max(0, Number(value || 0)).toLocaleString()}+`;
   const formatRating = (value) => `${Math.max(0, Number(value || 0)).toFixed(1)}★`;
@@ -17,19 +27,69 @@ export default function Home() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const stats = await getPlatformStats();
-        setTotalUsers(stats.totalUsers);
-        setTotalCourses(stats.totalCourses);
-        setAverageRating(stats.averageRating);
+        const normalizedApiUrl = (API_URL || '').replace(/\/+$/, '');
+        const response = await axios.get(`${normalizedApiUrl}/api/stats`);
+        const nextStats = {
+          users: Number(response.data?.users) || 0,
+          courses: Number(response.data?.courses) || 0,
+          rating: Number(response.data?.rating) || 0
+        };
+
+        setStats(nextStats);
       } catch (error) {
-        console.error('Error fetching platform stats:', error);
+        console.log('Error fetching stats:', error);
       } finally {
         setStatsLoading(false);
       }
     };
 
     fetchStats();
-  }, []);
+  }, [API_URL]);
+
+  useEffect(() => {
+    if (statsLoading || hasAnimatedRef.current) return;
+
+    const animationDurationMs = 1600;
+    let animationStartTs = null;
+
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+    const animate = (timestamp) => {
+      if (animationStartTs === null) {
+        animationStartTs = timestamp;
+      }
+
+      const progress = Math.min((timestamp - animationStartTs) / animationDurationMs, 1);
+      const easedProgress = easeOutCubic(progress);
+
+      setAnimatedStats({
+        users: Math.round(stats.users * easedProgress),
+        courses: Math.round(stats.courses * easedProgress),
+        rating: Number((stats.rating * easedProgress).toFixed(1))
+      });
+
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      setAnimatedStats({
+        users: stats.users,
+        courses: stats.courses,
+        rating: Number(stats.rating.toFixed(1))
+      });
+      hasAnimatedRef.current = true;
+      animationFrameRef.current = null;
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [stats, statsLoading]);
 
   return (
     <main className="home-page public-home-clean">
@@ -42,7 +102,7 @@ export default function Home() {
                 <div className="hero-badge mb-4">
                   <span className="badge-icon">✨</span>
                   <span className="badge-text">
-                    Trusted by {statsLoading ? '...' : formatCount(totalUsers)} learners worldwide
+                    Trusted by {statsLoading ? '...' : formatCount(animatedStats.users)} learners worldwide
                   </span>
                 </div>
                 
@@ -115,21 +175,21 @@ export default function Home() {
           <Row>
             <Col md={4} className="mb-4 mb-md-0">
               <div className="stat-card">
-                <div className="stat-number">{statsLoading ? '...' : formatCount(totalUsers)}</div>
+                <div className="stat-number">{statsLoading ? '...' : formatCount(animatedStats.users)}</div>
                 <div className="stat-label">Active Learners</div>
                 <p className="stat-description">Join our global community of learners</p>
               </div>
             </Col>
             <Col md={4} className="mb-4 mb-md-0">
               <div className="stat-card">
-                <div className="stat-number">{statsLoading ? '...' : formatCount(totalCourses)}</div>
+                <div className="stat-number">{statsLoading ? '...' : formatCount(animatedStats.courses)}</div>
                 <div className="stat-label">Expert Courses</div>
                 <p className="stat-description">Curated courses from industry leaders</p>
               </div>
             </Col>
             <Col md={4}>
               <div className="stat-card">
-                <div className="stat-number">{statsLoading ? '...' : formatRating(averageRating)}</div>
+                <div className="stat-number">{statsLoading ? '...' : formatRating(animatedStats.rating)}</div>
                 <div className="stat-label">Average Rating</div>
                 <p className="stat-description">Highly rated by our learners</p>
               </div>

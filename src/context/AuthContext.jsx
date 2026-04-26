@@ -177,6 +177,34 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const completeOAuthLogin = async ({ token, user = null, remember = true }) => {
+    if (!token) {
+      throw new Error('Missing OAuth token from callback redirect');
+    }
+
+    dispatch({ type: 'AUTH_INIT' });
+
+    try {
+      let resolvedUser = user;
+      if (!resolvedUser) {
+        resolvedUser = await authService.validateToken(token);
+      }
+
+      if (!resolvedUser?.id || !resolvedUser?.email) {
+        throw new Error('Invalid OAuth user payload received from backend');
+      }
+
+      setAuthSession({ token, user: resolvedUser, remember });
+      dispatch({ type: 'AUTH_SUCCESS', payload: { user: resolvedUser, token } });
+      scheduleAutoLogout(token);
+      return resolvedUser;
+    } catch (error) {
+      clearAuthSession();
+      dispatch({ type: 'AUTH_ERROR', payload: error.message || 'OAuth login failed' });
+      throw error;
+    }
+  };
+
   const register = async (userData) => {
     dispatch({ type: 'AUTH_INIT' });
     try {
@@ -205,6 +233,7 @@ export function AuthProvider({ children }) {
   const value = {
     ...state,
     login,
+    completeOAuthLogin,
     register,
     logout
   };

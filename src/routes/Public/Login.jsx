@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -8,12 +8,15 @@ import './Login.css';
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, completeOAuthLogin } = useAuth();
   const [error, setError] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [oauthLoadingProvider, setOauthLoadingProvider] = useState('');
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const from = location.state?.from?.pathname;
   const sessionExpired = new URLSearchParams(location.search).get('expired') === '1';
@@ -43,6 +46,79 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const oauthError = params.get('oauth_error') || params.get('error');
+    if (oauthError) {
+      setError(decodeURIComponent(oauthError));
+      return;
+    }
+
+    const token = params.get('token') || params.get('access_token');
+    if (!token) return;
+
+    const userParam = params.get('user');
+    let parsedUser = null;
+    if (userParam) {
+      try {
+        parsedUser = JSON.parse(userParam);
+      } catch {
+        parsedUser = null;
+      }
+    }
+
+    if (!parsedUser) {
+      const id = params.get('id');
+      const emailFromQuery = params.get('email');
+      const name = params.get('name');
+      const role = params.get('role');
+
+      if (id || emailFromQuery) {
+        parsedUser = {
+          id: id || emailFromQuery,
+          email: emailFromQuery || '',
+          name: name || 'OAuth User',
+          role: role || 'student'
+        };
+      }
+    }
+
+    const finalizeOAuthLogin = async () => {
+      setError(null);
+      setLoading(true);
+
+      try {
+        const loggedInUser = await completeOAuthLogin({
+          token,
+          user: parsedUser,
+          remember: true
+        });
+
+        const destination = from || getRoleDashboardPath(loggedInUser?.role);
+        navigate(destination, { replace: true });
+      } catch (err) {
+        setError(err.message || 'OAuth sign in failed');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    finalizeOAuthLogin();
+  }, [completeOAuthLogin, from, location.search, navigate]);
+
+  const handleSocialLogin = (provider) => {
+    setError(null);
+
+    if (!API_URL) {
+      setError('Missing VITE_API_URL environment variable');
+      return;
+    }
+
+    setOauthLoadingProvider(provider);
+    const normalizedApiUrl = API_URL.replace(/\/+$/, '');
+    window.location.href = `${normalizedApiUrl}/auth/${provider}`;
   };
 
   return (
@@ -115,6 +191,43 @@ export default function Login() {
               <button type="submit" className="user-login-submit" disabled={loading}>
                 {loading ? 'Signing in...' : 'Log In'}
               </button>
+
+              <div className="social-login-divider" role="separator" aria-label="Social sign in">
+                <span>or continue with</span>
+              </div>
+
+              <div className="social-login-grid">
+                <button
+                  type="button"
+                  className="social-login-btn social-google"
+                  onClick={() => handleSocialLogin('google')}
+                  disabled={loading}
+                >
+                  <i className="bi bi-google" aria-hidden="true"></i>
+                  <span>{oauthLoadingProvider === 'google' ? 'Redirecting...' : 'Continue with Google'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="social-login-btn social-github"
+                  onClick={() => handleSocialLogin('github')}
+                  disabled={loading}
+                >
+                  <i className="bi bi-github" aria-hidden="true"></i>
+                  <span>{oauthLoadingProvider === 'github' ? 'Redirecting...' : 'Continue with GitHub'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="social-login-btn social-facebook"
+                  onClick={() => handleSocialLogin('facebook')}
+                  disabled={loading}
+                >
+                  <i className="bi bi-facebook" aria-hidden="true"></i>
+                  <span>{oauthLoadingProvider === 'facebook' ? 'Redirecting...' : 'Continue with Facebook'}</span>
+                </button>
+              </div>
+
               <div className="auth-support-row">
                 <span><i className="bi bi-lock-fill me-1"></i>Encrypted sign in</span>
                 <span><i className="bi bi-lightning-charge-fill me-1"></i>Fast dashboard access</span>
