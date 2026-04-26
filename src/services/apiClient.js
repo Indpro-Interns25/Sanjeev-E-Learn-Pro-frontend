@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getAccessToken, getAdminToken, clearAuthSession, clearAdminSession } from '../utils/tokenStorage';
-import { API_URL } from '../config/api';
+import { API_URL } from '../config/config';
 
 const LOCALHOST_ORIGIN_REGEX = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i;
 

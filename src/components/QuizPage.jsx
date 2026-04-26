@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import QuestionCard from './QuestionCard';
 import ResultPage from './ResultPage';
 import { getCourseQuiz, submitQuizAnswers } from '../services/quizAPI';
-import { API_URL } from '../config/api';
+import { API_URL } from '../config/config';
 import '../styles/quiz-interface.css';
 
 export default function QuizPage() {

@@ -3,7 +3,7 @@
  * Handles certificate generation, storage, and retrieval
  */
 import jsPDF from 'jspdf';
-import { API_URL } from '../config/api';
+import { API_URL } from '../config/config';
 
 /**
  * Generate a unique certificate ID

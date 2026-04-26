@@ -1,4 +1,4 @@
-import { API_URL, SOCKET_URL } from './api';
+import { API_URL, SOCKET_URL } from './config';
 
 const isDevelopment = import.meta.env.DEV;
 
