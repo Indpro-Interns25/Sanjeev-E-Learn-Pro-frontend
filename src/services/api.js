@@ -58,6 +58,35 @@ function isDemoToken(token) {
   return typeof token === 'string' && (token.startsWith('demo-token-') || token.startsWith('demo-admin-'));
 }
 
+/**
+ * Get token from both localStorage and sessionStorage
+ * Reads localStorage first (persistent), then falls back to sessionStorage
+ * This ensures token persists on mobile after refresh
+ */
+function getTokenFromAllStorages() {
+  try {
+    // Check localStorage first (persistent across sessions)
+    const localToken = localStorage.getItem('token');
+    if (localToken) {
+      console.debug('📱 TOKEN: Found in localStorage');
+      return localToken;
+    }
+
+    // Fall back to sessionStorage (current session)
+    const sessionToken = sessionStorage.getItem('token');
+    if (sessionToken) {
+      console.debug('📱 TOKEN: Found in sessionStorage');
+      return sessionToken;
+    }
+
+    console.debug('📱 TOKEN: Not found in any storage');
+    return null;
+  } catch (error) {
+    console.error('❌ Error reading token from storage:', error);
+    return null;
+  }
+}
+
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
@@ -66,8 +95,13 @@ const apiClient = axios.create({
   withCredentials: true
 });
 
+/**
+ * REQUEST INTERCEPTOR: Attach token and validate baseURL
+ * Ensures every request has proper Authorization header
+ */
 apiClient.interceptors.request.use(
   (config) => {
+    // Fix localhost URLs
     if (typeof config.baseURL === 'string' && LOCALHOST_ORIGIN_REGEX.test(config.baseURL)) {
       console.warn('⚠️ Rewriting localhost baseURL to API_URL:', config.baseURL);
       config.baseURL = API_URL;
@@ -90,12 +124,19 @@ apiClient.interceptors.request.use(
     const isAdminEndpoint = requestPath.includes('/admin/');
     const bypassAdminAuth = typeof window !== 'undefined' && localStorage.getItem('bypassAdminAuth') === 'true';
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ADMIN TOKEN HANDLING
+    // ═══════════════════════════════════════════════════════════════════════════
     if (isAdminEndpoint && !bypassAdminAuth) {
       const adminToken = getAdminToken();
 
       if (adminToken && !isDemoToken(adminToken)) {
         config.headers.Authorization = `Bearer ${adminToken}`;
-        console.debug('🔐 Attached admin token:', config.method?.toUpperCase(), requestPath);
+        console.debug('🔐 Admin Token Attached:', {
+          method: config.method?.toUpperCase(),
+          path: requestPath,
+          tokenLength: adminToken.length
+        });
         return config;
       }
 
@@ -105,12 +146,29 @@ apiClient.interceptors.request.use(
       return Promise.reject(new Error('Not authorized, no token'));
     }
 
-    const accessToken = getAccessToken();
+    // ═══════════════════════════════════════════════════════════════════════════
+    // USER TOKEN HANDLING - CRITICAL FIX FOR MOBILE
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Get token from both localStorage AND sessionStorage for mobile persistence
+    const accessToken = getTokenFromAllStorages() || getAccessToken();
     const needsUserAuth = isProtectedUserEndpoint(requestPath);
+
+    console.debug('🔍 Token Check:', {
+      endpoint: requestPath,
+      hasToken: !!accessToken,
+      tokenExists: !!accessToken,
+      isDemoToken: accessToken ? isDemoToken(accessToken) : false,
+      needsAuth: needsUserAuth
+    });
 
     if (accessToken && !isDemoToken(accessToken)) {
       config.headers.Authorization = `Bearer ${accessToken}`;
-      console.debug('🔑 Attached token:', config.method?.toUpperCase(), requestPath);
+      console.debug('🔑 User Token Attached:', {
+        method: config.method?.toUpperCase(),
+        path: requestPath,
+        tokenLength: accessToken.length,
+        source: 'localStorage/sessionStorage'
+      });
       return config;
     }
 
@@ -120,7 +178,12 @@ apiClient.interceptors.request.use(
     }
 
     if (needsUserAuth) {
-      console.error('🚨 Missing token for protected request:', requestPath);
+      console.error('🚨 API ERROR:', {
+        message: 'Missing token for protected request',
+        endpoint: requestPath,
+        method: config.method?.toUpperCase(),
+        timestamp: new Date().toISOString()
+      });
       clearAuthSession();
       safeRedirect('/login');
       return Promise.reject(new Error('Not authorized, no token'));
@@ -135,9 +198,19 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+/**
+ * RESPONSE INTERCEPTOR: Handle 401 errors and clear invalid tokens
+ */
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('🚨 API ERROR:', {
+      status: error?.response?.status,
+      endpoint: error?.config?.url,
+      message: error?.response?.data?.message || error?.message,
+      timestamp: new Date().toISOString()
+    });
+
     if (error?.response?.status === 401) {
       const requestPath = getRequestPath(error.config);
       const isAdminEndpoint = requestPath.includes('/admin/');

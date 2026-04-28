@@ -21,11 +21,28 @@ import { clearAuthSession, getAccessToken } from '../utils/tokenStorage';
  * @returns {Promise<Array>} Array of course objects
  */
 export async function getAllCourses(filters = {}) {
+  // CRITICAL: Check token from both storages for mobile
+  const tokenFromLocal = localStorage.getItem('token');
+  const tokenFromSession = sessionStorage.getItem('token');
   const token = getAccessToken();
-  const isDemoToken = typeof token === 'string' && token.startsWith('demo-token-');
+  const effectiveToken = tokenFromLocal || tokenFromSession || token;
+  
+  const isDemoToken = typeof effectiveToken === 'string' && effectiveToken.startsWith('demo-token-');
 
-  if (!token && typeof window !== 'undefined') {
-    console.error('🚨 Missing token before fetching courses');
+  console.log('📱 TOKEN DEBUG:', {
+    tokenFromLocal: !!tokenFromLocal,
+    tokenFromSession: !!tokenFromSession,
+    tokenFromUtility: !!token,
+    effectiveToken: !!effectiveToken,
+    isDemoToken: isDemoToken,
+    timestamp: new Date().toISOString()
+  });
+
+  if (!effectiveToken && typeof window !== 'undefined') {
+    console.error('🚨 API ERROR: Missing token before fetching courses', {
+      timestamp: new Date().toISOString(),
+      pathname: window.location.pathname
+    });
     clearAuthSession();
     if (!window.location.pathname.startsWith('/login')) {
       window.location.href = '/login';
@@ -49,7 +66,11 @@ export async function getAllCourses(filters = {}) {
     const queryString = queryParams.toString();
     const url = queryString ? `/api/courses?${queryString}` : '/api/courses';
     
+    console.log('📡 Fetching courses from:', url, { token: effectiveToken ? 'present' : 'missing' });
+    
     const response = await apiClient.get(url);
+    
+    console.log('✅ Courses fetched successfully:', { count: response.data?.length || 0 });
     
     // Get course data
     let courses = response.data;
@@ -112,6 +133,14 @@ export async function getAllCourses(filters = {}) {
     
     return courses;
   } catch (error) {
+    console.error('🚨 API ERROR:', {
+      status: error?.response?.status,
+      message: error?.message,
+      endpoint: '/api/courses',
+      isDemoToken: isDemoToken,
+      timestamp: new Date().toISOString()
+    });
+
     if (error.response?.status === 401 || /not authorized|no token|token/i.test(error.message || '')) {
       console.error('🚨 Unauthorized while fetching courses:', error.message);
 

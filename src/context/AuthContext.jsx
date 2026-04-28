@@ -172,6 +172,18 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'AUTH_INIT' });
     try {
       const { user, token } = await authService.login(email, password);
+      
+      // CRITICAL FIX FOR MOBILE: Store token in BOTH localStorage and sessionStorage
+      console.log('📱 TOKEN: Storing in both localStorage and sessionStorage');
+      localStorage.setItem('token', token);
+      sessionStorage.setItem('token', token);
+      
+      // Also store user data
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+        sessionStorage.setItem('user', JSON.stringify(user));
+      }
+      
       setAuthSession({ token, user, remember });
       dispatch({ type: 'AUTH_SUCCESS', payload: { user, token } });
       scheduleAutoLogout(token);
@@ -193,6 +205,13 @@ export function AuthProvider({ children }) {
         avatar: null
       };
       const demoToken = 'demo-token-' + stableId;
+      
+      // Store demo tokens in both storages too
+      localStorage.setItem('token', demoToken);
+      sessionStorage.setItem('token', demoToken);
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      sessionStorage.setItem('user', JSON.stringify(demoUser));
+      
       setAuthSession({ token: demoToken, user: demoUser, remember });
       dispatch({ type: 'AUTH_SUCCESS', payload: { user: demoUser, token: demoToken } });
       // demo tokens don't expire — no scheduleAutoLogout needed
