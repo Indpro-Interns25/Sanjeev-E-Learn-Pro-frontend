@@ -26,7 +26,7 @@ export default function LoginForm({ onSuccess }) {
     setLoading(true);
 
     try {
-      const user = await login(formData.email, formData.password);
+      const user = await login(formData.email, formData.password, { remember: true });
       onSuccess?.(user);
     } catch (err) {
       setError(err.message);

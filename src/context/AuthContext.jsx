@@ -105,16 +105,30 @@ export function AuthProvider({ children }) {
       const token = getAccessToken();
       const savedUser = readStorageUser();
 
-      if (!token || !savedUser) {
+      if (!token) {
+        console.warn('🔒 No stored auth token found');
         dispatch({ type: 'AUTH_ERROR', payload: null });
         return;
       }
 
+      const isDemoToken = token.startsWith('demo-token-') || token.startsWith('demo-admin-');
+
       // Reject expired real JWTs before even hitting the network
-      if (isTokenExpired(token)) {
+      if (!isDemoToken && isTokenExpired(token)) {
         console.warn('🔒 Stored token is expired — clearing session');
         clearAuthSession();
         dispatch({ type: 'AUTH_ERROR', payload: 'Session expired. Please log in again.' });
+        return;
+      }
+
+      if (isDemoToken) {
+        if (!savedUser) {
+          console.warn('🧪 Demo token found without saved user data');
+          dispatch({ type: 'AUTH_ERROR', payload: null });
+          return;
+        }
+
+        dispatch({ type: 'AUTH_SUCCESS', payload: { user: savedUser, token } });
         return;
       }
 
@@ -123,17 +137,26 @@ export function AuthProvider({ children }) {
         dispatch({ type: 'AUTH_SUCCESS', payload: { user, token } });
         scheduleAutoLogout(token);
       } catch (err) {
-        console.warn('Token validation failed, using saved user:', err.message);
-        try {
-          const user = savedUser;
-          if (!user.id || !user.email) throw new Error('Invalid saved user data');
-          dispatch({ type: 'AUTH_SUCCESS', payload: { user, token } });
-          scheduleAutoLogout(token);
-        } catch (parseError) {
-          console.error('Failed to parse saved user:', parseError);
+        const errorMessage = err?.message || 'Token validation failed';
+        const isAuthFailure = /token|unauthori|not authorized|401/i.test(errorMessage);
+
+        if (isAuthFailure) {
+          console.error('🔒 Stored token was rejected by the backend:', errorMessage);
           clearAuthSession();
-          dispatch({ type: 'AUTH_ERROR', payload: null });
+          dispatch({ type: 'AUTH_ERROR', payload: 'Session expired. Please log in again.' });
+          return;
         }
+
+        if (savedUser?.id && savedUser?.email) {
+          console.warn('Token validation failed, using saved user:', errorMessage);
+          dispatch({ type: 'AUTH_SUCCESS', payload: { user: savedUser, token } });
+          scheduleAutoLogout(token);
+          return;
+        }
+
+        console.error('Failed to recover user from storage:', errorMessage);
+        clearAuthSession();
+        dispatch({ type: 'AUTH_ERROR', payload: null });
       }
     };
 
@@ -145,7 +168,7 @@ export function AuthProvider({ children }) {
   }, [scheduleAutoLogout, readStorageUser]);
 
   const login = async (email, password, options = {}) => {
-    const { remember = false } = options;
+    const { remember = true } = options;
     dispatch({ type: 'AUTH_INIT' });
     try {
       const { user, token } = await authService.login(email, password);

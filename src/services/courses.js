@@ -1,6 +1,7 @@
 import apiClient from './apiClient';
 import { mockCourses } from '../data/mockCourses';
 import { getApiErrorMessage } from './apiError';
+import { clearAuthSession, getAccessToken } from '../utils/tokenStorage';
 
 // =========================================
 // COURSES API SERVICE
@@ -20,6 +21,18 @@ import { getApiErrorMessage } from './apiError';
  * @returns {Promise<Array>} Array of course objects
  */
 export async function getAllCourses(filters = {}) {
+  const token = getAccessToken();
+  const isDemoToken = typeof token === 'string' && token.startsWith('demo-token-');
+
+  if (!token && typeof window !== 'undefined') {
+    console.error('🚨 Missing token before fetching courses');
+    clearAuthSession();
+    if (!window.location.pathname.startsWith('/login')) {
+      window.location.href = '/login';
+    }
+    throw new Error('Not authorized, no token');
+  }
+
   try {
     const queryParams = new URLSearchParams();
     
@@ -99,6 +112,23 @@ export async function getAllCourses(filters = {}) {
     
     return courses;
   } catch (error) {
+    if (error.response?.status === 401 || /not authorized|no token|token/i.test(error.message || '')) {
+      console.error('🚨 Unauthorized while fetching courses:', error.message);
+
+      if (isDemoToken) {
+        console.warn('🧪 Demo token request was rejected, using mock courses fallback');
+      } else {
+        if (typeof window !== 'undefined') {
+          clearAuthSession();
+          if (!window.location.pathname.startsWith('/login')) {
+            window.location.href = '/login';
+          }
+        }
+
+        throw error;
+      }
+    }
+
     console.warn('⚠️ API request failed, falling back to mock courses:', error.message);
     
     // Return mock courses as fallback
@@ -119,6 +149,18 @@ export async function getAllCourses(filters = {}) {
  * @returns {Promise<Object>} Course object
  */
 export async function getCourseById(courseId) {
+  const token = getAccessToken();
+  const isDemoToken = typeof token === 'string' && token.startsWith('demo-token-');
+
+  if (!token && typeof window !== 'undefined') {
+    console.error('🚨 Missing token before fetching course details');
+    clearAuthSession();
+    if (!window.location.pathname.startsWith('/login')) {
+      window.location.href = '/login';
+    }
+    throw new Error('Not authorized, no token');
+  }
+
   try {
     console.warn(`🔍 Attempting to fetch course ${courseId} from API...`);
     
@@ -151,6 +193,23 @@ export async function getCourseById(courseId) {
       console.warn(`✅ Course ${courseId} fetched successfully from API`);
       return formatted;
     } catch (apiError) {
+      if (apiError.response?.status === 401 || /not authorized|no token|token/i.test(apiError.message || '')) {
+        console.error(`🚨 Unauthorized while fetching course ${courseId}:`, apiError.message);
+
+        if (!isDemoToken) {
+          if (typeof window !== 'undefined') {
+            clearAuthSession();
+            if (!window.location.pathname.startsWith('/login')) {
+              window.location.href = '/login';
+            }
+          }
+
+          throw apiError;
+        }
+
+        console.warn('🧪 Demo token request was rejected, falling back to cached course data');
+      }
+
       console.warn(`⚠️ API fetch failed for course ${courseId}, attempting fallback...`, apiError.message);
       
       // Fallback: Search in getAllCourses

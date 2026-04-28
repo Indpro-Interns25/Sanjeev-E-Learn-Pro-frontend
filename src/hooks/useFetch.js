@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/apiClient';
 import { useAuth } from './useAuth';
 
 export function useFetch(url, options = {}) {
@@ -22,7 +22,7 @@ export function useFetch(url, options = {}) {
           signal: abortController.signal,
         };
 
-        const response = await axios(url, config);
+        const response = await apiClient(url, config);
         setData(response.data);
         setError(null);
       } catch (err) {

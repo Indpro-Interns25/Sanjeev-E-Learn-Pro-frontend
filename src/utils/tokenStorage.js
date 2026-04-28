@@ -12,9 +12,13 @@ function safeParse(value) {
 }
 
 function readStorage(key) {
+  const fromLocal = localStorage.getItem(key);
+  if (fromLocal) return fromLocal;
+
   const fromSession = sessionStorage.getItem(key);
   if (fromSession) return fromSession;
-  return localStorage.getItem(key);
+
+  return null;
 }
 
 function removeFromAll(key) {
@@ -31,17 +35,25 @@ export function getAuthUser() {
 }
 
 export function setAuthSession({ token, user, remember = false }) {
-  const storage = remember ? localStorage : sessionStorage;
-  const otherStorage = remember ? sessionStorage : localStorage;
-
   if (token) {
-    storage.setItem(ACCESS_TOKEN_KEY, token);
-    otherStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    if (remember) {
+      sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+    } else {
+      sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
+    }
   }
 
   if (user) {
-    storage.setItem(USER_KEY, JSON.stringify(user));
-    otherStorage.removeItem(USER_KEY);
+    const serializedUser = JSON.stringify(user);
+
+    if (remember) {
+      localStorage.setItem(USER_KEY, serializedUser);
+      sessionStorage.removeItem(USER_KEY);
+    } else {
+      sessionStorage.setItem(USER_KEY, serializedUser);
+      localStorage.removeItem(USER_KEY);
+    }
   }
 }
 
