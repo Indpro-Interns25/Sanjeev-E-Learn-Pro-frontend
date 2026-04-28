@@ -38,18 +38,6 @@ export async function getAllCourses(filters = {}) {
     timestamp: new Date().toISOString()
   });
 
-  if (!effectiveToken && typeof window !== 'undefined') {
-    console.error('🚨 API ERROR: Missing token before fetching courses', {
-      timestamp: new Date().toISOString(),
-      pathname: window.location.pathname
-    });
-    clearAuthSession();
-    if (!window.location.pathname.startsWith('/login')) {
-      window.location.href = '/login';
-    }
-    throw new Error('Not authorized, no token');
-  }
-
   try {
     const queryParams = new URLSearchParams();
     
@@ -147,14 +135,16 @@ export async function getAllCourses(filters = {}) {
       if (isDemoToken) {
         console.warn('🧪 Demo token request was rejected, using mock courses fallback');
       } else {
-        if (typeof window !== 'undefined') {
+        if (effectiveToken && typeof window !== 'undefined') {
           clearAuthSession();
           if (!window.location.pathname.startsWith('/login')) {
             window.location.href = '/login';
           }
         }
 
-        throw error;
+        if (effectiveToken) {
+          throw error;
+        }
       }
     }
 
@@ -180,15 +170,6 @@ export async function getAllCourses(filters = {}) {
 export async function getCourseById(courseId) {
   const token = getAccessToken();
   const isDemoToken = typeof token === 'string' && token.startsWith('demo-token-');
-
-  if (!token && typeof window !== 'undefined') {
-    console.error('🚨 Missing token before fetching course details');
-    clearAuthSession();
-    if (!window.location.pathname.startsWith('/login')) {
-      window.location.href = '/login';
-    }
-    throw new Error('Not authorized, no token');
-  }
 
   try {
     console.warn(`🔍 Attempting to fetch course ${courseId} from API...`);
@@ -226,14 +207,16 @@ export async function getCourseById(courseId) {
         console.error(`🚨 Unauthorized while fetching course ${courseId}:`, apiError.message);
 
         if (!isDemoToken) {
-          if (typeof window !== 'undefined') {
+          if (token && typeof window !== 'undefined') {
             clearAuthSession();
             if (!window.location.pathname.startsWith('/login')) {
               window.location.href = '/login';
             }
           }
 
-          throw apiError;
+          if (token) {
+            throw apiError;
+          }
         }
 
         console.warn('🧪 Demo token request was rejected, falling back to cached course data');

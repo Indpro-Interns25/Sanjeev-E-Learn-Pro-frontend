@@ -42,7 +42,17 @@ function isPublicAuthEndpoint(path) {
   return PUBLIC_AUTH_PATHS.some((endpoint) => path.includes(endpoint));
 }
 
-function isProtectedUserEndpoint(path) {
+function isProtectedUserEndpoint(path, method = 'get') {
+  const normalizedMethod = String(method || 'get').toLowerCase();
+
+  // Allow public course browsing on read-only requests.
+  if (path.startsWith('/api/courses')) {
+    const isReadOnly = normalizedMethod === 'get' || normalizedMethod === 'head' || normalizedMethod === 'options';
+    if (isReadOnly) {
+      return false;
+    }
+  }
+
   return PROTECTED_USER_PATHS.some((endpoint) => path.startsWith(endpoint));
 }
 
@@ -151,7 +161,7 @@ apiClient.interceptors.request.use(
     // ═══════════════════════════════════════════════════════════════════════════
     // Get token from both localStorage AND sessionStorage for mobile persistence
     const accessToken = getTokenFromAllStorages() || getAccessToken();
-    const needsUserAuth = isProtectedUserEndpoint(requestPath);
+    const needsUserAuth = isProtectedUserEndpoint(requestPath, config.method);
 
     console.debug('🔍 Token Check:', {
       endpoint: requestPath,
@@ -217,6 +227,7 @@ apiClient.interceptors.response.use(
       const isAuthEndpoint = isPublicAuthEndpoint(requestPath);
       const hasDemoUserToken = isDemoToken(getAccessToken());
       const hasDemoAdminToken = isDemoToken(getAdminToken());
+      const hasRealUserToken = !!getAccessToken() && !hasDemoUserToken;
 
       console.error('🚨 Unauthorized API response:', {
         method: error.config?.method?.toUpperCase(),
@@ -228,7 +239,7 @@ apiClient.interceptors.response.use(
         if (isAdminEndpoint) {
           clearAdminSession();
           safeRedirect('/admin-login');
-        } else {
+        } else if (hasRealUserToken) {
           clearAuthSession();
           safeRedirect('/login');
         }
