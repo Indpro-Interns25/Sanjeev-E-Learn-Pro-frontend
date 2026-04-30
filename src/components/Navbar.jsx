@@ -1,14 +1,40 @@
 
 import { Navbar, Container, Nav, NavDropdown, Button, Badge } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../hooks/useAuth';
+import { getAccessToken, getAuthUser } from '../utils/tokenStorage';
 import NotificationBell from './NotificationBell';
 import '../styles/globals.css';
+
+function getUserFromToken(token) {
+  if (!token || typeof token !== 'string' || token.startsWith('demo-')) {
+    return null;
+  }
+
+  try {
+    const decoded = jwtDecode(token);
+
+    return {
+      role: decoded?.role || decoded?.user?.role || decoded?.userRole || null,
+      name: decoded?.name || decoded?.user?.name || decoded?.username || null,
+      email: decoded?.email || decoded?.user?.email || null,
+      avatar: decoded?.avatar || decoded?.user?.avatar || null
+    };
+  } catch {
+    return null;
+  }
+}
 
 export default function AppNavbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
-  const isAdmin = isAuthenticated && user?.role === 'admin';
+
+  const storedUser = getAuthUser();
+  const token = getAccessToken();
+  const tokenUser = getUserFromToken(token);
+  const resolvedUser = user || storedUser || tokenUser || null;
+  const isAdmin = Boolean((isAuthenticated || token || resolvedUser) && resolvedUser?.role === 'admin');
 
   const handleLogout = () => {
     logout();
@@ -78,7 +104,7 @@ export default function AppNavbar() {
 
           {/* Right nav */}
           <Nav className="align-items-lg-center gap-1">
-            {!isAuthenticated ? (
+            {!isAuthenticated && !resolvedUser ? (
               <div className="d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-center">
                 <Button as={Link} to="/login" variant="outline-primary" size="sm">
                   Login
@@ -86,24 +112,21 @@ export default function AppNavbar() {
                 <Button as={Link} to="/register" variant="primary" size="sm">
                   Sign Up
                 </Button>
-                <Button
-                  as={Link}
-                  to="/admin-login"
-                  variant="outline-dark"
-                  size="sm"
-                >
-                  🔒 Admin
-                </Button>
               </div>
             ) : (
-              <>
+              <div className="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                {isAdmin && (
+                  <Button as={Link} to="/admin-dashboard" variant="outline-dark" size="sm">
+                    Admin Panel
+                  </Button>
+                )}
                 <NotificationBell />
                 <NavDropdown
                   title={
                     <span className="d-flex align-items-center gap-2">
-                      {user?.avatar ? (
+                      {resolvedUser?.avatar ? (
                         <img
-                          src={user.avatar}
+                          src={resolvedUser.avatar}
                           alt="avatar"
                           className="responsive-img rounded-circle img-avatar-28"
                           loading="lazy"
@@ -120,54 +143,54 @@ export default function AppNavbar() {
                             color: '#ffffff'
                           }}
                         >
-                          {(user?.name?.[0] || 'U').toUpperCase()}
+                          {(resolvedUser?.name?.[0] || 'U').toUpperCase()}
                         </div>
                       )}
                       <span className="d-none d-lg-inline" style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {user?.name || 'Profile'}
+                        {resolvedUser?.name || 'Profile'}
                       </span>
                     </span>
                   }
                   id="profile-dropdown"
                   align="end"
                 >
-                {/* User info header */}
-                <div className="px-3 py-2 border-bottom" style={{ minWidth: 200 }}>
-                  <div className="fw-semibold" style={{ fontSize: '0.9rem' }}>{user?.name || 'User'}</div>
-                  <div className="text-muted" style={{ fontSize: '0.75rem' }}>{user?.email}</div>
-                  <Badge bg={user?.role === 'student' ? 'primary' : user?.role === 'instructor' ? 'success' : 'danger'}
-                    className="text-capitalize mt-1 px-2 py-1" style={{ fontSize: '0.65rem' }}>
-                    {user?.role}
-                  </Badge>
-                </div>
+                  {/* User info header */}
+                  <div className="px-3 py-2 border-bottom" style={{ minWidth: 200 }}>
+                    <div className="fw-semibold" style={{ fontSize: '0.9rem' }}>{resolvedUser?.name || 'User'}</div>
+                    <div className="text-muted" style={{ fontSize: '0.75rem' }}>{resolvedUser?.email}</div>
+                    <Badge bg={resolvedUser?.role === 'student' ? 'primary' : resolvedUser?.role === 'instructor' ? 'success' : 'danger'}
+                      className="text-capitalize mt-1 px-2 py-1" style={{ fontSize: '0.65rem' }}>
+                      {resolvedUser?.role}
+                    </Badge>
+                  </div>
 
-                <NavDropdown.Item as={Link} to={dashboardLink}>
-                  <i className="bi bi-speedometer2 me-2" />Dashboard
-                </NavDropdown.Item>
+                  <NavDropdown.Item as={Link} to={dashboardLink}>
+                    <i className="bi bi-speedometer2 me-2" />Dashboard
+                  </NavDropdown.Item>
 
-                {user?.role === 'student' && (
-                  <>
-                    <NavDropdown.Item as={Link} to="/student/profile">
+                  {resolvedUser?.role === 'student' && (
+                    <>
+                      <NavDropdown.Item as={Link} to="/student/profile">
+                        <i className="bi bi-person me-2" />Profile
+                      </NavDropdown.Item>
+                      <NavDropdown.Item as={Link} to="/student/my-learning">
+                        <i className="bi bi-collection-play me-2" />My Learning
+                      </NavDropdown.Item>
+                    </>
+                  )}
+
+                  {resolvedUser?.role === 'instructor' && (
+                    <NavDropdown.Item as={Link} to="/instructor/profile">
                       <i className="bi bi-person me-2" />Profile
                     </NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/student/my-learning">
-                      <i className="bi bi-collection-play me-2" />My Learning
-                    </NavDropdown.Item>
-                  </>
-                )}
-
-                {user?.role === 'instructor' && (
-                  <NavDropdown.Item as={Link} to="/instructor/profile">
-                    <i className="bi bi-person me-2" />Profile
-                  </NavDropdown.Item>
-                )}
+                  )}
 
                   <NavDropdown.Divider />
                   <NavDropdown.Item onClick={handleLogout} className="text-danger">
                     <i className="bi bi-box-arrow-right me-2" />Logout
                   </NavDropdown.Item>
                 </NavDropdown>
-              </>
+              </div>
             )}
           </Nav>
         </Navbar.Collapse>

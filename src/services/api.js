@@ -235,6 +235,18 @@ apiClient.interceptors.response.use(
         message: error.response?.data?.message || error.message
       });
 
+        // If this was a read-only courses request, do not force a redirect to login.
+        // Let the caller handle fallback to mock data instead (prevents mobile forcing login when token is missing).
+        try {
+          const method = (error.config?.method || '').toLowerCase();
+          if (method === 'get' && requestPath.startsWith('/api/courses')) {
+            console.warn('⚠️ Read-only courses request returned 401 — skipping automatic redirect');
+            return Promise.reject(error);
+          }
+        } catch (e) {
+          // ignore and continue with normal flow
+        }
+
       if (!isAuthEndpoint && !hasDemoUserToken && !hasDemoAdminToken) {
         if (isAdminEndpoint) {
           clearAdminSession();
