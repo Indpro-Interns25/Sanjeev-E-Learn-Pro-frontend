@@ -4,6 +4,7 @@
  */
 import jsPDF from 'jspdf';
 import { API_URL } from '../config/config';
+import apiClient from './api';
 
 /**
  * Generate a unique certificate ID
@@ -363,21 +364,14 @@ export function getCertificateSummary(certificate) {
  */
 export async function submitCertificateToBackend(certificate) {
   try {
-    const response = await fetch(`${API_URL}/api/certificates`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(certificate)
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      const res = await apiClient.post('/api/certificates', certificate);
+      console.warn('✅ Certificate submitted to backend:', res.data);
+      return res.data;
+    } catch (err) {
+      console.warn('⚠️ Certificate submit failed via apiClient, falling back:', err?.message || err);
+      throw err;
     }
-
-    const data = await response.json();
-    console.warn('✅ Certificate submitted to backend:', data);
-    return data;
   } catch (error) {
     console.warn('⚠️ Could not submit to backend, using localStorage:', error.message);
     return null;

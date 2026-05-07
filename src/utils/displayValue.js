@@ -10,3 +10,7 @@ export function toDisplayText(value, fallback = 'N/A') {
   }
   return fallback;
 }
+
+export const renderSafe = toDisplayText;
+
+export default toDisplayText;

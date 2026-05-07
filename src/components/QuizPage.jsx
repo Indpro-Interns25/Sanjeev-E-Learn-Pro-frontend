@@ -6,6 +6,7 @@ import QuestionCard from './QuestionCard';
 import ResultPage from './ResultPage';
 import { getCourseQuiz, submitQuizAnswers } from '../services/quizAPI';
 import { API_URL } from '../config/config';
+import apiClient from '../services/api';
 import '../styles/quiz-interface.css';
 
 export default function QuizPage() {
@@ -43,8 +44,8 @@ export default function QuizPage() {
         if (courseId) {
           quizData = await getCourseQuiz(courseId);
         } else if (quizId) {
-          const response = await fetch(`${API_URL}/api/quiz/${quizId}`);
-          quizData = await response.json();
+          const res = await apiClient.get(`/api/quiz/${quizId}`);
+          quizData = res.data || res.data?.data || null;
         }
 
         if (!quizData) {

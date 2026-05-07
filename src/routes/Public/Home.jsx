@@ -2,7 +2,7 @@
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
+import apiClient from '../../services/api';
 import { toDisplayText } from '../../utils/displayValue';
 import '../../styles/home-page.css';
 
@@ -28,12 +28,11 @@ export default function Home() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const normalizedApiUrl = (API_URL || '').replace(/\/+$/, '');
-        const response = await axios.get(`${normalizedApiUrl}/api/stats`);
+        const response = await apiClient.get('/api/stats');
         const nextStats = {
-          users: Number(response.data?.users) || 0,
-          courses: Number(response.data?.courses) || 0,
-          rating: Number(response.data?.rating) || 0
+          users: Number(response.data?.users || response.data?.data?.users) || 0,
+          courses: Number(response.data?.courses || response.data?.data?.courses) || 0,
+          rating: Number(response.data?.rating || response.data?.data?.rating) || 0
         };
 
         setStats(nextStats);
