@@ -83,11 +83,15 @@ export async function register(userData) {
 // Token validation with real API
 export async function validateToken(token) {
   try {
-    const response = await apiClient.get('/auth/me', {
-      headers: {
+    const requestConfig = {};
+
+    if (token) {
+      requestConfig.headers = {
         Authorization: `Bearer ${token}`
-      }
-    });
+      };
+    }
+
+    const response = await apiClient.get('/auth/me', requestConfig);
 
     return response.data.user;
   } catch (error) {

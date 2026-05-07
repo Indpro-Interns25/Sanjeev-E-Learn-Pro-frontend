@@ -105,37 +105,43 @@ export function AuthProvider({ children }) {
       const token = getAccessToken();
       const savedUser = readStorageUser();
 
-      if (!token) {
-        console.warn('🔒 No stored auth token found');
-        dispatch({ type: 'AUTH_ERROR', payload: null });
-        return;
-      }
+      try {
+        if (!token) {
+          console.warn('🔒 No stored auth token found, trying cookie-based session');
+        }
 
-      const isDemoToken = token.startsWith('demo-token-') || token.startsWith('demo-admin-');
+        const isDemoToken = token?.startsWith('demo-token-') || token?.startsWith('demo-admin-');
 
-      // Reject expired real JWTs before even hitting the network
-      if (!isDemoToken && isTokenExpired(token)) {
-        console.warn('🔒 Stored token is expired — clearing session');
-        clearAuthSession();
-        dispatch({ type: 'AUTH_ERROR', payload: 'Session expired. Please log in again.' });
-        return;
-      }
-
-      if (isDemoToken) {
-        if (!savedUser) {
-          console.warn('🧪 Demo token found without saved user data');
-          dispatch({ type: 'AUTH_ERROR', payload: null });
+        // Reject expired real JWTs before even hitting the network
+        if (token && !isDemoToken && isTokenExpired(token)) {
+          console.warn('🔒 Stored token is expired — clearing session');
+          clearAuthSession();
+          dispatch({ type: 'AUTH_ERROR', payload: 'Session expired. Please log in again.' });
           return;
         }
 
-        dispatch({ type: 'AUTH_SUCCESS', payload: { user: savedUser, token } });
-        return;
-      }
+        if (isDemoToken) {
+          if (!savedUser) {
+            console.warn('🧪 Demo token found without saved user data');
+            dispatch({ type: 'AUTH_ERROR', payload: null });
+            return;
+          }
 
-      try {
+          dispatch({ type: 'AUTH_SUCCESS', payload: { user: savedUser, token } });
+          return;
+        }
+
         const user = await authService.validateToken(token);
+
+        if (!user) {
+          throw new Error('Invalid or expired session');
+        }
+
         dispatch({ type: 'AUTH_SUCCESS', payload: { user, token } });
-        scheduleAutoLogout(token);
+
+        if (token) {
+          scheduleAutoLogout(token);
+        }
       } catch (err) {
         const errorMessage = err?.message || 'Token validation failed';
         const isAuthFailure = /token|unauthori|not authorized|401/i.test(errorMessage);
@@ -172,13 +178,14 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'AUTH_INIT' });
     try {
       const { user, token } = await authService.login(email, password);
-      
-      // CRITICAL FIX FOR MOBILE: Store token in BOTH localStorage and sessionStorage
-      console.log('📱 TOKEN: Storing in both localStorage and sessionStorage');
-      localStorage.setItem('token', token);
-      sessionStorage.setItem('token', token);
-      
-      // Also store user data
+
+      if (token) {
+        // Keep the token available for both refresh and same-session requests.
+        console.log('📱 TOKEN: Storing in both localStorage and sessionStorage');
+        localStorage.setItem('token', token);
+        sessionStorage.setItem('token', token);
+      }
+
       if (user) {
         localStorage.setItem('user', JSON.stringify(user));
         sessionStorage.setItem('user', JSON.stringify(user));
@@ -186,7 +193,9 @@ export function AuthProvider({ children }) {
       
       setAuthSession({ token, user, remember });
       dispatch({ type: 'AUTH_SUCCESS', payload: { user, token } });
-      scheduleAutoLogout(token);
+      if (token) {
+        scheduleAutoLogout(token);
+      }
       return user;
     } catch (error) {
       console.warn('Backend login failed, using demo user:', error.message);

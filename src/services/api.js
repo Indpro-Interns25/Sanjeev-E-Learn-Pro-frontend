@@ -161,14 +161,13 @@ apiClient.interceptors.request.use(
     // ═══════════════════════════════════════════════════════════════════════════
     // Get token from both localStorage AND sessionStorage for mobile persistence
     const accessToken = getTokenFromAllStorages() || getAccessToken();
-    const needsUserAuth = isProtectedUserEndpoint(requestPath, config.method);
-
     console.debug('🔍 Token Check:', {
       endpoint: requestPath,
       hasToken: !!accessToken,
       tokenExists: !!accessToken,
       isDemoToken: accessToken ? isDemoToken(accessToken) : false,
-      needsAuth: needsUserAuth
+      needsAuth: isProtectedUserEndpoint(requestPath, config.method),
+      cookiesEnabled: true
     });
 
     if (accessToken && !isDemoToken(accessToken)) {
@@ -187,16 +186,8 @@ apiClient.interceptors.request.use(
       return config;
     }
 
-    if (needsUserAuth) {
-      console.error('🚨 API ERROR:', {
-        message: 'Missing token for protected request',
-        endpoint: requestPath,
-        method: config.method?.toUpperCase(),
-        timestamp: new Date().toISOString()
-      });
-      clearAuthSession();
-      safeRedirect('/login');
-      return Promise.reject(new Error('Not authorized, no token'));
+    if (isProtectedUserEndpoint(requestPath, config.method)) {
+      console.debug('🍪 Protected request will rely on Authorization header or browser cookies:', requestPath);
     }
 
     if (isPublicAuthEndpoint(requestPath) && config.headers.Authorization) {
@@ -227,8 +218,6 @@ apiClient.interceptors.response.use(
       const isAuthEndpoint = isPublicAuthEndpoint(requestPath);
       const hasDemoUserToken = isDemoToken(getAccessToken());
       const hasDemoAdminToken = isDemoToken(getAdminToken());
-      const hasRealUserToken = !!getAccessToken() && !hasDemoUserToken;
-
       console.error('🚨 Unauthorized API response:', {
         method: error.config?.method?.toUpperCase(),
         url: requestPath,
@@ -251,7 +240,7 @@ apiClient.interceptors.response.use(
         if (isAdminEndpoint) {
           clearAdminSession();
           safeRedirect('/admin-login');
-        } else if (hasRealUserToken) {
+        } else {
           clearAuthSession();
           safeRedirect('/login');
         }
