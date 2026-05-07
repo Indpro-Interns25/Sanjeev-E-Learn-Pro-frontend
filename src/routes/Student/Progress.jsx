@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { mockCourses } from '../../data/mockCourses';
 import DashboardLayout from '../../components/DashboardLayout';
+import { toDisplayText } from '../../utils/displayValue';
 
 export default function Progress() {
   const { user } = useAuth();
@@ -81,10 +82,10 @@ export default function Progress() {
                       <h5 className="mb-1">{course.title}</h5>
                       <p className="text-muted mb-0">
                         <i className="bi bi-person-circle me-1"></i>
-                        {course.instructor.name}
+                        {toDisplayText(course.instructor?.name || course.instructor, 'Instructor')}
                       </p>
                       <small className="text-muted">
-                        {course.category} • {course.level}
+                        {toDisplayText(course.category, 'General')} • {toDisplayText(course.level, 'Beginner')}
                       </small>
                     </div>
                     <Link

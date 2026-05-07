@@ -1,12 +1,27 @@
 import { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Button, Badge, Alert, Modal, Spinner } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getAllCourses } from '../../services/courses';
 import { getUserEnrollments, enrollUserInCourse, canUserAccessLesson } from '../../services/enrollment';
 import { getAllLessons } from '../../services/lessons';
 
+function toDisplayText(value, fallback = 'N/A') {
+  if (value == null) return fallback;
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) {
+    const parts = value.map((item) => toDisplayText(item, '')).filter(Boolean);
+    return parts.length ? parts.join(', ') : fallback;
+  }
+  if (typeof value === 'object') {
+    return value?.name || value?.title || value?._id || value?.id || fallback;
+  }
+  return fallback;
+}
+
 export default function StudentCourses() {
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
   const [lessons, setLessons] = useState([]);
@@ -206,18 +221,18 @@ export default function StudentCourses() {
                     <div className="d-flex justify-content-between align-items-start mb-2">
                       <Badge bg={course.level === 'beginner' ? 'success' : 
                                 course.level === 'intermediate' ? 'warning' : 'info'}>
-                        {course.level}
+                        {toDisplayText(course.level, 'Beginner')}
                       </Badge>
-                      <span className="text-muted">{course.category}</span>
+                      <span className="text-muted">{toDisplayText(course.category, 'General')}</span>
                     </div>
                     
-                    <h5 className="card-title">{course.title}</h5>
-                    <p className="card-text text-muted">{course.description}</p>
+                    <h5 className="card-title">{toDisplayText(course.title, 'Course')}</h5>
+                    <p className="card-text text-muted">{toDisplayText(course.description, '')}</p>
                   </div>
 
                   <div className="mb-3">
                     <div className="d-flex justify-content-between text-sm">
-                      <span><i className="bi bi-person me-1"></i>{course.instructor}</span>
+                      <span><i className="bi bi-person me-1"></i>{toDisplayText(course.instructor, course.instructor_name || 'Unknown Instructor')}</span>
                       <span><i className="bi bi-clock me-1"></i>{course.duration_display || (course.duration_number || course.duration_number === 0 ? `${course.duration_number} minutes` : course.duration)}</span>
                     </div>
                     <div className="d-flex justify-content-between text-sm mt-1">
@@ -362,9 +377,9 @@ export default function StudentCourses() {
                       <div className="d-flex justify-content-between align-items-center">
                         <div>
                           <h6 className="mb-1">
-                            {index + 1}. {lesson.title}
+                            {index + 1}. {toDisplayText(lesson.title, 'Untitled Lesson')}
                           </h6>
-                          <p className="mb-1 text-muted">{lesson.description}</p>
+                          <p className="mb-1 text-muted">{toDisplayText(lesson.description, '')}</p>
                           <small className="text-muted">
                             <i className="bi bi-clock me-1"></i>{lesson.duration_display || (lesson.duration_number || lesson.duration_number === 0 ? `${lesson.duration_number} minutes` : lesson.duration)}
                           </small>

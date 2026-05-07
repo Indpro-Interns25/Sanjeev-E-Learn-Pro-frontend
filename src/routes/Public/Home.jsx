@@ -3,6 +3,7 @@ import { Container, Row, Col, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+import { toDisplayText } from '../../utils/displayValue';
 import '../../styles/home-page.css';
 
 export default function Home() {
@@ -309,7 +310,7 @@ export default function Home() {
                   </div>
                   <div className="course-content">
                     <h5 className="course-title">{course.title}</h5>
-                    <p className="course-instructor">{course.instructor}</p>
+                    <p className="course-instructor">{toDisplayText(course.instructor, 'Instructor')}</p>
                     <div className="course-meta">
                       <span className="course-rating">
                         ⭐ {course.rating} ({course.reviews.toLocaleString()})

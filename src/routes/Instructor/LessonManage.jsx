@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import LessonForm from '../../components/forms/LessonForm';
 import { getCourseById } from '../../data/mockCourses';
 import { getLessonsByCourse } from '../../data/mockLessons';
+import { toDisplayText } from '../../utils/displayValue';
 
 export default function LessonManage() {
   const { courseId } = useParams();
@@ -161,7 +162,7 @@ export default function LessonManage() {
                               <i className="bi bi-grip-vertical"></i>
                             </div>
                             <div className="flex-grow-1">
-                              <h3 className="h6 mb-1">{lesson.title}</h3>
+                              <h3 className="h6 mb-1">{toDisplayText(lesson.title, 'Untitled Lesson')}</h3>
                               <small className="text-muted">
                                 Duration: {formatDuration(lesson)}
                               </small>

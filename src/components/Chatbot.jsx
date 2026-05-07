@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { mockCourses } from '../data/mockCourses';
+import { toDisplayText } from '../utils/displayValue';
 
 // ─── Course Knowledge Base ────────────────────────────────────────────────────
 
@@ -9,10 +10,10 @@ const FREE_LABEL = 'Free';
 
 function courseCard(course) {
   return `📚 **${course.title}**
-• Category: ${course.category}  |  Level: ${course.level}
-• Instructor: ${course.instructor.name}
-• Duration: ${course.duration}  |  Price: ${FREE_LABEL}
-• Rating: ⭐ ${course.rating}/5`;
+• Category: ${toDisplayText(course.category, 'General')}  |  Level: ${toDisplayText(course.level, 'Beginner')}
+• Instructor: ${toDisplayText(course.instructor?.name || course.instructor, 'Instructor')}
+• Duration: ${toDisplayText(course.duration, 'Self-paced')}  |  Price: ${FREE_LABEL}
+• Rating: ⭐ ${toDisplayText(course.rating, '0')}/5`;
 }
 
 function matchCourse(query) {
@@ -22,7 +23,7 @@ function matchCourse(query) {
       c.title.toLowerCase().includes(q) ||
       c.description.toLowerCase().includes(q) ||
       c.category.toLowerCase().includes(q) ||
-      c.instructor.name.toLowerCase().includes(q)
+      toDisplayText(c.instructor?.name || c.instructor, '').toLowerCase().includes(q)
   );
 }
 
@@ -154,7 +155,7 @@ function getBotResponse(userMessage) {
     if (found.length > 0) {
       const course = found[0];
       const topics = course.curriculum?.map((t) => `  ✓ ${t}`).join('\n') || 'Curriculum details coming soon.';
-      return `📖 **${course.title} – Curriculum**:\n\n${topics}\n\n📌 Level: ${course.level} | Duration: ${course.duration} | Price: ${FREE_LABEL}`;
+      return `📖 **${toDisplayText(course.title, 'Course')} – Curriculum**:\n\n${topics}\n\n📌 Level: ${toDisplayText(course.level, 'Beginner')} | Duration: ${toDisplayText(course.duration, 'Self-paced')} | Price: ${FREE_LABEL}`;
     }
   }
 

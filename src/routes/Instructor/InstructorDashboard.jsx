@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { mockCourses } from '../../data/mockCourses';
 import DashboardLayout from '../../components/DashboardLayout';
+import { toDisplayText } from '../../utils/displayValue';
 
 export default function InstructorDashboard() {
   const { user } = useAuth();
 
   // In a real app, this would be filtered by instructor ID
-  const instructorCourses = mockCourses.filter(course => course.instructor.id === user.id);
+  const instructorCourses = mockCourses.filter(course => course.instructor?.id === user?.id);
 
   const stats = {
     totalCourses: instructorCourses.length,
@@ -120,8 +121,8 @@ export default function InstructorDashboard() {
                 <Card.Body>
                   <Card.Title as="h5">{course.title}</Card.Title>
                   <div className="mb-3">
-                    <span className="badge bg-primary me-2">{course.category}</span>
-                    <span className="badge bg-secondary">{course.level}</span>
+                    <span className="badge bg-primary me-2">{toDisplayText(course.category, 'General')}</span>
+                    <span className="badge bg-secondary">{toDisplayText(course.level, 'Beginner')}</span>
                   </div>
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <small className="text-muted">

@@ -5,6 +5,7 @@ import { getAdminStats, getAllCoursesAdmin, getAllLessonsAdmin, getAllStudents, 
 import { createLesson, updateLesson } from '../services/lessons';
 import { createCourse } from '../services/courses';
 import { getUserEnrollments } from '../services/enrollment';
+import { toDisplayText } from '../utils/displayValue';
 
 export default function AdminLanding() {
   const navigate = useNavigate();
@@ -469,11 +470,11 @@ export default function AdminLanding() {
                           </div>
                         </td>
                         <td>
-                          <Badge bg="secondary">{course.category}</Badge>
+                          <Badge bg="secondary">{toDisplayText(course.category, 'General')}</Badge>
                         </td>
                         <td>
                           <Badge bg={course.level === 'beginner' ? 'success' : course.level === 'intermediate' ? 'warning' : 'danger'}>
-                            {course.level}
+                            {toDisplayText(course.level, 'Beginner')}
                           </Badge>
                         </td>
                         <td>
@@ -538,7 +539,7 @@ export default function AdminLanding() {
                       <tr key={lesson.id}>
                         <td>
                           <div>
-                            <strong>{lesson.title}</strong>
+                            <strong>{toDisplayText(lesson.title, 'Untitled Lesson')}</strong>
                             <br />
                             <small className="text-muted">{lesson.description?.substring(0, 50)}...</small>
                           </div>

@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { getUserEnrollments } from '../../services/enrollment';
 import { getAllCourses } from '../../services/courses';
 import { getAllLessons } from '../../services/lessons';
+import { toDisplayText } from '../../utils/displayValue';
 
 export default function EnrolledCourseView() {
   const { courseId } = useParams();
@@ -170,9 +171,9 @@ export default function EnrolledCourseView() {
               <div className="d-flex gap-2">
                 <Badge bg={course.level === 'beginner' ? 'success' : 
                           course.level === 'intermediate' ? 'warning' : 'info'}>
-                  {course.level}
+                  {toDisplayText(course.level, 'Beginner')}
                 </Badge>
-                <Badge bg="secondary">{course.category}</Badge>
+                <Badge bg="secondary">{toDisplayText(course.category, 'General')}</Badge>
               </div>
             </div>
 
@@ -181,11 +182,11 @@ export default function EnrolledCourseView() {
               <Card.Body>
                 <Row className="align-items-center">
                   <Col md={8}>
-                    <p className="mb-2">{course.description}</p>
+                    <p className="mb-2">{toDisplayText(course.description, '')}</p>
                     <div className="d-flex gap-4 text-muted small">
                       <span>
                         <i className="bi bi-person me-1"></i>
-                        {course.instructor?.name || course.instructor_name || course.instructor}
+                        {toDisplayText(course.instructor?.name || course.instructor || course.instructor_name, 'Instructor')}
                       </span>
                       <span><i className="bi bi-clock me-1"></i>{formatDuration(course)}</span>
                       <span>
@@ -252,7 +253,7 @@ export default function EnrolledCourseView() {
                           </div>
                           <div className="flex-grow-1">
                             <div className="fw-medium text-dark mb-1">
-                              {lesson.title}
+                              {toDisplayText(lesson.title, 'Untitled Lesson')}
                             </div>
                             <small className="text-muted d-block">
                               <i className="bi bi-clock me-1"></i>

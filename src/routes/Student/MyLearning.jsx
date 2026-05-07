@@ -8,6 +8,19 @@ import { getCourseById } from '../../services/courses';
 import { getLessonsByCourse } from '../../data/mockLessons';
 import { getUserWatchTimes, getCourseProgress, getSavedCourseProgress } from '../../services/watchTime';
 
+function toDisplayText(value, fallback = 'N/A') {
+  if (value == null) return fallback;
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) {
+    const parts = value.map((item) => toDisplayText(item, '')).filter(Boolean);
+    return parts.length ? parts.join(', ') : fallback;
+  }
+  if (typeof value === 'object') {
+    return value?.name || value?.title || value?._id || value?.id || fallback;
+  }
+  return fallback;
+}
+
 // Find the next lesson to continue with based on progress
 function getNextLessonId(courseId, userId) {
   const lessons = getLessonsByCourse(courseId);
@@ -260,8 +273,8 @@ export default function MyLearning() {
                     loading="lazy"
                   />
                   <div>
-                    <h5 className="mb-0">{course.title}</h5>
-                    <small className="text-muted">{course.category} &bull; {course.level}</small>
+                    <h5 className="mb-0">{toDisplayText(course.title, 'Untitled Course')}</h5>
+                    <small className="text-muted">{toDisplayText(course.category, 'General')} &bull; {toDisplayText(course.level, 'Beginner')}</small>
                   </div>
                 </div>
                 <div className="text-end">
@@ -308,7 +321,7 @@ export default function MyLearning() {
                             ) : (
                               <i className="bi bi-play-circle text-muted me-2"></i>
                             )}
-                            {lesson.title}
+                            {toDisplayText(lesson.title, 'Untitled Lesson')}
                           </div>
                         </td>
                         <td>

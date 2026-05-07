@@ -18,6 +18,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import AddLectureForm from '../../components/AddLectureForm';
 import LectureList from '../../components/LectureList';
 import { useUi } from '../../context/ui-context';
+import { toDisplayText } from '../../utils/displayValue';
 import {
   fetchLectures,
   deleteLecture,
@@ -150,7 +151,7 @@ export default function LectureManage() {
               <p className="text-muted mb-0">
                 {course.title}
                 {course.category && (
-                  <Badge bg="primary" className="ms-2" style={{ fontSize: '0.7rem' }}>{course.category}</Badge>
+                  <Badge bg="primary" className="ms-2" style={{ fontSize: '0.7rem' }}>{toDisplayText(course.category, 'General')}</Badge>
                 )}
               </p>
             )}

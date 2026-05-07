@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { getUserEnrollments } from '../../services/enrollment';
 import { getCourseById } from '../../services/courses';
 import DashboardLayout from '../../components/DashboardLayout';
+import { toDisplayText } from '../../utils/displayValue';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -249,7 +250,7 @@ export default function StudentDashboard() {
 
                     <div className="d-flex justify-content-between align-items-center mt-auto">
                       <div>
-                        <span className="badge bg-primary me-1">{course.category}</span>
+                        <span className="badge bg-primary me-1">{toDisplayText(course.category, 'General')}</span>
                         <small className="text-muted">
                           <i className="bi bi-star-fill text-warning me-1" />
                           {parseFloat(course.rating || 0).toFixed(1)}

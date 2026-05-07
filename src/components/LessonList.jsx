@@ -1,5 +1,6 @@
 import { ListGroup, Button, Badge } from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import { toDisplayText } from '../utils/displayValue';
 
 export default function LessonList({ lessons, currentLessonId, onLessonSelect, userProgress }) {
   return (
@@ -30,7 +31,7 @@ export default function LessonList({ lessons, currentLessonId, onLessonSelect, u
               )}
               
               <div>
-                <div className="fw-medium">{lesson.title}</div>
+                <div className="fw-medium">{toDisplayText(lesson.title, 'Untitled Lesson')}</div>
                 <small className="text-muted d-block">
                   <i className="bi bi-clock me-1"></i>
                   {getDisplayDuration(lesson)}

@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useVideoProgress } from '../../hooks/useVideoProgress';
 import { getCourseById } from '../../data/mockCourses';
 import { getLessonById, getLessonsByCourse } from '../../data/mockLessons';
+import { toDisplayText } from '../../utils/displayValue';
 import {
   saveVideoProgress,
   getVideoProgress,
@@ -279,11 +280,11 @@ export default function LessonPlayer() {
                   className="p-0 text-decoration-none"
                   onClick={() => navigate(isStudentMode ? `/student/courses/${courseId}` : `/courses/${courseId}`)}
                 >
-                  {course.title}
+                  {toDisplayText(course.title, 'Course')}
                 </Button>
               </li>
               <li className="breadcrumb-item active" aria-current="page">
-                {lesson.title}
+                {toDisplayText(lesson.title, 'Untitled Lesson')}
               </li>
             </ol>
           </nav>
@@ -291,7 +292,7 @@ export default function LessonPlayer() {
           <div className="mb-4 rounded overflow-hidden shadow-sm">
             <VideoPlayer
               videoUrl={currentVideo}
-              title={lesson.title}
+              title={toDisplayText(lesson.title, 'Untitled Lesson')}
               playlistId={coursePlaylistId}
               onProgress={(progressPercent) => {
                 if (user && isStudentMode && progressPercent > 0) {
@@ -331,7 +332,7 @@ export default function LessonPlayer() {
             <Card.Body>
               <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
                 <div>
-                  <h1 className="h4 mb-1">{lesson.title}</h1>
+                  <h1 className="h4 mb-1">{toDisplayText(lesson.title, 'Untitled Lesson')}</h1>
                   <small className="text-muted">
                     {lesson.duration && <><i className="bi bi-clock me-1"></i>{lesson.duration}</>}
                     {lesson.type && <span className="ms-3 text-capitalize"><i className="bi bi-play-circle me-1"></i>{lesson.type}</span>}
@@ -345,7 +346,7 @@ export default function LessonPlayer() {
               </div>
 
               {lesson.description && (
-                <p className="text-muted mt-3 mb-0">{lesson.description}</p>
+                <p className="text-muted mt-3 mb-0">{toDisplayText(lesson.description, '')}</p>
               )}
 
               {lesson.content && (

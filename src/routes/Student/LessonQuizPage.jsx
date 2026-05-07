@@ -8,6 +8,7 @@ import { getLessonQuiz, submitLessonQuiz } from '../../services/quiz';
 import { getLessonProgressStatus } from '../../services/videoProgressTracker';
 import QuizComponent from '../../components/QuizComponent';
 import { useUi } from '../../context/ui-context';
+import { toDisplayText } from '../../utils/displayValue';
 
 /**
  * Lesson-Specific Quiz Page
@@ -189,7 +190,7 @@ export default function LessonQuizPage() {
                   className="p-0 text-decoration-none"
                   onClick={handleBackToLesson}
                 >
-                  {lesson.title}
+                  {toDisplayText(lesson.title, 'Untitled Lesson')}
                 </Button>
               </li>
               <li className="breadcrumb-item active" aria-current="page">
@@ -203,7 +204,7 @@ export default function LessonQuizPage() {
             <Card.Body className="p-4">
               <Row className="align-items-center">
                 <Col md={8}>
-                  <h1 className="h4 mb-1">{lesson.title} - Assessment</h1>
+                  <h1 className="h4 mb-1">{toDisplayText(lesson.title, 'Untitled Lesson')} - Assessment</h1>
                   <p className="text-muted mb-0">
                     <i className="bi bi-file-earmark-text me-1"></i>
                     {quiz.questions?.length || 0} questions

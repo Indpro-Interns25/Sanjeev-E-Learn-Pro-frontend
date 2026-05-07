@@ -13,6 +13,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getCourseById } from '../../data/mockCourses';
 import { loadRazorpayScript, createOrder, verifyPayment } from '../../services/payment';
+import { toDisplayText } from '../../utils/displayValue';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_YOUR_KEY';
@@ -218,7 +219,7 @@ export default function Payment() {
                   <li className="mb-1"><i className="bi bi-play-btn me-2 text-primary" />{course.lessons.length} lessons</li>
                 )}
                 {course.level && (
-                  <li className="mb-1"><i className="bi bi-bar-chart me-2 text-primary" />{course.level}</li>
+                  <li className="mb-1"><i className="bi bi-bar-chart me-2 text-primary" />{toDisplayText(course.level, 'Beginner')}</li>
                 )}
                 <li className="mb-1"><i className="bi bi-infinity me-2 text-primary" />Lifetime access</li>
                 <li><i className="bi bi-award me-2 text-primary" />Certificate of completion</li>

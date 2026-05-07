@@ -8,6 +8,19 @@ import { getCourseCurriculum } from '../../services/lessons';
 import { enrollUserInCourse, getUserEnrollments, getCourseEnrollmentCount } from '../../services/enrollment';
 import Comments from '../../components/Comments';
 
+function toDisplayText(value, fallback = 'N/A') {
+  if (value == null) return fallback;
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) {
+    const parts = value.map((item) => toDisplayText(item, '')).filter(Boolean);
+    return parts.length ? parts.join(', ') : fallback;
+  }
+  if (typeof value === 'object') {
+    return value?.name || value?.title || value?._id || value?.id || fallback;
+  }
+  return fallback;
+}
+
 export default function CourseDetail() {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -369,27 +382,27 @@ export default function CourseDetail() {
       <Row>
         <Col lg={8}>
           <div className="position-relative mb-4 rounded-4 overflow-hidden shadow-lg">
-            <img
+              <img
               src={course.thumbnail}
-              alt={course.title}
+              alt={toDisplayText(course.title, 'Untitled Course')}
               className="img-fluid w-100 responsive-img img-ratio-hero"
               style={{ filter: 'brightness(0.6)' }}
               loading="lazy"
             />
             <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-end p-4" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.8) 100%)', pointerEvents: 'none' }}>
-              <h1 className="text-white fw-bold mb-2" style={{ textShadow: '0 2px 8px #000' }}>{course.title}</h1>
+              <h1 className="text-white fw-bold mb-2" style={{ textShadow: '0 2px 8px #000' }}>{toDisplayText(course.title, 'Untitled Course')}</h1>
               <div className="d-flex gap-2 mb-2">
-                <Badge bg="primary" className="fs-6 px-3 py-1 rounded-pill">{course.category}</Badge>
-                <Badge bg="secondary" className="fs-6 px-3 py-1 rounded-pill">{course.level}</Badge>
+                <Badge bg="primary" className="fs-6 px-3 py-1 rounded-pill">{toDisplayText(course.category, 'General')}</Badge>
+                <Badge bg="secondary" className="fs-6 px-3 py-1 rounded-pill">{toDisplayText(course.level, 'Beginner')}</Badge>
               </div>
               <div className="d-flex align-items-center mb-2">
                 <img
                   src="https://placehold.co/40x40.webp?text=I"
-                  alt={course.instructor?.name || course.instructor_name || 'Instructor'}
+                  alt={toDisplayText(course.instructor?.name || course.instructor || course.instructor_name, 'Instructor')}
                   className="responsive-img rounded-circle me-2 border border-2 border-white img-avatar-40"
                   loading="lazy"
                 />
-                <span className="text-white fw-semibold">{course.instructor?.name || course.instructor_name || 'Instructor'}</span>
+                <span className="text-white fw-semibold">{toDisplayText(course.instructor?.name || course.instructor || course.instructor_name, 'Instructor')}</span>
               </div>
               <div className="d-flex align-items-center">
                 <div className="text-warning">
@@ -423,7 +436,7 @@ export default function CourseDetail() {
               <Tab.Pane eventKey="overview">
                 <div className="py-3">
                   <h4 className="fw-bold mb-3"><i className="bi bi-info-circle me-2"></i>About This Course</h4>
-                  <p className="fs-5 text-muted">{course.description}</p>
+                  <p className="fs-5 text-muted">{toDisplayText(course.description, '')}</p>
 
                   <h4 className="fw-bold mt-4 mb-3"><i className="bi bi-lightbulb me-2"></i>What You&apos;ll Learn</h4>
                   <ul className="mb-4">
@@ -447,7 +460,7 @@ export default function CourseDetail() {
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <h4 className="mb-0 fw-bold"><i className="bi bi-list-ol me-2"></i>Course Content</h4>
                     <div className="text-muted">
-                      {totalLessons} lessons • {course.duration || '10 weeks'}
+                      {totalLessons} lessons • {toDisplayText(course.duration, '10 weeks')}
                     </div>
                   </div>
 
@@ -460,8 +473,8 @@ export default function CourseDetail() {
                               <span className="badge bg-primary">{lesson.order_sequence || index + 1}</span>
                             </div>
                             <div className="flex-grow-1">
-                              <h5 className="mb-1">{lesson.title}</h5>
-                              <p className="mb-1 text-muted">{lesson.description || `Lesson ${lesson.order_sequence || index + 1} content`}</p>
+                              <h5 className="mb-1">{toDisplayText(lesson.title, 'Untitled Lesson')}</h5>
+                              <p className="mb-1 text-muted">{toDisplayText(lesson.description, `Lesson ${lesson.order_sequence || index + 1} content`)}</p>
                               <small className="text-secondary">
                                 <i className="bi bi-clock me-1"></i>
                                 {lesson.duration || '10 min'}
@@ -730,25 +743,25 @@ export default function CourseDetail() {
               <div className="text-center mb-4">
                 <img
                   src={course.thumbnail}
-                  alt={course.title}
+                  alt={toDisplayText(course.title, 'Course')}
                   className="img-fluid rounded responsive-img img-ratio-16-9"
                   loading="lazy"
                 />
               </div>
               
-              <h5 className="text-center mb-3">{course.title}</h5>
+              <h5 className="text-center mb-3">{toDisplayText(course.title, 'Course')}</h5>
               
               <div className="mb-3">
                 <div className="d-flex justify-content-between mb-2">
                   <span>Course Level:</span>
                   <Badge bg={course.level === 'beginner' ? 'success' : 
                             course.level === 'intermediate' ? 'warning' : 'info'}>
-                    {course.level}
+                    {toDisplayText(course.level, 'Beginner')}
                   </Badge>
                 </div>
                 <div className="d-flex justify-content-between mb-2">
                   <span>Duration:</span>
-                  <span>{course.duration}</span>
+                  <span>{toDisplayText(course.duration, 'Self-paced')}</span>
                 </div>
                 <div className="d-flex justify-content-between mb-2">
                   <span>Lessons:</span>

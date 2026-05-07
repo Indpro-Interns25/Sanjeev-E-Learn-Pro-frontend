@@ -1,6 +1,7 @@
 import { Modal, Button } from 'react-bootstrap';
 import VideoPlayer from './VideoPlayer';
 import PropTypes from 'prop-types';
+import { toDisplayText } from '../utils/displayValue';
 
 export default function VideoPreviewModal({ course, show, onHide }) {
   if (!course) return null;
@@ -14,12 +15,12 @@ export default function VideoPreviewModal({ course, show, onHide }) {
       className="video-preview-modal"
     >
       <Modal.Header closeButton className="border-0">
-        <Modal.Title>{course.title}</Modal.Title>
+        <Modal.Title>{toDisplayText(course.title, 'Course')}</Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-0">
         <VideoPlayer
           videoUrl={course.previewVideo}
-          title={course.title}
+          title={toDisplayText(course.title, 'Course')}
           autoPlay={true}
         />
         
@@ -28,31 +29,31 @@ export default function VideoPreviewModal({ course, show, onHide }) {
             <h5 className="mb-0">Course Preview</h5>
           </div>
           
-          <p className="text-muted mb-3">{course.description}</p>
+          <p className="text-muted mb-3">{toDisplayText(course.description, '')}</p>
           
           <div className="row g-3">
             <div className="col-md-6">
               <div className="d-flex align-items-center">
                 <i className="bi bi-person-badge me-2 text-primary"></i>
-                <span><strong>Instructor:</strong> {course.instructor.name}</span>
+                <span><strong>Instructor:</strong> {toDisplayText(course.instructor?.name || course.instructor, 'Instructor')}</span>
               </div>
             </div>
             <div className="col-md-6">
               <div className="d-flex align-items-center">
                 <i className="bi bi-clock me-2 text-info"></i>
-                <span><strong>Duration:</strong> {course.duration}</span>
+                <span><strong>Duration:</strong> {toDisplayText(course.duration, 'Self-paced')}</span>
               </div>
             </div>
             <div className="col-md-6">
               <div className="d-flex align-items-center">
                 <i className="bi bi-bar-chart me-2 text-warning"></i>
-                <span><strong>Level:</strong> {course.level}</span>
+                <span><strong>Level:</strong> {toDisplayText(course.level, 'Beginner')}</span>
               </div>
             </div>
             <div className="col-md-6">
               <div className="d-flex align-items-center">
                 <i className="bi bi-people me-2 text-success"></i>
-                <span><strong>Enrolled:</strong> {course.enrolled.toLocaleString()} students</span>
+                <span><strong>Enrolled:</strong> {Number(course.enrolled || 0).toLocaleString()} students</span>
               </div>
             </div>
           </div>
@@ -64,9 +65,9 @@ export default function VideoPreviewModal({ course, show, onHide }) {
               </div>
               <div className="text-warning small">
                 {[...Array(5)].map((_, i) => (
-                  <i key={i} className={`bi bi-star${i < Math.round(course.rating) ? '-fill' : ''}`}></i>
+                  <i key={i} className={`bi bi-star${i < Math.round(Number(course.rating || 0)) ? '-fill' : ''}`}></i>
                 ))}
-                <span className="ms-1">{course.rating.toFixed(1)}</span>
+                <span className="ms-1">{Number(course.rating || 0).toFixed(1)}</span>
               </div>
             </div>
             <div className="d-flex gap-2">

@@ -6,6 +6,19 @@ import { getUserEnrollments } from '../../services/enrollment';
 import { getAllCourses } from '../../services/courses';
 import { getAllLessons } from '../../services/lessons';
 
+function toDisplayText(value, fallback = 'N/A') {
+  if (value == null) return fallback;
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) {
+    const parts = value.map((item) => toDisplayText(item, '')).filter(Boolean);
+    return parts.length ? parts.join(', ') : fallback;
+  }
+  if (typeof value === 'object') {
+    return value?.name || value?.title || value?._id || value?.id || fallback;
+  }
+  return fallback;
+}
+
 export default function MyEnrolledCourses() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -164,7 +177,7 @@ export default function MyEnrolledCourses() {
                     <div className="mb-4">
                       <div className="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                          <h2 className="h3 mb-2">{course.title}</h2>
+                          <h2 className="h3 mb-2">{toDisplayText(course.title, 'Untitled Course')}</h2>
                           <nav aria-label="breadcrumb">
                             <ol className="breadcrumb">
                               <li className="breadcrumb-item">
@@ -173,7 +186,7 @@ export default function MyEnrolledCourses() {
                                 </Button>
                               </li>
                               <li className="breadcrumb-item active" aria-current="page">
-                                {course.title}
+                                {toDisplayText(course.title, 'Untitled Course')}
                               </li>
                             </ol>
                           </nav>
@@ -181,9 +194,9 @@ export default function MyEnrolledCourses() {
                         <div className="d-flex gap-2">
                           <Badge bg={course.level === 'beginner' ? 'success' : 
                                     course.level === 'intermediate' ? 'warning' : 'info'}>
-                            {course.level}
+                            {toDisplayText(course.level, 'Beginner')}
                           </Badge>
-                          <Badge bg="secondary">{course.category}</Badge>
+                          <Badge bg="secondary">{toDisplayText(course.category, 'General')}</Badge>
                         </div>
                       </div>
 
@@ -192,9 +205,9 @@ export default function MyEnrolledCourses() {
                         <Card.Body>
                           <Row className="align-items-center">
                             <Col md={8}>
-                              <p className="mb-2">{course.description}</p>
+                              <p className="mb-2">{toDisplayText(course.description, '')}</p>
                               <div className="d-flex gap-4 text-muted small">
-                                <span><i className="bi bi-person me-1"></i>{course.instructor?.name || course.instructor_name}</span>
+                                <span><i className="bi bi-person me-1"></i>{toDisplayText(course.instructor?.name || course.instructor || course.instructor_name, 'Instructor')}</span>
                                 <span><i className="bi bi-clock me-1"></i>{formatDuration(course)}</span>
                                 <span><i className="bi bi-calendar-check me-1"></i>Enrolled: {course.enrolled_date ? new Date(course.enrolled_date).toLocaleDateString() : 'Recently'}</span>
                               </div>
@@ -257,7 +270,7 @@ export default function MyEnrolledCourses() {
                                     </div>
                                     <div className="flex-grow-1">
                                       <div className="fw-medium text-dark mb-1">
-                                        {lesson.title}
+                                        {toDisplayText(lesson.title, 'Untitled Lesson')}
                                       </div>
                                       <small className="text-muted d-block">
                                         <i className="bi bi-clock me-1"></i>

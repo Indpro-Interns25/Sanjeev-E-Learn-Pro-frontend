@@ -3,6 +3,7 @@ import { useState } from 'react';
 import VideoPlayer from '../../components/VideoPlayer';
 import VideoPreviewModal from '../../components/VideoPreviewModal';
 import { mockCourses } from '../../data/mockCourses';
+import { toDisplayText } from '../../utils/displayValue';
 
 export default function VideoDemo() {
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -167,14 +168,14 @@ export default function VideoDemo() {
               </div>
               <Card.Body>
                 <div className="d-flex gap-2 mb-2">
-                  <Badge bg="primary">{course.category}</Badge>
-                  <Badge bg="secondary">{course.level}</Badge>
+                  <Badge bg="primary">{toDisplayText(course.category, 'General')}</Badge>
+                  <Badge bg="secondary">{toDisplayText(course.level, 'Beginner')}</Badge>
                 </div>
-                <Card.Title className="h5">{course.title}</Card.Title>
+                <Card.Title className="h5">{toDisplayText(course.title, 'Course')}</Card.Title>
                 <Card.Text className="text-muted small">
-                  {course.description.length > 100 
-                    ? `${course.description.substring(0, 100)}...` 
-                    : course.description}
+                  {toDisplayText(course.description, '').length > 100 
+                    ? `${toDisplayText(course.description, '').substring(0, 100)}...` 
+                    : toDisplayText(course.description, '')}
                 </Card.Text>
                 <div className="d-flex justify-content-between align-items-center mt-auto">
                   <div>

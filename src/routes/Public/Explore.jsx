@@ -2,6 +2,7 @@ import { Container, Row, Col, Button, Form, InputGroup, Dropdown, Carousel, Spin
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { searchCourses, getCourseCategories, getFeaturedCourses, formatCoursesData, getAllCourses } from '../../services/courses';
+import { toDisplayText } from '../../utils/displayValue';
 
 const features = [
   {
@@ -241,10 +242,10 @@ export default function Explore() {
                         loading="lazy"
                       />
                       <Carousel.Caption>
-                        <h5>{course.title}</h5>
-                        <p>{course.description.length > 100 ? course.description.substring(0, 100) + '...' : course.description}</p>
+                        <h5>{toDisplayText(course.title, 'Course')}</h5>
+                        <p>{toDisplayText(course.description, '').length > 100 ? `${toDisplayText(course.description, '').substring(0, 100)}...` : toDisplayText(course.description, '')}</p>
                         <p className="mb-1">
-                          <span className="badge bg-primary me-2">{course.level}</span>
+                          <span className="badge bg-primary me-2">{toDisplayText(course.level, 'Beginner')}</span>
                           <span className="badge bg-success me-2">{course.formattedPrice}</span>
                           <span className="badge bg-warning">⭐ {course.formattedRating}</span>
                         </p>
@@ -296,10 +297,10 @@ export default function Explore() {
                 {results.map(course => (
                   <Col key={course.id}>
                     <div className="card h-100 border-0 shadow-sm rounded-4">
-                      <img src={course.thumbnail} alt={course.title} className="card-img-top responsive-img img-ratio-card" loading="lazy" />
+                      <img src={course.thumbnail} alt={toDisplayText(course.title, 'Course')} className="card-img-top responsive-img img-ratio-card" loading="lazy" />
                       <div className="card-body d-flex flex-column">
-                        <h5 className="card-title">{course.title}</h5>
-                        <p className="card-text text-muted">{course.description}</p>
+                        <h5 className="card-title">{toDisplayText(course.title, 'Course')}</h5>
+                        <p className="card-text text-muted">{toDisplayText(course.description, '')}</p>
                         <Button as={Link} to={`/courses/${course.id}`} variant="outline-primary" className="mt-auto">View Details</Button>
                       </div>
                     </div>
