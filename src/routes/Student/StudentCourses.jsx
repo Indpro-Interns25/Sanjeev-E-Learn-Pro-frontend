@@ -352,7 +352,7 @@ export default function StudentCourses() {
                       }
                     </h3>
                     <p className="text-muted mb-1">
-                      <i className="bi bi-person me-1"></i>{selectedCourse.instructor}
+                      <i className="bi bi-person me-1"></i>{toDisplayText(selectedCourse.instructor, selectedCourse.instructor_name || 'Unknown Instructor')}
                     </p>
                     <p className="text-muted mb-1">
                       <i className="bi bi-clock me-1"></i>{selectedCourse.duration}

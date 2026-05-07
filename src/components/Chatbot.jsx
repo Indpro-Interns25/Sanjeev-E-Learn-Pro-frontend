@@ -125,13 +125,13 @@ function getBotResponse(userMessage) {
     const query = msg.replace(/instructor|teacher|taught by|who teach|who is|professor|the|course|for/gi, '').trim();
     const found = matchCourse(query);
     if (found.length > 0) {
-      const details = found
-        .slice(0, 3)
-        .map((c) => `• **${c.title}** is taught by **${c.instructor.name}**`)
-        .join('\n');
-      return `👨‍🏫 **Instructor Information**:\n\n${details}`;
+        const details = found
+          .slice(0, 3)
+          .map((c) => `• **${toDisplayText(c.title)}** is taught by **${toDisplayText(c.instructor?.name || c.instructor, 'Instructor')}**`)
+          .join('\n');
+        return `👨‍🏫 **Instructor Information**:\n\n${details}`;
     }
-    const instructors = [...new Set(mockCourses.map((c) => c.instructor.name))];
+    const instructors = [...new Set(mockCourses.map((c) => toDisplayText(c.instructor?.name || c.instructor, 'Instructor')))].filter(Boolean);
     return `👨‍🏫 **Our Instructors**:\n\n${instructors.map((i) => `• ${i}`).join('\n')}\n\nAsk about a specific course to learn who teaches it!`;
   }
 
@@ -179,7 +179,7 @@ function getBotResponse(userMessage) {
     if (found.length === 1) {
       const c = found[0];
       const topics = c.curriculum?.slice(0, 4).map((t) => `  ✓ ${t}`).join('\n') || '';
-      return `📚 **${c.title}**\n\n${c.description}\n\n**Details:**\n• Instructor: ${c.instructor.name}\n• Level: ${c.level}\n• Duration: ${c.duration}\n• Price: ${FREE_LABEL}\n• Rating: ⭐ ${c.rating}/5\n\n**You'll learn:**\n${topics}\n${c.curriculum?.length > 4 ? `  ... and ${c.curriculum.length - 4} more topics` : ''}`;
+        return `📚 **${c.title}**\n\n${c.description}\n\n**Details:**\n• Instructor: ${toDisplayText(c.instructor?.name || c.instructor, 'Instructor')}\n• Level: ${toDisplayText(c.level, 'Beginner')}\n• Duration: ${toDisplayText(c.duration, 'Self-paced')}\n• Price: ${FREE_LABEL}\n• Rating: ⭐ ${toDisplayText(c.rating, '0')}/5\n\n**You'll learn:**\n${topics}\n${c.curriculum?.length > 4 ? `  ... and ${c.curriculum.length - 4} more topics` : ''}`;
     }
     if (found.length > 1) {
       const list = found.slice(0, 5).map((c) => courseCard(c)).join('\n\n');
