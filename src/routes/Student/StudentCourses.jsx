@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Alert, Modal, Spinner } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Card, Button, Badge, Alert, Spinner } from 'react-bootstrap';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { getAllCourses } from '../../services/courses';
+import { getAllCourses, formatCoursesData } from '../../services/courses';
 import { getUserEnrollments, enrollUserInCourse, canUserAccessLesson } from '../../services/enrollment';
 import { getAllLessons } from '../../services/lessons';
 
@@ -29,8 +29,6 @@ export default function StudentCourses() {
   const [enrolling, setEnrolling] = useState(null);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState(null);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -50,7 +48,10 @@ export default function StudentCourses() {
         getAllLessons()
       ]);
 
-      setCourses(coursesData || []);
+      // Format courses data to match Explore formatting for consistency
+      const formattedCourses = formatCoursesData(coursesData || []);
+      
+      setCourses(formattedCourses);
       setEnrollments(enrollmentsData || []);
       setLessons(lessonsData || []);
 
@@ -142,30 +143,6 @@ export default function StudentCourses() {
     return enrollment?.progress_percentage || 0;
   };
 
-  const handleLessonAccess = async (lesson) => {
-    try {
-      const hasAccess = await canUserAccessLesson(user.id, lesson.id);
-      if (hasAccess) {
-        // Navigate to lesson player
-        window.location.href = `/student/lesson/${lesson.id}`;
-      } else {
-        showAlert('You need to enroll in this course to access lessons', 'warning');
-      }
-    } catch (err) {
-      console.error('Access check error:', err);
-      showAlert('Error checking lesson access', 'danger');
-    }
-  };
-
-  const viewCourseDetails = (course) => {
-    setSelectedCourse(course);
-    setShowModal(true);
-  };
-
-  const getCourseLessons = (courseId) => {
-    return lessons.filter(lesson => lesson.course_id === courseId);
-  };
-
   if (loading) {
     return (
       <Container className="py-5">
@@ -208,112 +185,166 @@ export default function StudentCourses() {
         </Alert>
       )}
 
-      <Row>
-        {courses.map(course => {
-          const enrolled = isEnrolled(course.id);
-          const progress = getEnrollmentProgress(course.id);
-          
-          return (
-            <Col key={course.id} lg={4} md={6} className="mb-4">
-              <Card className="h-100 shadow-sm">
-                <Card.Body className="d-flex flex-column">
-                  <div className="mb-3">
-                    <div className="d-flex justify-content-between align-items-start mb-2">
-                      <Badge bg={course.level === 'beginner' ? 'success' : 
-                                course.level === 'intermediate' ? 'warning' : 'info'}>
-                        {toDisplayText(course.level, 'Beginner')}
-                      </Badge>
-                      <span className="text-muted">{toDisplayText(course.category, 'General')}</span>
-                    </div>
-                    
-                    <h5 className="card-title">{toDisplayText(course.title, 'Course')}</h5>
-                    <p className="card-text text-muted">{toDisplayText(course.description, '')}</p>
-                  </div>
-
-                  <div className="mb-3">
-                    <div className="d-flex justify-content-between text-sm">
-                      <span><i className="bi bi-person me-1"></i>{toDisplayText(course.instructor, course.instructor_name || 'Unknown Instructor')}</span>
-                      <span><i className="bi bi-clock me-1"></i>{course.duration_display || (course.duration_number || course.duration_number === 0 ? `${course.duration_number} minutes` : course.duration)}</span>
-                    </div>
-                    <div className="d-flex justify-content-between text-sm mt-1">
-                      <span><i className="bi bi-play-circle me-1"></i>{course.lesson_count} lessons</span>
-                      <span className="fw-bold">
-                        {course.isFree === true
-                          ? <span className="text-success">Free</span>
-                          : <span className="text-success">Free</span>
-                        }
-                      </span>
-                    </div>
-                  </div>
-
-                  {enrolled && (
+      {courses.length > 0 ? (
+        <Row xs={1} md={2} lg={3} className="g-4">
+          {courses.map(course => {
+            const enrolled = isEnrolled(course.id);
+            const progress = getEnrollmentProgress(course.id);
+            
+            return (
+              <Col key={course.id}>
+                <div className="card h-100 border-0 shadow-sm rounded-4" style={{ overflow: 'hidden', transition: 'transform 0.2s', cursor: 'pointer' }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  {/* Thumbnail Image */}
+                  <img 
+                    src={course.thumbnail || 'https://images.unsplash.com/photo-1516534775068-bb57e39e054b?auto=format&fit=crop&w=500&q=60'} 
+                    alt={toDisplayText(course.title, 'Course')} 
+                    className="card-img-top responsive-img"
+                    style={{ height: '200px', objectFit: 'cover' }}
+                    loading="lazy" 
+                  />
+                  
+                  <div className="card-body d-flex flex-column">
+                    {/* Course Header */}
                     <div className="mb-3">
-                      <div className="d-flex justify-content-between text-sm mb-1">
-                        <span>Progress</span>
-                        <span>{progress}%</span>
+                      <div className="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                          <Badge bg="primary" className="me-2">
+                            {toDisplayText(course.category, 'General')}
+                          </Badge>
+                          <Badge bg={course.level === 'beginner' ? 'success' : 
+                                    course.level === 'intermediate' ? 'warning' : 'info'}>
+                            {toDisplayText(course.level, 'Beginner')}
+                          </Badge>
+                        </div>
+                        <div className="d-flex align-items-center">
+                          <img
+                            src="https://placehold.co/32x32.webp?text=I"
+                            alt={toDisplayText(course.instructor_name, 'Instructor')}
+                            className="rounded-circle me-2"
+                            style={{ width: '32px', height: '32px' }}
+                            loading="lazy"
+                          />
+                          <span className="small text-muted">
+                            {toDisplayText(course.instructor_name, 'Instructor')}
+                          </span>
+                        </div>
                       </div>
-                      <div className="progress" style={{ height: '6px' }}>
-                        <div 
-                          className="progress-bar" 
-                          role="progressbar" 
-                          style={{ width: `${progress}%` }}
-                        ></div>
+                      
+                      <h5 className="card-title">{toDisplayText(course.title, 'Course')}</h5>
+                      <p className="card-text text-muted" style={{ fontSize: '0.9rem' }}>
+                        {toDisplayText(course.description, '').length > 100
+                          ? `${toDisplayText(course.description, '').substring(0, 100)}...`
+                          : toDisplayText(course.description, '')}
+                      </p>
+                    </div>
+
+                    {/* Course Meta */}
+                    <div className="mb-3">
+                      <div className="d-flex justify-content-between text-muted small mb-2">
+                        <span>
+                          <i className="bi bi-clock me-1"></i>
+                          {course.duration || 'Self-paced'}
+                        </span>
+                        <span>
+                          <i className="bi bi-people me-1"></i>
+                          {course.enrolled || 0} enrolled
+                        </span>
+                      </div>
+                      <div className="d-flex justify-content-between align-items-center">
+                        <div>
+                          <strong className="h6 mb-0 text-success">
+                            {course.isFree === true ? 'Free' : 'Free'}
+                          </strong>
+                          <div className="text-warning small mt-1">
+                            {[...Array(5)].map((_, i) => (
+                              <i key={i} className={`bi bi-star${i < Math.round(parseFloat(course.rating || 0)) ? '-fill' : ''}`}></i>
+                            ))}
+                            <span className="ms-1 text-muted">{parseFloat(course.rating || 0).toFixed(1)}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  )}
 
-                  <div className="mt-auto">
-                    {enrolled ? (
-                      <div className="d-grid gap-2">
-                        <Button 
-                          variant="success" 
-                          onClick={() => viewCourseDetails(course)}
-                        >
-                          <i className="bi bi-play-circle me-2"></i>
-                          Continue Learning
-                        </Button>
-                        <Badge bg="success" className="text-center py-2">
-                          <i className="bi bi-check-circle me-1"></i>
-                          Enrolled
-                        </Badge>
-                      </div>
-                    ) : (
-                      <div className="d-grid gap-2">
-                        <Button 
-                          variant="outline-primary" 
-                          onClick={() => viewCourseDetails(course)}
-                        >
-                          <i className="bi bi-eye me-2"></i>
-                          View Details
-                        </Button>
-                        <Button 
-                          variant="primary" 
-                          onClick={() => handleEnrollment(course.id)}
-                          disabled={enrolling === course.id}
-                        >
-                          {enrolling === course.id ? (
-                            <>
-                              <span className="spinner-border spinner-border-sm me-2"></span>
-                              Enrolling...
-                            </>
-                          ) : (
-                            <>
-                              <i className="bi bi-bookmark-plus me-2"></i>
-                              Enroll Now
-                            </>
-                          )}
-                        </Button>
+                    {/* Progress Bar */}
+                    {enrolled && (
+                      <div className="mb-3">
+                        <div className="d-flex justify-content-between small mb-1">
+                          <span>Progress</span>
+                          <span className="fw-bold">{progress}%</span>
+                        </div>
+                        <div className="progress" style={{ height: '6px' }}>
+                          <div 
+                            className="progress-bar bg-success"
+                            role="progressbar" 
+                            style={{ width: `${progress}%` }}
+                          ></div>
+                        </div>
                       </div>
                     )}
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-          );
-        })}
-      </Row>
 
-      {courses.length === 0 && !loading && (
+                    {/* Action Buttons */}
+                    <div className="mt-auto d-flex gap-2 flex-wrap">
+                      {enrolled ? (
+                        <>
+                          <Button 
+                            as={Link}
+                            to={`/student/courses/${course.id}/learn`}
+                            variant="success" 
+                            size="sm"
+                            className="flex-grow-1 fw-bold"
+                          >
+                            <i className="bi bi-play-circle me-1"></i>
+                            Continue
+                          </Button>
+                          <Badge bg="success" className="py-2">
+                            <i className="bi bi-check-circle me-1"></i>
+                            Enrolled
+                          </Badge>
+                        </>
+                      ) : (
+                        <>
+                          <Button 
+                            as={Link}
+                            to={`/courses/${course.id}`}
+                            variant="outline-primary" 
+                            size="sm"
+                            className="flex-grow-1 fw-bold"
+                          >
+                            <i className="bi bi-eye me-1"></i>
+                            Details
+                          </Button>
+                          <Button 
+                            variant="primary" 
+                            size="sm"
+                            className="flex-grow-1 fw-bold"
+                            onClick={() => handleEnrollment(course.id)}
+                            disabled={enrolling === course.id}
+                          >
+                            {enrolling === course.id ? (
+                              <>
+                                <span className="spinner-border spinner-border-sm me-1"></span>
+                                Enrolling...
+                              </>
+                            ) : (
+                              <>
+                                <i className="bi bi-bookmark-plus me-1"></i>
+                                Enroll
+                              </>
+                            )}
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Col>
+            );
+          })}
+        </Row>
+      ) : !loading ? (
         <Row className="py-5">
           <Col className="text-center">
             <i className="bi bi-journal-bookmark display-1 text-muted"></i>
@@ -321,115 +352,9 @@ export default function StudentCourses() {
             <p className="text-muted">Check back later for new courses!</p>
           </Col>
         </Row>
-      )}
+      ) : null}
 
-      {/* Course Details Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>{selectedCourse?.title}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedCourse && (
-            <>
-              <Row className="mb-4">
-                <Col md={8}>
-                  <p className="lead">{selectedCourse.description}</p>
-                  <div className="mb-3">
-                    <Badge bg={selectedCourse.level === 'beginner' ? 'success' : 
-                              selectedCourse.level === 'intermediate' ? 'warning' : 'info'} 
-                           className="me-2">
-                      {selectedCourse.level}
-                    </Badge>
-                    <Badge bg="secondary">{selectedCourse.category}</Badge>
-                  </div>
-                </Col>
-                <Col md={4}>
-                  <div className="text-end">
-                    <h3>
-                      {selectedCourse.isFree === true
-                        ? <span className="text-success">Free</span>
-                        : <span className="text-success">Free</span>
-                      }
-                    </h3>
-                    <p className="text-muted mb-1">
-                      <i className="bi bi-person me-1"></i>{toDisplayText(selectedCourse.instructor, selectedCourse.instructor_name || 'Unknown Instructor')}
-                    </p>
-                    <p className="text-muted mb-1">
-                      <i className="bi bi-clock me-1"></i>{selectedCourse.duration}
-                    </p>
-                    <p className="text-muted">
-                      <i className="bi bi-play-circle me-1"></i>{selectedCourse.lesson_count} lessons
-                    </p>
-                  </div>
-                </Col>
-              </Row>
-
-              <h5>Course Lessons</h5>
-              <div className="list-group">
-                {getCourseLessons(selectedCourse.id).map((lesson, index) => {
-                  const enrolled = isEnrolled(selectedCourse.id);
-                  
-                  return (
-                    <div 
-                      key={lesson.id} 
-                      className={`list-group-item list-group-item-action ${!enrolled ? 'disabled' : ''}`}
-                    >
-                      <div className="d-flex justify-content-between align-items-center">
-                        <div>
-                          <h6 className="mb-1">
-                            {index + 1}. {toDisplayText(lesson.title, 'Untitled Lesson')}
-                          </h6>
-                          <p className="mb-1 text-muted">{toDisplayText(lesson.description, '')}</p>
-                          <small className="text-muted">
-                            <i className="bi bi-clock me-1"></i>{lesson.duration_display || (lesson.duration_number || lesson.duration_number === 0 ? `${lesson.duration_number} minutes` : lesson.duration)}
-                          </small>
-                        </div>
-                        <div>
-                          {enrolled ? (
-                            <Button 
-                              size="sm" 
-                              variant="outline-primary"
-                              onClick={() => handleLessonAccess(lesson)}
-                            >
-                              <i className="bi bi-play-circle me-1"></i>
-                              Watch
-                            </Button>
-                          ) : (
-                            <i className="bi bi-lock text-muted"></i>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                
-                {getCourseLessons(selectedCourse.id).length === 0 && (
-                  <div className="list-group-item text-center text-muted py-4">
-                    No lessons available for this course yet.
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Close
-          </Button>
-          {selectedCourse && !isEnrolled(selectedCourse.id) && (
-            <Button 
-              variant="primary" 
-              onClick={() => {
-                handleEnrollment(selectedCourse.id);
-                setShowModal(false);
-              }}
-              disabled={enrolling === selectedCourse.id}
-            >
-              {enrolling === selectedCourse.id ? 'Enrolling...' : 'Enroll Now'}
-            </Button>
-          )}
-        </Modal.Footer>
-      </Modal>
+      {/* Modal removed - use Link routing instead */}
     </Container>
   );
 }
