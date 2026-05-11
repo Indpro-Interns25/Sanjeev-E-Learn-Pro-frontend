@@ -53,6 +53,21 @@ function isProtectedUserEndpoint(path, method = 'get') {
     }
   }
 
+  // Allow public access to lesson/curriculum metadata for published courses (read-only)
+  if (path.includes('/lessons') || path.includes('/curriculum') || path.includes('/lectures')) {
+    const isReadOnly = normalizedMethod === 'get' || normalizedMethod === 'head' || normalizedMethod === 'options';
+    if (isReadOnly && (path.startsWith('/api/courses/') || path.startsWith('/api/lessons'))) {
+      return false;
+    }
+  }
+
+  // Allow public access to course comments read (public reviews are public metadata)
+  if (path.includes('/comments') && normalizedMethod === 'get') {
+    if (path.startsWith('/api/courses/')) {
+      return false;
+    }
+  }
+
   return PROTECTED_USER_PATHS.some((endpoint) => path.startsWith(endpoint));
 }
 
