@@ -145,16 +145,20 @@ export default function MyLearning() {
 
     // Listen for enrollment changes to refresh the list
     const handleEnrollmentChange = (event) => {
-      console.warn('🔄 Enrollment change detected, refreshing My Learning...', event.detail);
-      // Refresh after a short delay to ensure localStorage is updated
+      console.warn('✅ MyLearning received enrollmentChanged event:', event.detail);
+      console.warn('🔄 Refreshing My Learning in 500ms...');
+      // Refresh after a short delay to ensure backend data is updated
       setTimeout(() => {
+        console.warn('🔄 Executing fetchEnrolledCourses() after enrollment...');
         fetchEnrolledCourses();
       }, 500);
     };
 
+    console.warn('📝 Attaching enrollmentChanged event listener to window...');
     window.addEventListener('enrollmentChanged', handleEnrollmentChange);
 
     return () => {
+      console.warn('🔌 Removing enrollmentChanged event listener from window...');
       window.removeEventListener('enrollmentChanged', handleEnrollmentChange);
     };
   }, [user]);

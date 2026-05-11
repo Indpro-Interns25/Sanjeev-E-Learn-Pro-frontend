@@ -117,17 +117,23 @@ export default function StudentCourses() {
 
     setEnrolling(courseId);
     try {
-      await enrollUserInCourse(user.id, courseId);
+      console.warn(`🔄 Starting enrollment for user ${user.id} in course ${courseId}...`);
       
-      // Refresh enrollments
+      const enrollmentResult = await enrollUserInCourse(user.id, courseId);
+      console.warn('✅ Enrollment result:', enrollmentResult);
+      
+      // Refresh enrollments immediately
+      console.warn('🔄 Fetching updated enrollments for this page...');
       const updatedEnrollments = await getUserEnrollments(user.id);
+      console.warn('✅ Updated enrollments:', updatedEnrollments);
       setEnrollments(updatedEnrollments || []);
       
       const courseName = courses.find(c => c.id === courseId)?.title;
       showAlert(`Successfully enrolled in ${courseName}!`, 'success');
+      console.warn(`✅ Enrollment successful for course ${courseId}`);
       
     } catch (err) {
-      console.error('Enrollment error:', err);
+      console.error('🚨 Enrollment error:', err);
       showAlert(`Error enrolling in course: ${err.message}`, 'danger');
     } finally {
       setEnrolling(null);

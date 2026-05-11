@@ -90,9 +90,21 @@ export async function enrollUserInCourse(userId, courseId) {
       console.warn('✅ Backend enrollment successful:', response.data);
       
       // Dispatch custom event to notify other components of enrollment change
-      window.dispatchEvent(new CustomEvent('enrollmentChanged', {
-        detail: { userId: userIdNum, courseId: courseIdNum, enrollment: response.data }
-      }));
+      // Multiple attempts to ensure event listener receives it
+      const enrollmentEvent = new CustomEvent('enrollmentChanged', {
+        detail: { userId: userIdNum, courseId: courseIdNum, enrollment: response.data, source: 'backend' }
+      });
+      
+      console.warn('📢 Dispatching enrollmentChanged event (backend)...');
+      window.dispatchEvent(enrollmentEvent);
+      
+      // Re-dispatch after short delays to ensure listeners are ready
+      setTimeout(() => {
+        console.warn('📢 Re-dispatching enrollmentChanged event (backend, delay 1)...');
+        window.dispatchEvent(new CustomEvent('enrollmentChanged', {
+          detail: { userId: userIdNum, courseId: courseIdNum, enrollment: response.data, source: 'backend' }
+        }));
+      }, 100);
       
       return { 
         success: true, 
@@ -133,12 +145,22 @@ export async function enrollUserInCourse(userId, courseId) {
       localStorage.setItem('enrollments', JSON.stringify(localEnrollments));
       
       // Dispatch custom event to notify other components of enrollment change
-      window.dispatchEvent(new CustomEvent('enrollmentChanged', {
-        detail: { userId: userIdNum, courseId: courseIdNum, enrollment: newEnrollment }
-      }));
+      const enrollmentEvent = new CustomEvent('enrollmentChanged', {
+        detail: { userId: userIdNum, courseId: courseIdNum, enrollment: newEnrollment, source: 'localStorage' }
+      });
+      
+      console.warn('📢 Dispatching enrollmentChanged event (localStorage)...');
+      window.dispatchEvent(enrollmentEvent);
+      
+      // Re-dispatch after short delays to ensure listeners are ready
+      setTimeout(() => {
+        console.warn('📢 Re-dispatching enrollmentChanged event (localStorage, delay 1)...');
+        window.dispatchEvent(new CustomEvent('enrollmentChanged', {
+          detail: { userId: userIdNum, courseId: courseIdNum, enrollment: newEnrollment, source: 'localStorage' }
+        }));
+      }, 100);
       
       console.warn('✅ Enrollment successful (localStorage):', newEnrollment);
-      console.warn('📢 Dispatched enrollmentChanged event');
       
       return { 
         success: true, 
